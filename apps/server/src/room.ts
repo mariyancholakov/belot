@@ -155,7 +155,7 @@ export class Room {
       code: this.code,
       seats: this.seats.map((t) => {
         const m = t ? this.members.get(t) : undefined;
-        return m ? { nickname: m.nickname, connected: m.connected } : null;
+        return m ? { nickname: m.nickname, connected: m.connected, bot: m.bot === true } : null;
       }),
       watchers: [...this.members.values()].filter((m) => m.seat === null && m.connected).map((m) => m.nickname),
       host: this.members.get(this.host)?.nickname ?? "",

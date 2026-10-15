@@ -48,6 +48,8 @@ export type ClientMessage = z.infer<typeof clientMessageSchema>;
 export interface SeatInfo {
   nickname: string;
   connected: boolean;
+  /** A computer player. */
+  bot: boolean;
 }
 
 export interface RoomState {
