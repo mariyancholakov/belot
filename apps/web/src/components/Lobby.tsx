@@ -27,13 +27,13 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
     }
   };
 
-  // Seats 0+2 are one team, 1+3 the other; the grid mirrors the table (partners face each other).
-  const layout = [
-    { seat: 2, cls: "top" },
-    { seat: 3, cls: "left" },
-    { seat: 1, cls: "right" },
-    { seat: 0, cls: "bottom" },
-  ];
+  // Seats 0+2 are one team, 1+3 the other. Whoever is seated sees their own team first.
+  const mineParity = room.you === null ? 0 : room.you % 2;
+  const teams = [mineParity, 1 - mineParity].map((parity) => ({
+    parity,
+    label: room.you === null ? (parity === 0 ? bg.teamOneUnseated : bg.teamTwoUnseated) : parity === mineParity ? bg.teamUs : bg.teamThem,
+    seats: [parity, parity + 2],
+  }));
 
   return (
     <main className="lobby">
@@ -43,67 +43,70 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
         </button>
         <Controls />
       </div>
-      <div className="lobby-head">
-      <span className="eyebrow">{bg.roomCode}</span>
-      <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
-        {room.code}
-      </h1>
-      <button className="secondary small" onClick={copy}>
-        <Icon name={copied ? "check" : "copy"} size={16} /> {copied ? bg.copied : bg.copyLink}
-      </button>
-      <p className="muted">{bg.shareHint}</p>
 
-      <div className="stitch" aria-hidden="true" />
-      </div>
-
-      <div className="lobby-table" role="group" aria-label={bg.lobbyTableLabel} data-odd={room.you !== null && room.you % 2 === 1}>
-        <div className="lobby-felt" aria-hidden="true" />
-        {layout.map(({ seat, cls }) => {
-          const s = room.seats[seat];
-          const mine = room.you === seat;
-          const ours = room.you === null ? seat % 2 === 0 : seat % 2 === room.you % 2;
-          const team = room.you === null ? (seat % 2 === 0 ? bg.teamOneUnseated : bg.teamTwoUnseated) : seat % 2 === room.you % 2 ? bg.teamUs : bg.teamThem;
-          const partner = room.you !== null && !mine && (seat + 2) % 4 === room.you;
-          return (
-            <button key={seat} className={`lobby-seat ${cls} team${ours ? 0 : 1} ${mine ? "mine" : ""}`} disabled={!!s && !mine} onClick={() => onSit(seat)}>
-              {s ? (
-                <>
-                  <em className="team-tag">{team}</em>
-                  <b>{s.nickname}</b>
-                  <small>
-                    {[mine ? bg.you : partner ? bg.partnerOf : "", s.bot ? bg.bot : "", !s.connected && !s.bot ? bg.offline : "", room.host === s.nickname ? bg.host : ""].filter(Boolean).join(" · ")}
-                  </small>
-                </>
-              ) : (
-                <>
-                  <em className="team-tag">{team}</em>
-                  <span>{bg.takeSeat}</span>
-                </>
-              )}
+      <div className="lobby-panel">
+        <div className="lobby-code">
+          <span className="eyebrow">{bg.roomCode}</span>
+          <div className="code-row">
+            <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
+              {room.code}
+            </h1>
+            <button className="icon-btn" onClick={copy} aria-label={copied ? bg.copied : bg.copyLink} title={copied ? bg.copied : bg.copyLink}>
+              <Icon name={copied ? "check" : "copy"} size={20} />
             </button>
-          );
-        })}
-      </div>
+          </div>
+          <p className="muted">{bg.shareHint}</p>
+        </div>
 
-      <div className="lobby-foot">
-      {room.watchers.length > 0 && (
-        <p className="muted">
-          {bg.watching}: {room.watchers.join(", ")}
-        </p>
-      )}
+        <div className="stitch" aria-hidden="true" />
 
-      {room.youAreHost && !full && (
-        <button className="secondary" onClick={onAddBots}>
-          {bg.addBots}
-        </button>
-      )}
-      {room.youAreHost ? (
-        <button className="primary" disabled={!full} onClick={onStart}>
-          {full ? bg.start : bg.needFour}
-        </button>
-      ) : (
-        <p className="muted">{bg.waitHost}</p>
-      )}
+        <div className="teams" role="group" aria-label={bg.lobbyTableLabel}>
+          {teams.map((t) => (
+            <section key={t.parity} className={`team ${t.parity === mineParity ? "ours" : "theirs"}`}>
+              <h2>{t.label}</h2>
+              {t.seats.map((seat) => {
+                const s = room.seats[seat];
+                const mine = room.you === seat;
+                const partner = room.you !== null && !mine && (seat + 2) % 4 === room.you;
+                const note = s
+                  ? [mine ? bg.you : partner ? bg.partnerOf : "", s.bot ? bg.bot : "", !s.connected && !s.bot ? bg.offline : "", room.host === s.nickname ? bg.host : ""].filter(Boolean).join(" · ")
+                  : "";
+                return (
+                  <button key={seat} className={`slot ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} onClick={() => onSit(seat)}>
+                    <span className="slot-avatar" aria-hidden="true">
+                      {s ? [...s.nickname][0]?.toUpperCase() : "+"}
+                    </span>
+                    <span className="slot-text">
+                      <b>{s ? s.nickname : bg.takeSeat}</b>
+                      {note && <small>{note}</small>}
+                    </span>
+                  </button>
+                );
+              })}
+            </section>
+          ))}
+        </div>
+
+        {room.watchers.length > 0 && (
+          <p className="muted">
+            {bg.watching}: {room.watchers.join(", ")}
+          </p>
+        )}
+
+        <div className="lobby-actions">
+          {room.youAreHost && !full && (
+            <button className="secondary" onClick={onAddBots}>
+              {bg.addBots}
+            </button>
+          )}
+          {room.youAreHost ? (
+            <button className="primary" disabled={!full} onClick={onStart}>
+              {full ? bg.start : bg.needFour}
+            </button>
+          ) : (
+            <p className="muted">{bg.waitHost}</p>
+          )}
+        </div>
       </div>
     </main>
   );

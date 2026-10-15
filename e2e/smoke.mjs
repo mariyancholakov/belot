@@ -33,8 +33,8 @@ for (const p of pages.slice(1)) {
   await p.getByRole("button", { name: "Влез", exact: true }).click();
   await p.waitForSelector(".room-code");
 }
-// Lobby grid order is seats 2, 3, 1, 0.
-for (const [i, p] of pages.entries()) await p.locator(".lobby-seat").nth([3, 1, 0, 2][i]).click();
+// Before sitting, the slots are listed in seat order 0, 2, 1, 3 (team one, then team two).
+for (const [i, p] of pages.entries()) await p.locator(".slot").nth([0, 2, 1, 3][i]).click();
 if (SHOTS) await pages[0].screenshot({ path: `${SHOTS}/${tag}-2-lobby.png` });
 await pages[0].getByRole("button", { name: "Започни играта" }).click();
 // Everyone watches the shuffle, then whoever sits right of the dealer cuts the deck.
