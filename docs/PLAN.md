@@ -25,7 +25,7 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 ## Status
 - [x] M0 — Scaffold and specs
 - [x] M1 — Rules engine
-- [ ] M2 — Protocol and server
+- [x] M2 — Protocol and server
 - [ ] M3 — Web client: playable game
 - [ ] M4 — Polish and Bulgarian UX
 - [ ] M5 — Deploy and play with friends
