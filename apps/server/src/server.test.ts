@@ -245,3 +245,21 @@ describe("a running game", () => {
     await players[0]!.until(() => players[0]!.room!.seats[2]?.connected === true);
   });
 });
+
+describe("static files", () => {
+  it("serves files, falls back to index.html and blocks path traversal", async () => {
+    const { mkdtempSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const { staticHandler } = await import("./static");
+    const dir = mkdtempSync(join(tmpdir(), "belot-web-"));
+    writeFileSync(join(dir, "index.html"), "<h1>hi</h1>");
+    await server.close();
+    server = await startServer({ port: 0, onRequest: staticHandler(dir) });
+    const base = `http://127.0.0.1:${server.port}`;
+    expect(await (await fetch(`${base}/`)).text()).toContain("hi");
+    expect(await (await fetch(`${base}/ABCD`)).text()).toContain("hi"); // SPA room link
+    const raw = await fetch(`${base}/..%2f..%2fetc/passwd`);
+    expect(await raw.text()).not.toContain("root:");
+  });
+});
