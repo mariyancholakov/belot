@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { bg } from "../i18n/bg";
+import { Controls } from "./Controls";
 
 interface Props {
   nickname: string;
@@ -16,11 +17,17 @@ export function Home({ nickname: saved, initialCode, ready, onCreate, onJoin }: 
 
   return (
     <main className="home">
-      <div className="mark" aria-hidden="true">
-        <span className="c a">♠</span>
-        <span className="c b">♥</span>
+      <div className="page-controls">
+        <Controls />
       </div>
-      <h1>{bg.appName}</h1>
+      <div className="brand">
+        <div className="mark" aria-hidden="true">
+          <span className="c a">♠</span>
+          <span className="c b">♥</span>
+        </div>
+        <h1>{bg.appName}</h1>
+        <p className="muted">{bg.tagline}</p>
+      </div>
 
       <label className="field">
         <span>{bg.nickname}</span>

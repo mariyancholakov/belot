@@ -1,7 +1,8 @@
 import type { BidAction, Contract, GameView } from "@belot/engine";
-import { bg, contractLabel } from "../i18n/bg";
+import { bg, contractLabel, suitSymbol } from "../i18n/bg";
+import { playSound } from "../sound";
 
-const CONTRACTS: Contract[] = ["clubs", "diamonds", "hearts", "spades", "no-trumps", "all-trumps"];
+const SUITS: Contract[] = ["clubs", "diamonds", "hearts", "spades"];
 
 export function bidText(bid: BidAction): string {
   switch (bid.type) {
@@ -27,36 +28,47 @@ export function Bidding({ view, names, onBid }: Props) {
   const canBid = (contract: Contract) => legal.some((b) => b.type === "bid" && b.contract === contract);
   const has = (type: "pass" | "contra" | "recontra") => legal.some((b) => b.type === type);
   const myTurn = legal.length > 0;
+  const act = (bid: BidAction) => {
+    playSound("tap");
+    onBid(bid);
+  };
 
   return (
-    <section className="bidding" aria-label={bg.bidTitle}>
-      <h2>{bg.bidTitle}</h2>
-      <ol className="bid-log">
-        {view.bidLog.length === 0 && <li className="muted">{bg.noBidsYet}</li>}
-        {view.bidLog.map((entry, i) => (
-          <li key={i}>
-            <span>{names[entry.seat]}</span>
-            <b>{bidText(entry.bid)}</b>
-          </li>
-        ))}
-      </ol>
+    <section className="sheet-panel bidding" aria-label={bg.bidTitle}>
+      <div className="bidding-head">
+        <h2>{bg.bidTitle}</h2>
+        <ol className="bid-log">
+          {view.bidLog.length === 0 && <li className="muted">{bg.noBidsYet}</li>}
+          {view.bidLog.map((entry, i) => (
+            <li key={i}>
+              <span>{names[entry.seat]}</span> <b>{bidText(entry.bid)}</b>
+            </li>
+          ))}
+        </ol>
+      </div>
       {myTurn ? (
-        <div className="bid-buttons">
-          {CONTRACTS.map((c) => (
-            <button key={c} className={`bid ${c === "hearts" || c === "diamonds" ? "red" : ""}`} disabled={!canBid(c)} onClick={() => onBid({ type: "bid", contract: c })}>
-              {contractLabel(c)}
+        <div className="bid-grid">
+          {SUITS.map((c) => (
+            <button key={c} className={`bid suit ${c === "hearts" || c === "diamonds" ? "red" : ""}`} disabled={!canBid(c)} onClick={() => act({ type: "bid", contract: c })} aria-label={contractLabel(c)}>
+              <span aria-hidden="true">{suitSymbol[c as keyof typeof suitSymbol]}</span>
             </button>
           ))}
-          <button className="bid ghost" disabled={!has("pass")} onClick={() => onBid({ type: "pass" })}>
+          <button className="bid wide" disabled={!canBid("no-trumps")} onClick={() => act({ type: "bid", contract: "no-trumps" })}>
+            {contractLabel("no-trumps")}
+          </button>
+          <button className="bid wide" disabled={!canBid("all-trumps")} onClick={() => act({ type: "bid", contract: "all-trumps" })}>
+            {contractLabel("all-trumps")}
+          </button>
+          <button className="bid ghost wide" disabled={!has("pass")} onClick={() => act({ type: "pass" })}>
             {bg.pass}
           </button>
           {has("contra") && (
-            <button className="bid alert" onClick={() => onBid({ type: "contra" })}>
+            <button className="bid alert wide" onClick={() => act({ type: "contra" })}>
               {bg.contra}
             </button>
           )}
           {has("recontra") && (
-            <button className="bid alert" onClick={() => onBid({ type: "recontra" })}>
+            <button className="bid alert wide" onClick={() => act({ type: "recontra" })}>
               {bg.recontra}
             </button>
           )}

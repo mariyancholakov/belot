@@ -1,5 +1,5 @@
 import type { Card as CardData } from "@belot/engine";
-import { isRed, rankLabel, suitSymbol } from "../i18n/bg";
+import { isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
 
 interface Props {
   card: CardData;
@@ -7,16 +7,20 @@ interface Props {
   disabled?: boolean;
   small?: boolean;
   highlight?: boolean;
+  /** Stagger for the deal animation, in ms. */
+  delay?: number;
+  deal?: boolean;
 }
 
-export function CardFace({ card, onClick, disabled, small, highlight }: Props) {
-  const cls = ["card", isRed(card.suit) ? "red" : "black", small ? "small" : "", disabled ? "dim" : "", highlight ? "winner" : ""]
+export function CardFace({ card, onClick, disabled, small, highlight, delay, deal }: Props) {
+  const cls = ["card", isRed(card.suit) ? "red" : "black", small ? "small" : "", disabled ? "dim" : "", highlight ? "winner" : "", deal ? "deal" : ""]
     .filter(Boolean)
     .join(" ");
-  const label = `${rankLabel[card.rank]} ${suitSymbol[card.suit]}`;
+  const label = `${rankLabel[card.rank]} ${suitName[card.suit]}`;
+  const style = delay ? { animationDelay: `${delay}ms` } : undefined;
   const inner = (
     <>
-      <span className="corner">
+      <span className="index">
         <b>{rankLabel[card.rank]}</b>
         <i>{suitSymbol[card.suit]}</i>
       </span>
@@ -25,13 +29,13 @@ export function CardFace({ card, onClick, disabled, small, highlight }: Props) {
   );
   if (onClick) {
     return (
-      <button className={cls} onClick={onClick} disabled={disabled} aria-label={label}>
+      <button className={cls} style={style} onClick={onClick} disabled={disabled} aria-label={label}>
         {inner}
       </button>
     );
   }
   return (
-    <div className={cls} role="img" aria-label={label}>
+    <div className={cls} style={style} role="img" aria-label={label}>
       {inner}
     </div>
   );

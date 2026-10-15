@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { RoomState } from "@belot/protocol";
 import { bg } from "../i18n/bg";
+import { Controls } from "./Controls";
+import { Icon } from "./Icon";
 
 interface Props {
   room: RoomState;
@@ -34,13 +36,17 @@ export function Lobby({ room, onSit, onStart, onLeave }: Props) {
 
   return (
     <main className="lobby">
-      <button className="link back" onClick={onLeave}>
-        ← {bg.leave}
-      </button>
-      <p className="eyebrow">{bg.roomCode}</p>
-      <h1 className="room-code">{room.code}</h1>
+      <div className="page-bar">
+        <button className="icon-btn" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
+          <Icon name="back" />
+        </button>
+        <Controls />
+      </div>
+      <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
+        {room.code}
+      </h1>
       <button className="secondary small" onClick={copy}>
-        {copied ? bg.copied : bg.copyLink}
+        <Icon name={copied ? "check" : "copy"} size={16} /> {copied ? bg.copied : bg.copyLink}
       </button>
       <p className="muted">{bg.shareHint}</p>
 

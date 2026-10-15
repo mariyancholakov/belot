@@ -1,14 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Card, GameAction, GameEvent, GameView, Play } from "@belot/engine";
 import type { RoomState } from "@belot/protocol";
-import { announcementName, bg, contractLabel, rankLabel, suitSymbol } from "../i18n/bg";
+import { announcementName, bg, contractLabel, isRed, rankLabel, suitSymbol } from "../i18n/bg";
+import { playSound } from "../sound";
+import { AnimatedNumber } from "./AnimatedNumber";
 import { Bidding, bidText } from "./Bidding";
 import { CardBack, CardFace } from "./Card";
+import { Controls } from "./Controls";
+import { Icon } from "./Icon";
 import { ScoreSheet } from "./ScoreSheet";
 
 const SUIT_ORDER = ["clubs", "diamonds", "spades", "hearts"] as const;
 const RANK_ORDER = ["7", "8", "9", "10", "J", "Q", "K", "A"] as const;
+/** How long a finished trick stays on the table, and how long the sweep to the winner takes. */
 const HOLD_MS = 1500;
+const SWEEP_MS = 380;
 
 function sortHand(hand: Card[]): Card[] {
   return [...hand].sort(
@@ -32,29 +38,77 @@ interface Props {
 export function Table({ view, room, events, updateId, send, onNewGame, onLeave }: Props) {
   const me = view.seat;
   const myTeam = (me % 2) as 0 | 1;
+  const otherTeam = myTeam === 0 ? 1 : 0;
   const names = room.seats.map((s) => s?.nickname ?? "—");
   const rel = (seat: number) => (seat - me + 4) % 4;
 
-  // Keep a finished trick on screen for a moment so everyone can see how it ended.
+  // A finished trick stays on screen briefly, then sweeps to whoever took it.
   const [held, setHeld] = useState<{ plays: Play[]; winner: number } | null>(null);
+  const [sweeping, setSweeping] = useState(false);
   const [callout, setCallout] = useState<string | null>(null);
   const lastUpdate = useRef(0);
+  const prevTurn = useRef(-1);
+
   useEffect(() => {
     if (updateId === lastUpdate.current) return;
     lastUpdate.current = updateId;
-    const belot = events.find((e): e is Extract<GameEvent, { type: "belot" }> => e.type === "belot");
-    if (belot) {
-      setCallout(`${bg.belot}! ${names[belot.seat]} ${suitSymbol[belot.suit]} +20`);
-      setTimeout(() => setCallout(null), 2200);
-    }
-    const won = events.find((e): e is Extract<GameEvent, { type: "trickWon" }> => e.type === "trickWon");
-    if (!won) return;
-    setHeld({ plays: won.plays, winner: won.winner });
-    const t = setTimeout(() => setHeld(null), HOLD_MS);
-    return () => clearTimeout(t);
-  }, [updateId, events]);
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-  // Give the last trick time to be seen before the round summary covers the table.
+    for (const e of events) {
+      switch (e.type) {
+        case "played":
+          playSound("play");
+          break;
+        case "dealt":
+          playSound("deal");
+          break;
+        case "contract":
+          timers.push(setTimeout(() => playSound("deal"), 250));
+          break;
+        case "bid":
+          playSound(e.bid.type === "pass" ? "pass" : e.bid.type === "bid" ? "bid" : "contra");
+          break;
+        case "belot":
+          setCallout(`${bg.belot} · ${names[e.seat]} ${suitSymbol[e.suit]} +20`);
+          timers.push(setTimeout(() => setCallout(null), 2400));
+          timers.push(setTimeout(() => playSound("belot"), 120));
+          break;
+        case "trickWon":
+          setHeld({ plays: e.plays, winner: e.winner });
+          setSweeping(false);
+          timers.push(setTimeout(() => setSweeping(true), HOLD_MS - SWEEP_MS));
+          timers.push(setTimeout(() => playSound("trick"), HOLD_MS - SWEEP_MS));
+          timers.push(
+            setTimeout(() => {
+              setHeld(null);
+              setSweeping(false);
+            }, HOLD_MS),
+          );
+          break;
+        case "roundScored": {
+          const ours = e.result.recorded[myTeam];
+          const theirs = e.result.recorded[otherTeam];
+          timers.push(setTimeout(() => playSound(ours >= theirs ? "win" : "lose"), HOLD_MS + 200));
+          break;
+        }
+        default:
+          break;
+      }
+    }
+
+    // Nudge the player when the turn comes round to them.
+    const mine = (view.phase === "bidding" || view.phase === "playing") && view.turn === me;
+    if (mine && prevTurn.current !== me) {
+      const afterCard = events.some((e) => e.type === "played");
+      timers.push(setTimeout(() => playSound("turn"), afterCard ? 220 : 0));
+    }
+    prevTurn.current = view.turn;
+
+    return () => timers.forEach(clearTimeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [updateId]);
+
+  // Let the last trick be seen before the round summary covers the table.
   const finished = view.phase === "roundEnd" || view.phase === "gameOver";
   const [summaryReady, setSummaryReady] = useState(false);
   useEffect(() => {
@@ -70,6 +124,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
 
   const trick: Play[] = view.trick.length > 0 ? view.trick : held?.plays ?? [];
   const winnerSeat = view.trick.length === 0 ? held?.winner : undefined;
+  const sweepTo = winnerSeat !== undefined && sweeping ? POSITIONS[rel(winnerSeat)] : null;
 
   const playable = useMemo(() => {
     const set = new Set<string>();
@@ -78,48 +133,53 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
   }, [view.legalActions]);
   const myTurn = view.phase === "playing" && view.turn === me;
   const hand = sortHand(view.hand);
-
   const last = view.history[view.history.length - 1];
 
   return (
     <div className="table">
       <header className="topbar">
-        <button className="link" onClick={onLeave}>
-          ← {bg.leave}
+        <button className="icon-btn" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
+          <Icon name="back" />
         </button>
         <div className="chips">
           {view.contract ? (
-            <span className="chip strong">
+            <span className={`chip contract ${view.contract.contract === "hearts" || view.contract.contract === "diamonds" ? "red" : ""}`} key={view.contract.contract + view.round}>
               {contractLabel(view.contract.contract)}
-              {view.contract.multiplier > 1 && ` ×${view.contract.multiplier}`}
+              {view.contract.multiplier > 1 && <b> ×{view.contract.multiplier}</b>}
             </span>
           ) : (
             <span className="chip">{bg.bidTitle}</span>
           )}
-          <span className="chip muted">
-            {bg.round} {view.round}
+          <span className="chip quiet">
+            {bg.roundShort} {view.round}
           </span>
         </div>
-        <button className="score-pill" onClick={() => setSheetOpen((o) => !o)} aria-expanded={sheetOpen}>
-          <b>{view.scores[myTeam]}</b>
+        <Controls />
+        <button className="score-btn" onClick={() => setSheetOpen(true)} aria-label={bg.scoreTitle}>
+          <Icon name="list" size={18} />
+          <b>
+            <AnimatedNumber value={view.scores[myTeam]} />
+          </b>
           <span>:</span>
-          <b>{view.scores[myTeam === 0 ? 1 : 0]}</b>
+          <b>
+            <AnimatedNumber value={view.scores[otherTeam]} />
+          </b>
         </button>
       </header>
 
       <div className="felt">
         {POSITIONS.slice(1).map((pos, i) => {
           const seat = (me + i + 1) % 4;
-          return <Seat key={pos} pos={pos} seat={seat} view={view} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} partner={seat % 2 === myTeam} />;
+          return <Seat key={pos} pos={pos} seat={seat} view={view} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
         })}
 
-        <div className="center" aria-live="polite">
+        <div className={`center ${sweepTo ? `sweep-${sweepTo}` : ""}`} aria-live="polite">
           {trick.map((play) => (
             <div key={play.seat} className={`played ${POSITIONS[rel(play.seat)]}`}>
-              <CardFace card={play.card} small highlight={winnerSeat === play.seat} />
+              <CardFace card={play.card} small highlight={winnerSeat === play.seat && !sweeping} />
             </div>
           ))}
-          {trick.length === 0 && view.phase === "playing" && <p className="hint muted">{myTurn ? bg.yourTurn : bg.waitingFor(names[view.turn] ?? "")}</p>}
+          {trick.length === 0 && view.phase === "playing" && <p className="hint">{myTurn ? bg.yourTurn : bg.waitingFor(names[view.turn] ?? "")}</p>}
         </div>
 
         {callout && <div className="callout">{callout}</div>}
@@ -130,7 +190,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
               announcements.map((a, i) => (
                 <li key={`${seat}-${i}`}>
                   <b>{names[seat]}</b> {announcementName[a.kind]}
-                  {a.suit ? ` ${suitSymbol[a.suit]}` : ""} {rankLabel[a.high]} · {a.points}
+                  {a.suit ? <span className={isRed(a.suit) ? "red" : ""}> {suitSymbol[a.suit]}</span> : null} {rankLabel[a.high]} · {a.points}
                 </li>
               )),
             )}
@@ -140,18 +200,22 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
 
       {view.phase === "bidding" && <Bidding view={view} names={names} onBid={(bid) => send({ type: "bid", bid })} />}
 
-      <Seat pos="bottom" seat={me} view={view} name={names[me]!} connected partner />
+      <Seat pos="bottom" seat={me} view={view} name={names[me]!} connected ours />
       <div className={`hand ${myTurn ? "active" : ""}`}>
-        {hand.map((card) => {
+        {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
-          return <CardFace key={card.suit + card.rank} card={card} disabled={!ok} onClick={myTurn && ok ? () => send({ type: "play", card }) : undefined} />;
+          return <CardFace key={card.suit + card.rank} card={card} deal delay={i * 45} disabled={!ok} onClick={myTurn && ok ? () => send({ type: "play", card }) : undefined} />;
         })}
       </div>
 
-      <aside className={`drawer ${sheetOpen ? "open" : ""}`}>
-        <button className="link close" onClick={() => setSheetOpen(false)}>
-          ✕
-        </button>
+      <div className={`scrim ${sheetOpen ? "open" : ""}`} onClick={() => setSheetOpen(false)} />
+      <aside className={`drawer ${sheetOpen ? "open" : ""}`} aria-hidden={!sheetOpen}>
+        <header>
+          <h2>{bg.scoreTitle}</h2>
+          <button className="icon-btn" onClick={() => setSheetOpen(false)} aria-label={bg.close}>
+            <Icon name="close" />
+          </button>
+        </header>
         <ScoreSheet view={view} mine={myTeam} />
       </aside>
 
@@ -162,7 +226,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
               <h2 className={view.winner === myTeam ? "win" : "lose"}>{view.winner === myTeam ? bg.weWin : bg.theyWin}</h2>
             ) : (
               <h2>
-                {bg.round} {last.round}
+                {bg.roundShort} {last.round}
               </h2>
             )}
             <RoundDetails summary={last} myTeam={myTeam} />
@@ -181,7 +245,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
                 ) : (
                   <p className="muted">{bg.waitHost}</p>
                 )}
-                <button className="link" onClick={onLeave}>
+                <button className="ghost" onClick={onLeave}>
                   {bg.leave}
                 </button>
               </div>
@@ -197,7 +261,7 @@ function RoundDetails({ summary, myTeam }: { summary: GameView["history"][number
   const other = myTeam === 0 ? 1 : 0;
   return (
     <dl className="details">
-      <dt>{contractLabel(summary.contract)}</dt>
+      <dt>{bg.cardPoints}</dt>
       <dd>
         {summary.cardPoints[myTeam]} : {summary.cardPoints[other]}
       </dd>
@@ -209,9 +273,9 @@ function RoundDetails({ summary, myTeam }: { summary: GameView["history"][number
           </dd>
         </>
       )}
-      {summary.result.outcome === "inside" && <dt className="warn">{bg.inside}</dt>}
-      {summary.result.outcome === "tie" && <dt className="warn">{bg.tie}</dt>}
-      {summary.capo !== null && <dt className="warn">{bg.capo}</dt>}
+      {summary.result.outcome === "inside" && <dt className="flag">{bg.inside}</dt>}
+      {summary.result.outcome === "tie" && <dt className="flag">{bg.tie}</dt>}
+      {summary.capo !== null && <dt className="flag">{bg.capo}</dt>}
     </dl>
   );
 }
@@ -222,22 +286,29 @@ interface SeatProps {
   view: GameView;
   name: string;
   connected: boolean;
-  partner: boolean;
+  ours: boolean;
 }
 
-function Seat({ pos, seat, view, name, connected, partner }: SeatProps) {
+function Seat({ pos, seat, view, name, connected, ours }: SeatProps) {
   const turn = view.turn === seat && (view.phase === "bidding" || view.phase === "playing");
   const count = view.handCounts[seat] ?? 0;
   const lastBid = [...view.bidLog].reverse().find((b) => b.seat === seat);
   return (
-    <div className={`seat ${pos} ${turn ? "turn" : ""} ${partner ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
+    <div className={`seat ${pos} ${turn ? "turn" : ""} ${ours ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
       <div className="name">
+        <i className="avatar" aria-hidden="true">
+          {name.slice(0, 1).toUpperCase()}
+        </i>
         <span>{name}</span>
         {pos !== "bottom" && <small className="count">{count}</small>}
         {view.dealer === seat && <em title={bg.dealer}>Р</em>}
-        {!connected && <small>{bg.offline}</small>}
+        {!connected && <small className="off">{bg.offline}</small>}
       </div>
-      {view.phase === "bidding" && lastBid && <span className="bubble">{bidText(lastBid.bid)}</span>}
+      {view.phase === "bidding" && lastBid && (
+        <span className="bubble" key={view.bidLog.length}>
+          {bidText(lastBid.bid)}
+        </span>
+      )}
       {pos !== "bottom" && (
         <div className="backs" aria-label={`${count}`}>
           {Array.from({ length: Math.min(count, 8) }, (_, i) => (

@@ -1,48 +1,56 @@
 import type { GameView, RoundSummary } from "@belot/engine";
-import { bg, contractLabel } from "../i18n/bg";
+import { bg, contractLabel, isRed } from "../i18n/bg";
+import { AnimatedNumber } from "./AnimatedNumber";
 
-function note(r: RoundSummary): string {
-  const parts: string[] = [];
-  if (r.result.outcome === "inside") parts.push(bg.inside);
-  if (r.result.outcome === "tie") parts.push(bg.tie);
-  if (r.capo !== null) parts.push(bg.capo);
-  if (r.multiplier === 2) parts.push(bg.contra);
-  if (r.multiplier === 4) parts.push(bg.recontra);
-  return parts.join(" · ");
+function badges(r: RoundSummary): string[] {
+  const out: string[] = [];
+  if (r.result.outcome === "inside") out.push(bg.inside);
+  if (r.result.outcome === "tie") out.push(bg.hanging);
+  if (r.capo !== null) out.push(bg.capo);
+  if (r.multiplier === 2) out.push(bg.contra);
+  if (r.multiplier === 4) out.push(bg.recontra);
+  return out;
 }
 
-/** Score as a paper sheet, the way it is kept at a real table. `mine` = my team (0 or 1). */
 export function ScoreSheet({ view, mine }: { view: GameView; mine: 0 | 1 }) {
   const them = mine === 0 ? 1 : 0;
   return (
-    <section className="sheet" aria-label={bg.scoreSheet}>
-      <header>
+    <section className="score" aria-label={bg.scoreTitle}>
+      <div className="score-row head">
         <span />
         <b>{bg.teamUs}</b>
         <b>{bg.teamThem}</b>
-      </header>
-      <div className="rows">
+      </div>
+      <div className="score-rows">
+        {view.history.length === 0 && <p className="muted empty">{bg.noRoundsYet}</p>}
         {view.history.map((r) => (
-          <div className="row" key={r.round}>
+          <div className="score-row" key={r.round}>
             <span className="what">
-              <i>{contractLabel(r.contract)}</i>
-              <small>{note(r)}</small>
+              <span className={isRed(r.contract as never) ? "red" : ""}>{contractLabel(r.contract)}</span>
+              {badges(r).map((b) => (
+                <em key={b}>{b}</em>
+              ))}
             </span>
-            <span>{r.result.recorded[mine]}</span>
-            <span>{r.result.recorded[them]}</span>
+            <span className={r.result.recorded[mine] > 0 ? "num got" : "num"}>{r.result.recorded[mine]}</span>
+            <span className={r.result.recorded[them] > 0 ? "num got" : "num"}>{r.result.recorded[them]}</span>
           </div>
         ))}
       </div>
-      <footer>
-        <span>{bg.score}</span>
-        <b>{view.scores[mine]}</b>
-        <b>{view.scores[them]}</b>
-      </footer>
+      <div className="score-row total">
+        <span>{bg.total}</span>
+        <b>
+          <AnimatedNumber value={view.scores[mine]} />
+        </b>
+        <b>
+          <AnimatedNumber value={view.scores[them]} />
+        </b>
+      </div>
       {view.hanging > 0 && (
-        <p className="muted">
+        <p className="muted hanging">
           {bg.hanging}: {view.hanging}
         </p>
       )}
     </section>
   );
 }
+
