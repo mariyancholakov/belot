@@ -12,6 +12,8 @@ export interface Session {
   events: GameEvent[];
   /** Bumps on every update so effects can react to it. */
   updateId: number;
+  /** Time the player to move has left, as of the latest update; null when no clock runs. */
+  turnLeftMs: number | null;
   error: { code: string } | null;
 }
 
@@ -62,6 +64,7 @@ const initial: Session = {
   view: null,
   events: [],
   updateId: 0,
+  turnLeftMs: null,
   error: null,
 };
 
@@ -107,7 +110,7 @@ export function useSession(nickname: string) {
             case "roomState":
               return { ...s, ready: true, room: msg.room, view: msg.room ? s.view : null, error: null };
             case "update":
-              return { ...s, view: msg.view, events: msg.events, updateId: s.updateId + 1, error: null };
+              return { ...s, view: msg.view, events: msg.events, updateId: s.updateId + 1, turnLeftMs: msg.turnLeftMs, error: null };
             case "error":
               return { ...s, error: { code: msg.code } };
           }

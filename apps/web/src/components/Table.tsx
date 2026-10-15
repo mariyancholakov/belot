@@ -34,12 +34,14 @@ interface Props {
   room: RoomState;
   events: GameEvent[];
   updateId: number;
+  /** Time the player to move has left; null when no clock runs. */
+  turnLeftMs: number | null;
   send: (action: GameAction) => void;
   onNewGame: () => void;
   onLeave: () => void;
 }
 
-export function Table({ view, room, events, updateId, send, onNewGame, onLeave }: Props) {
+export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGame, onLeave }: Props) {
   const me = view.seat;
   const myTeam = (me % 2) as 0 | 1;
   const otherTeam = myTeam === 0 ? 1 : 0;
@@ -272,7 +274,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         )}
         {POSITIONS.slice(1).map((pos, i) => {
           const seat = (me + i + 1) % 4;
-          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} callout={callout?.seat === seat ? callout.text : null} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
+          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} callout={callout?.seat === seat ? callout.text : null} clock={turnLeftMs} clockKey={updateId} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
         })}
 
         <div className={`center ${sweepTo ? `sweep-${sweepTo}` : ""}`} aria-live="polite">
@@ -296,7 +298,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         )}
       </div>
 
-      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} callout={callout?.seat === me ? callout.text : null} name={names[me]!} connected ours />
+      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} callout={callout?.seat === me ? callout.text : null} clock={turnLeftMs} clockKey={updateId} name={names[me]!} connected ours />
       <div className={`hand ${myTurn ? "active" : ""}`}>
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
@@ -413,9 +415,12 @@ interface SeatProps {
   lucky: Card | null;
   /** A one-off line this player just said, such as the belot call. */
   callout: string | null;
+  /** Time the player to move has left, and a key that restarts the bar on every update. */
+  clock: number | null;
+  clockKey: number;
 }
 
-function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, callout }: SeatProps) {
+function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, callout, clock, clockKey }: SeatProps) {
   const turn = !busy && view.turn === seat && view.phase !== "roundEnd" && view.phase !== "gameOver";
   const lastBid = [...view.bidLog].reverse().find((b) => b.seat === seat);
   const declared = view.announcements
@@ -432,6 +437,9 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
         <span>{name}</span>
         {view.dealer === seat && <em title={bg.dealer}>Р</em>}
         {!connected && <small className="off">{bg.offline}</small>}
+        {turn && clock !== null && (view.phase === "bidding" || view.phase === "playing") && (
+          <i className="clock" key={clockKey} style={{ animationDuration: `${clock}ms` }} aria-hidden="true" />
+        )}
         {say && (
           <span className="balloon" key={say}>
             {say}

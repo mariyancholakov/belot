@@ -80,6 +80,7 @@ export function App() {
         room={room}
         events={session.events}
         updateId={session.updateId}
+        turnLeftMs={session.turnLeftMs}
         send={(action: GameAction) => send({ type: "action", action })}
         onNewGame={() => send({ type: "startGame" })}
         onLeave={() => send({ type: "leaveRoom" })}

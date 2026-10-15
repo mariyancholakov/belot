@@ -28,6 +28,8 @@ export class Room {
   host: string;
   private seq = 0;
   lastActivity = Date.now();
+  /** When the player to move runs out of time, as a timestamp; null while no clock runs. */
+  turnEndsAt: number | null = null;
 
   constructor(
     readonly code: string,
@@ -142,6 +144,29 @@ export class Room {
     return action ? { token: member.token, action } : null;
   }
 
+  /** The move the server plays for a human whose clock ran out. */
+  autoMove(): { token: string; action: GameAction } | null {
+    const game = this.game;
+    if (!game || (game.phase !== "bidding" && game.phase !== "playing")) return null;
+    const token = this.seats[game.turn];
+    if (!token) return null;
+    const action = chooseBotAction(game, game.turn);
+    return action ? { token, action } : null;
+  }
+
+  /** Whether the clock should run: a human is to move in bidding or playing. */
+  clockApplies(): boolean {
+    const game = this.game;
+    if (!game || (game.phase !== "bidding" && game.phase !== "playing")) return false;
+    const token = this.seats[game.turn];
+    const member = token ? this.members.get(token) : undefined;
+    return !!member && !member.bot;
+  }
+
+  private turnLeft(): number | null {
+    return this.turnEndsAt === null ? null : Math.max(0, this.turnEndsAt - Date.now());
+  }
+
   start(token: string): void {
     this.must(token);
     if (token !== this.host) throw new RoomError("not_host", "only the host can start");
@@ -185,7 +210,7 @@ export class Room {
     const messages: ServerMessage[] = [{ type: "roomState", room: this.roomStateFor(token) }];
     const member = this.members.get(token);
     if (this.game && member?.seat != null) {
-      messages.push({ type: "update", seq: this.seq, view: viewFor(this.game, member.seat), events: [] });
+      messages.push({ type: "update", seq: this.seq, view: viewFor(this.game, member.seat), events: [], turnLeftMs: this.turnLeft() });
     }
     return messages;
   }
@@ -199,7 +224,7 @@ export class Room {
       if (includeUpdate && this.game && member.seat !== null) {
         out.push({
           token: member.token,
-          message: { type: "update", seq: this.seq, view: viewFor(this.game, member.seat), events },
+          message: { type: "update", seq: this.seq, view: viewFor(this.game, member.seat), events, turnLeftMs: this.turnLeft() },
         });
       }
     }

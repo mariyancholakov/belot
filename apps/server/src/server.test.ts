@@ -275,6 +275,25 @@ describe("static files", () => {
   });
 });
 
+describe("turn clock", () => {
+  it("plays for a human who runs out of time", async () => {
+    await server.close();
+    server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1, botCutDelayMs: 1, botDealDelayMs: 1, turnMs: 150, turnGraceMs: 0 });
+    const a = await client("Ани");
+    a.send({ type: "createRoom" });
+    await a.until(() => a.room !== null);
+    a.send({ type: "addBots" });
+    await a.until(() => a.room!.seats.every((s) => s !== null));
+    a.send({ type: "startGame" });
+    await a.until(() => a.view?.phase === "dealing");
+    a.send({ type: "action", action: { type: "deal", lucky: false } });
+    // Ани never bids: the clock does it, and the game moves on without an error.
+    await a.until(() => a.view?.phase === "bidding" && a.view.turn === 0);
+    await a.until(() => !(a.view?.phase === "bidding" && a.view.turn === 0));
+    expect(a.lastError()).toBeUndefined();
+  });
+});
+
 describe("bots", () => {
   it("lets the host send the bots away again", async () => {
     const a = await client("Ани");

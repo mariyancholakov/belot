@@ -35,12 +35,18 @@ export interface ServerOptions {
   botCutDelayMs?: number;
   /** Extra pause for the first bot move after a deal, while clients animate the cards. */
   botDealDelayMs?: number;
+  /** How long a person has to bid or play a card before the server does it for them (0 turns the clock off). */
+  turnMs?: number;
+  /** Extra time on top of the clock for the first move after a deal and after a trick, while clients animate. */
+  turnGraceMs?: number;
   /** Optional handler for non-websocket HTTP requests (static files). */
   onRequest?: Parameters<typeof createServer>[1];
 }
 
 export async function startServer(options: ServerOptions = {}): Promise<GameServer> {
   const botDelayMs = options.botDelayMs ?? 900;
+  const turnMs = options.turnMs ?? 25_000;
+  const turnGraceMs = options.turnGraceMs ?? 5000;
   const botCutDelayMs = options.botCutDelayMs ?? 3200;
   const botDealDelayMs = options.botDealDelayMs ?? 4000;
   const maxPerSecond = options.maxMessagesPerSecond ?? DEFAULT_MAX_MESSAGES_PER_SECOND;
@@ -170,6 +176,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       case "startGame": {
         const room = roomOf(conn);
         room.start(token);
+        armTurnClock(room);
         deliver(room.broadcast([], true));
         scheduleBots(room);
         break;
@@ -177,6 +184,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       case "action": {
         const room = roomOf(conn);
         const events = room.act(token, msg.action);
+        armTurnClock(room);
         deliver(room.broadcast(events, true));
         scheduleBots(room);
         break;
@@ -185,6 +193,37 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
   }
 
   const botTimers = new Set<ReturnType<typeof setTimeout>>();
+  const clocks = new Map<string, ReturnType<typeof setTimeout>>();
+
+  /** Starts (or stops) the clock for whoever is to move; when it runs out the server plays for them. */
+  function armTurnClock(room: Room): void {
+    const old = clocks.get(room.code);
+    if (old) clearTimeout(old);
+    clocks.delete(room.code);
+    room.turnEndsAt = null;
+    if (turnMs <= 0 || !room.clockApplies()) return;
+    const game = room.game!;
+    // Leave room for the deal and for a finished trick to be swept away before the clock starts.
+    const grace = (game.phase === "bidding" && game.bidLog.length === 0) || (game.phase === "playing" && game.tricksPlayed === 0 && game.trick.length === 0) ? turnGraceMs : game.phase === "playing" && game.trick.length === 0 ? Math.round(turnGraceMs * 0.4) : 0;
+    const wait = turnMs + grace;
+    room.turnEndsAt = Date.now() + wait;
+    const timer = setTimeout(() => {
+      clocks.delete(room.code);
+      if (!rooms.has(room.code)) return;
+      const move = room.autoMove();
+      if (!move) return;
+      try {
+        const events = room.act(move.token, move.action);
+        armTurnClock(room);
+        deliver(room.broadcast(events, true));
+      } catch (err) {
+        console.error("auto move failed", err);
+        return;
+      }
+      scheduleBots(room);
+    }, wait);
+    clocks.set(room.code, timer);
+  }
 
   /** Let computer players move, paced so humans can follow what happens. */
   function scheduleBots(room: Room): void {
@@ -207,6 +246,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       if (!current) return;
       try {
         const events = room.act(current.token, current.action);
+        armTurnClock(room);
         deliver(room.broadcast(events, true));
       } catch (err) {
         console.error("bot move failed", err);
@@ -282,6 +322,9 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
     for (const [code, room] of rooms) {
       if (room.connectedCount === 0 && now - room.lastActivity > IDLE_ROOM_MS) {
         rooms.delete(code);
+        const clock = clocks.get(code);
+        if (clock) clearTimeout(clock);
+        clocks.delete(code);
         for (const [token, c] of tokenRoom) if (c === code) tokenRoom.delete(token);
       }
     }
@@ -300,6 +343,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       new Promise<void>((resolve) => {
         clearInterval(sweep);
         for (const t of botTimers) clearTimeout(t);
+        for (const t of clocks.values()) clearTimeout(t);
         for (const client of wss.clients) client.terminate();
         wss.close(() => http.close(() => resolve()));
       }),

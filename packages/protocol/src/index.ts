@@ -82,5 +82,6 @@ export type ErrorCode =
 /** Messages the server sends. */
 export type ServerMessage =
   | { type: "roomState"; room: RoomState | null }
-  | { type: "update"; seq: number; view: GameView; events: GameEvent[] }
+  /** `turnLeftMs`: time the player to move has left before the server plays for them, null when no clock runs. */
+  | { type: "update"; seq: number; view: GameView; events: GameEvent[]; turnLeftMs: number | null }
   | { type: "error"; code: ErrorCode; message: string };
