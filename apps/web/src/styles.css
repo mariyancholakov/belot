@@ -193,16 +193,6 @@ button:disabled { cursor: default; }
 }
 .home-invite { margin: 0 0 2px; text-align: center; color: var(--muted); }
 .page-controls { position: absolute; top: 12px; right: 12px; }
-.brand { display: grid; justify-items: center; gap: 6px; margin-bottom: 14px; text-align: center; }
-.brand h1 { font-size: clamp(2.4rem, 12vw, 3.2rem); }
-.brand p { margin: 0; max-width: 28ch; }
-.mark { position: relative; width: 92px; height: 78px; margin-bottom: 6px; }
-.mark .c {
-  position: absolute; width: 50px; height: 70px; border-radius: 9px; background: var(--card-bg); color: var(--card-ink);
-  display: grid; place-items: center; font-size: 1.8rem; box-shadow: var(--shadow-2); border: 1px solid var(--card-edge);
-}
-.mark .a { left: 6px; top: 6px; transform: rotate(-9deg); }
-.mark .b { right: 6px; top: 0; transform: rotate(8deg); color: var(--card-red); }
 .home .primary, .lobby .primary { width: 100%; }
 .field-error { color: var(--danger); font-size: 0.88rem; font-weight: 600; }
 .field input[aria-invalid="true"] { border-color: var(--danger); outline: 3px solid color-mix(in srgb, var(--danger) 18%, transparent); }
@@ -487,7 +477,7 @@ button:disabled { cursor: default; }
 /* ---------- larger screens ---------- */
 /* ---------- home and lobby on large screens: a website layout, separate from the phone one. The table (board) is not touched. ---------- */
 .lobby-head, .lobby-foot { display: contents; }
-.eyebrow, .h-desktop { display: none; }
+.eyebrow { display: none; }
 
 @media (min-width: 900px) {
   .lobby { max-width: none; padding: 0; align-items: stretch; justify-content: flex-start; gap: 0; display: block; }
