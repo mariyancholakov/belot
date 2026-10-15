@@ -408,16 +408,20 @@ button:disabled { cursor: default; }
 .card.deal { animation: deal-in 0.5s var(--ease) both; }
 
 .hand { --cw: var(--hand-cw); display: flex; justify-content: center; padding: 22px 12px 30px; position: relative; z-index: 3; min-height: calc(var(--cw) * 1.42 + 34px); }
-.hand .card { margin-left: calc(var(--cw) * -0.5); transform-origin: 50% 140%; rotate: calc(var(--off, 0) * var(--fan-rot, 1.7deg)); translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px)); transition: transform 0.16s var(--ease), box-shadow 0.16s, opacity 0.2s; }
-.hand .card:first-child { margin-left: 0; }
+.hand { --step: 0.5; }
+/* each card sits in a fixed-width slot that does the pointing: a card that lifts or overlaps its neighbour can never steal the pointer from them */
+.hand-slot { position: relative; flex: none; width: calc(var(--cw) * var(--step)); height: calc(var(--cw) * 1.42); }
+.hand-slot:last-child { width: var(--cw); }
+.hand-slot::before { content: ""; position: absolute; left: 0; right: 0; top: -34px; bottom: -14px; }
+.hand .card { position: absolute; left: 0; top: 0; pointer-events: none; transform-origin: 50% 140%; rotate: calc(var(--off, 0) * var(--fan-rot, 1.7deg)); translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px)); transition: transform 0.2s var(--ease), rotate 0.2s var(--ease), box-shadow 0.2s, opacity 0.2s; }
 /* overlapped cards show their corner only; a clipped pip would peek out as a smudge */
-.hand .card:not(:last-child) .pip { display: none; }
+.hand-slot:not(:last-child) .card .pip { display: none; }
 /* when it is your turn the cards you may play rise out of the fan */
 /* on your turn the cards you may not play go dark, like a disabled button; the one under the pointer rises a little */
-.hand.active button.card:not(:disabled) { cursor: pointer; }
-.hand.active button.card:not(:disabled):hover, .hand.active button.card:not(:disabled):focus-visible { transform: translateY(-14px); z-index: 2; outline: none; box-shadow: 0 10px 18px rgba(0, 0, 0, 0.24); }
+.hand.active .hand-slot:not(.off) { cursor: pointer; }
+/* the card under the pointer comes up out of the fan and straightens, as if picked up */
+.hand.active .hand-slot:not(.off):hover .card, .hand.active .card:not(:disabled):focus-visible { transform: translateY(-24px); rotate: 0deg; z-index: 2; outline: none; box-shadow: 0 12px 20px rgba(0, 0, 0, 0.26); }
 .hand.active .card.dim { opacity: 1; filter: brightness(0.55); }
-.hand.active button.card:not(:disabled):active { transform: translateY(-8px) scale(0.98); }
 
 /* ---------- bidding ---------- */
 .sheet-panel { margin: 10px 10px 0; padding: 14px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); animation: rise 0.35s var(--ease); }
@@ -555,8 +559,7 @@ button:disabled { cursor: default; }
   .bid.suit { grid-column: span 1; }
   .bid.wide { grid-column: span 3; }
   .bid.wide.pass { grid-column: span 2; }
-  .hand .card { margin-left: calc(var(--cw) * -0.42); }
-  .hand { --fan-rot: 3deg; --fan-drop: 0.9px; }
+  .hand { --step: 0.58; --fan-rot: 3deg; --fan-drop: 0.9px; }
   .drawer { left: auto; right: 0; top: 0; bottom: 0; width: 380px; border-radius: 0; max-height: none; transform: translateX(105%); }
   .drawer.open { transform: none; }
 }

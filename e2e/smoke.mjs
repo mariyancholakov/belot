@@ -76,9 +76,9 @@ while (Date.now() < deadline) {
       acted = true;
       continue;
     }
-    const playable = p.locator(".hand.active button.card:not(:disabled)");
+    const playable = p.locator(".hand.active .hand-slot:not(.off)");
     if ((await playable.count()) > 0) {
-      await playable.first().click({ position: { x: 30, y: 60 } }); // the visible strip of an overlapped, fanned card
+      await playable.first().click({ position: { x: 8, y: 60 } }); // the pointing strip of an overlapped, fanned card
       acted = true;
       moves++;
       if (SHOTS && moves === 5) await pages[1].screenshot({ path: `${SHOTS}/${tag}-4-playing.png` });

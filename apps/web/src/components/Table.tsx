@@ -363,7 +363,12 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
           const mid = (hand.length - 1) / 2;
-          return <CardFace key={card.suit + card.rank} card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={myTurn && ok ? () => (view.belotCards.some((b) => b.suit === card.suit && b.rank === card.rank) ? setAskBelot(card) : send({ type: "play", card })) : undefined} />;
+          const choose = myTurn && ok ? () => (view.belotCards.some((b) => b.suit === card.suit && b.rank === card.rank) ? setAskBelot(card) : send({ type: "play", card })) : undefined;
+          return (
+            <div key={card.suit + card.rank} className={`hand-slot ${ok ? "" : "off"}`} onClick={choose}>
+              <CardFace card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={choose} />
+            </div>
+          );
         })}
       </div>
 
