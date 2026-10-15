@@ -51,27 +51,35 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
       </button>
       <p className="muted">{bg.shareHint}</p>
 
-      <div className="lobby-table">
+      <div className="stitch" aria-hidden="true" />
+
+      <div className="lobby-table" role="group" aria-label={bg.lobbyTableLabel} data-odd={room.you !== null && room.you % 2 === 1}>
+        <div className="lobby-felt" aria-hidden="true" />
         {layout.map(({ seat, cls }) => {
           const s = room.seats[seat];
           const mine = room.you === seat;
+          const ours = room.you === null ? seat % 2 === 0 : seat % 2 === room.you % 2;
+          const team = room.you === null ? (seat % 2 === 0 ? bg.teamOneUnseated : bg.teamTwoUnseated) : seat % 2 === room.you % 2 ? bg.teamUs : bg.teamThem;
+          const partner = room.you !== null && !mine && (seat + 2) % 4 === room.you;
           return (
-            <button key={seat} className={`lobby-seat ${cls} team${seat % 2} ${mine ? "mine" : ""}`} disabled={!!s && !mine} onClick={() => onSit(seat)}>
+            <button key={seat} className={`lobby-seat ${cls} team${ours ? 0 : 1} ${mine ? "mine" : ""}`} disabled={!!s && !mine} onClick={() => onSit(seat)}>
               {s ? (
                 <>
+                  <em className="team-tag">{team}</em>
                   <b>{s.nickname}</b>
                   <small>
-                    {mine ? bg.you : s.connected ? "" : bg.offline}
-                    {room.host === s.nickname && ` · ${bg.host}`}
+                    {[mine ? bg.you : partner ? bg.partnerOf : "", s.bot ? bg.bot : "", !s.connected && !s.bot ? bg.offline : "", room.host === s.nickname ? bg.host : ""].filter(Boolean).join(" · ")}
                   </small>
                 </>
               ) : (
-                <span>{bg.takeSeat}</span>
+                <>
+                  <em className="team-tag">{team}</em>
+                  <span>{bg.takeSeat}</span>
+                </>
               )}
             </button>
           );
         })}
-        <div className="lobby-felt" aria-hidden="true" />
       </div>
 
       {room.watchers.length > 0 && (

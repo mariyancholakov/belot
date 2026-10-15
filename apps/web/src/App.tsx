@@ -51,6 +51,7 @@ export function App() {
         nickname={nickname}
         initialCode={pathCode}
         ready={session.ready}
+        codeError={session.error?.code === "room_not_found"}
         onCreate={(name) => {
           hello(name);
           send({ type: "createRoom" });
@@ -89,7 +90,7 @@ export function App() {
     <>
       {screen}
       {session.status !== "open" && <div className="banner">{session.status === "connecting" ? bg.connecting : bg.reconnecting}</div>}
-      {session.error && (
+      {session.error && !(session.error.code === "room_not_found" && !room) && (
         <div className="toast" role="alert">
           {bg.error[session.error.code] ?? session.error.code}
         </div>

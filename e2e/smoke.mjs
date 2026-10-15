@@ -73,7 +73,7 @@ while (Date.now() < deadline) {
     }
     const playable = p.locator(".hand.active button.card:not(:disabled)");
     if ((await playable.count()) > 0) {
-      await playable.first().click();
+      await playable.first().click({ position: { x: 10, y: 24 } }); // the visible corner of an overlapped card
       acted = true;
       moves++;
       if (SHOTS && moves === 5) await pages[1].screenshot({ path: `${SHOTS}/${tag}-4-playing.png` });
@@ -92,7 +92,7 @@ while (Date.now() < deadline) {
     if ((await p.locator(".modal").count()) > 0) {
       await p.waitForTimeout(700);
       if (SHOTS) await p.screenshot({ path: `${SHOTS}/${tag}-5-round-end.png` });
-      const total = await p.locator(".modal .score-row.total b").allTextContents();
+      const total = await p.locator(".modal .totals b").allTextContents();
       if (total.length !== 2 || total.some((t) => Number.isNaN(Number(t)))) fail(`bad score sheet: ${total}`);
       if (errors.length) fail(errors.join("\n"));
       console.log(`OK: round played in ${moves} card plays, score ${total.join(" : ")}`);

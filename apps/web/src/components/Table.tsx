@@ -6,7 +6,7 @@ import { playSound } from "../sound";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { Bidding, bidText } from "./Bidding";
 import { CardBack, CardFace } from "./Card";
-import { Controls } from "./Controls";
+import { GameMenu } from "./Controls";
 import { CutPicker, DEAL_FLY, DEAL_GAP, DealPrompt, DeckStage, ShufflePrompt, dealPackets, type Stage } from "./Dealing";
 import { Icon } from "./Icon";
 import { ScoreSheet } from "./ScoreSheet";
@@ -242,6 +242,14 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
   const lucky = view.lucky && !luckyGone && !luckyHidden && (view.phase === "bidding" || view.phase === "playing") ? view.lucky : null;
   const counts = (seat: number) => (dealtSoFar ? dealtSoFar[seat]! : view.handCounts[seat] ?? 0);
   const last = view.history[view.history.length - 1];
+  const phaseLabel =
+    stage?.kind === "shuffle" || view.phase === "shuffling"
+      ? bg.phaseShuffle
+      : view.phase === "cutting"
+        ? bg.phaseCut
+        : view.phase === "dealing" || stage?.kind === "deal"
+          ? bg.phaseDeal
+          : bg.bidTitle;
 
   return (
     <div className="table">
@@ -256,27 +264,18 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
               {view.contract.multiplier > 1 && <b> ×{view.contract.multiplier}</b>}
             </span>
           ) : (
-            <span className="chip">{bg.bidTitle}</span>
+            <span className="chip">{phaseLabel}</span>
           )}
-          <span className="chip quiet">
-            {bg.roundShort} {view.round}
-          </span>
         </div>
-        <Controls />
-        <button className="score-btn" onClick={() => setSheetOpen(true)} aria-label={bg.scoreTitle}>
-          <Icon name="list" size={18} />
-          <b>
-            <AnimatedNumber value={view.scores[myTeam]} />
-          </b>
-          <span>:</span>
-          <b>
-            <AnimatedNumber value={view.scores[otherTeam]} />
-          </b>
+        <button className="score-btn" onClick={() => setSheetOpen(true)} aria-label={`${bg.scoreTitle}: ${bg.teamUs} ${view.scores[myTeam]}, ${bg.teamThem} ${view.scores[otherTeam]}`}>
+          <ScoreTeam label={bg.teamUs} value={view.scores[myTeam]} cls="us" />
+          <ScoreTeam label={bg.teamThem} value={view.scores[otherTeam]} cls="them" />
         </button>
+        <GameMenu />
       </header>
 
       <p className="deal-info">
-        {bg.dealerIs} <b>{dealerName}</b> · {bg.underHand} <b>{underHand}</b>
+        {bg.roundShort} {view.round} · {bg.dealerIs} <b>{dealerName}</b> · {bg.underHand} <b>{underHand}</b>
         {lucky && (
           <>
             {" "}
@@ -365,12 +364,17 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
             {view.phase === "gameOver" ? (
               <h2 className={view.winner === myTeam ? "win" : "lose"}>{view.winner === myTeam ? bg.weWin : bg.theyWin}</h2>
             ) : (
-              <h2>
-                {bg.roundShort} {last.round}
-              </h2>
+              <h2>{bg.roundTitle(last.bidder % 2 === myTeam, last.result.outcome)}</h2>
             )}
+            <p className="modal-sub">
+              {bg.roundShort} {last.round} · <b>{names[last.bidder]}</b> · {contractLabel(last.contract)}
+              {last.multiplier > 1 && ` ×${last.multiplier}`}
+            </p>
             <RoundDetails summary={last} myTeam={myTeam} />
-            <ScoreSheet view={view} mine={myTeam} />
+            <div className="totals" aria-label={bg.total}>
+              <ScoreTeam label={bg.teamUs} value={view.scores[myTeam]} cls="us" big />
+              <ScoreTeam label={bg.teamThem} value={view.scores[otherTeam]} cls="them" big />
+            </div>
             {view.phase === "roundEnd" && (
               <button className="primary" onClick={() => send({ type: "nextRound" })}>
                 {bg.nextRound}
@@ -397,6 +401,19 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
   );
 }
 
+/** One team's running total, with a thin track showing how far it is from 151. */
+function ScoreTeam({ label, value, cls, big }: { label: string; value: number; cls: "us" | "them"; big?: boolean }) {
+  return (
+    <span className={`score-team ${cls} ${big ? "big" : ""}`}>
+      <small>{label}</small>
+      <b>
+        <AnimatedNumber value={value} />
+      </b>
+      <i className="to-win" style={{ ["--p" as string]: `${Math.min(100, (value / 151) * 100)}%` }} />
+    </span>
+  );
+}
+
 function RoundDetails({ summary, myTeam }: { summary: GameView["history"][number]; myTeam: 0 | 1 }) {
   const other = myTeam === 0 ? 1 : 0;
   return (
@@ -413,7 +430,10 @@ function RoundDetails({ summary, myTeam }: { summary: GameView["history"][number
           </dd>
         </>
       )}
-      {summary.result.outcome === "inside" && <dt className="flag">{bg.inside}</dt>}
+      <dt className="recorded">{bg.recorded}</dt>
+      <dd className="recorded">
+        {summary.result.recorded[myTeam]} : {summary.result.recorded[other]}
+      </dd>
       {summary.result.outcome === "tie" && <dt className="flag">{bg.tie}</dt>}
       {summary.capo !== null && <dt className="flag">{bg.capo}</dt>}
     </dl>
@@ -446,6 +466,7 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky }: Se
         </i>
         <span>{name}</span>
         {pos !== "bottom" && <small className="count">{count}</small>}
+        {pos === "bottom" && turn && <small className="your-turn">{bg.yourTurn}</small>}
         {view.dealer === seat && <em title={bg.dealer}>Р</em>}
         {!connected && <small className="off">{bg.offline}</small>}
       </div>
