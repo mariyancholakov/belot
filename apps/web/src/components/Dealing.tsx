@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { bg } from "../i18n/bg";
 import { playSound } from "../sound";
 
@@ -84,21 +84,38 @@ interface PickerProps {
   onCut: (position: number) => void;
 }
 
-/** The cutter chooses where to split the deck: the deck lies on the felt, slightly fanned, and a drag along it picks the cut. */
+/** The cutter points along the deck: the cards up to the one under the pointer lift, and "Цепи" cuts there. */
 export function CutPicker({ onCut }: PickerProps) {
-  const [position, setPosition] = useState(16);
+  // Nothing is lifted until the cutter points at the deck: the cards up to the one under the pointer rise.
+  const [position, setPosition] = useState<number | null>(null);
+  const spread = useRef<HTMLDivElement>(null);
   const confirm = () => {
+    if (position === null) return;
     playSound("tap");
     onCut(position);
+  };
+  const point = (clientX: number) => {
+    const box = spread.current?.getBoundingClientRect();
+    if (!box) return;
+    const next = Math.min(31, Math.max(1, Math.ceil(((clientX - box.left) / box.width) * 32)));
+    if (next !== position) {
+      if (position !== null) playSound("tap");
+      setPosition(next);
+    }
   };
   return (
     <div className="cut-table cut-picker">
       <p className="cut-hint">{bg.cutHint}</p>
-      <div className="spread">
+      <div
+        className="spread"
+        ref={spread}
+        onPointerMove={(e) => point(e.clientX)}
+        onPointerDown={(e) => point(e.clientX)}
+      >
         {Array.from({ length: 32 }, (_, i) => (
           <i
             key={i}
-            className={`spread-card ${i < position ? "lifted" : ""} ${i === position - 1 ? "edge" : ""}`}
+            className={`spread-card ${position !== null && i < position ? "lifted" : ""} ${i === (position ?? 0) - 1 ? "edge" : ""}`}
             style={{ ["--i" as string]: i, ["--j" as string]: `${(((i * 37 + 3) % 7) - 3) * 0.8}deg`, ["--y" as string]: `${(((i * 53 + 5) % 5) - 2) * 1.2}px` }}
           />
         ))}
@@ -106,18 +123,16 @@ export function CutPicker({ onCut }: PickerProps) {
           type="range"
           min={1}
           max={31}
-          value={position}
+          value={position ?? 16}
           aria-label={bg.cutLabel}
-          aria-valuetext={bg.cutSplit(position)}
-          onChange={(e) => {
-            const next = Number(e.target.value);
-            if (next !== position) playSound("tap");
-            setPosition(next);
-          }}
+          aria-valuetext={bg.cutSplit(position ?? 16)}
+          onChange={(e) => setPosition(Number(e.target.value))}
         />
       </div>
-      <p className="cut-count">{bg.cutSplit(position)}</p>
-      <button className="primary" onClick={confirm}>
+      <p className="cut-count" style={{ visibility: position === null ? "hidden" : "visible" }}>
+        {bg.cutSplit(position ?? 16)}
+      </p>
+      <button className="primary" onClick={confirm} disabled={position === null}>
         {bg.cutConfirm}
       </button>
     </div>
