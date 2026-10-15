@@ -22,8 +22,15 @@ Notes:
 - `auto_stop_machines = "stop"` shuts the machine down when idle (free-tier friendly). The first visit after a pause takes a few seconds; set `min_machines_running = 1` to keep a game alive across idle periods.
 - HTTPS and WSS are handled by Fly; the client connects to `wss://<host>/ws` automatically.
 
-## Render / Railway
-Use the repo's `Dockerfile`. Set the port to `8080` (or set `PORT`). Single instance only.
+## Render (free, no card)
+1. Sign in at render.com with GitHub and allow access to the `belot` repo.
+2. New → Blueprint → pick the repo. `render.yaml` sets up one free Docker web service with `/health` as its health check.
+3. Open the `onrender.com` link it gives you.
+
+The free tier sleeps after ~15 minutes without traffic (a sleeping service drops open games, and waking takes about a minute). To keep it awake during a session, add a free monitor at uptimerobot.com that requests `https://<your-app>.onrender.com/health` every 5 minutes. Free hours (750 a month) cover one service running all month.
+
+## Railway
+Use the repo's `Dockerfile`. Single instance only.
 
 ## Checks
 - `GET /health` returns `{"ok":true,"rooms":N}`.
