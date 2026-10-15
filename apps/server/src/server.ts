@@ -139,6 +139,8 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       }
       case "leaveRoom":
         leaveCurrent(conn);
+        // An explicit leave must stick: a mid-game seat stays reserved, but reloading goes to the menu, not back to the table.
+        if (token) tokenRoom.delete(token);
         send(conn.ws, { type: "roomState", room: null });
         break;
       case "takeSeat": {
