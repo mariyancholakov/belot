@@ -42,7 +42,7 @@ export const bg = {
   you: "ти",
   host: "домакин",
   offline: "няма връзка",
-  watching: "Наблюдават",
+  watching: "Зрители",
   start: "Започни играта",
   addBots: "Добави ботове",
   needFour: "Трябват четирима играчи",
