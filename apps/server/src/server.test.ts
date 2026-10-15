@@ -295,7 +295,7 @@ describe("bots", () => {
     // Bots bid until it is the human's turn; the human passes and the bots keep going.
     await a.until(() => a.view?.phase === "bidding" && a.view.turn === 0);
     a.send({ type: "action", action: { type: "bid", bid: { type: "pass" } } });
-    await a.until(() => a.view?.phase !== "bidding" || a.view.bidLog.length > 4 || a.view.phase === "cutting");
+    await a.until(() => a.view?.phase !== "bidding" || a.view.bidLog.length > 4);
     expect(a.lastError()).toBeUndefined();
   });
 });
