@@ -5,7 +5,9 @@ Web app to play Bulgarian belot with friends. Mobile-first, online rooms with a 
 ## Decisions
 - Platform: web, mobile-first (one link, no install)
 - Multiplayer: online rooms with a join code; bots to fill seats are a later stage
-- Rules: standard Bulgarian belot (trumps / no-trumps / all-trumps, announcements, contra / re-contra)
+- Rules: standard Bulgarian belot (trumps / no-trumps / all-trumps, announcements, contra / re-contra); exact rules in `docs/RULES.md`
+- Target score: 151
+- Language: the app UI is in Bulgarian (code, docs and commits stay in English); user-facing strings live in one place so they are easy to edit
 
 ## Architecture
 pnpm monorepo, TypeScript everywhere.
@@ -26,11 +28,5 @@ Why engine first: belot rules are the risky part (follow suit, trump, over-trump
 6. Deploy (single Node process serving the built web app + websocket)
 7. Bots to fill empty seats; optional stats/history
 
-## Open rule questions (confirm with the group before stage 2)
-- Game target score (151 is common; some groups play 1001)
-- Rounding of round scores, and the "hanging" points rule on ties
-- "Inside" (вътре) rule when the bidding team fails
-- Whether belot / announcements follow the exact order-of-precedence rules in the spec
-- Last-trick bonus and capot (all tricks) bonus values
-
-Stage 1 only needs the card/trick rules, so these do not block it.
+## Open rule questions
+See "Assumptions to confirm with the group" in `docs/RULES.md` (capo value, no-trumps announcements, tie rounding).
