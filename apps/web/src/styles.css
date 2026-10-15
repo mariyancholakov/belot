@@ -706,3 +706,11 @@ button:disabled { cursor: default; }
 .laid { position: absolute; left: 50%; top: 42%; z-index: 5; transform: translate(-50%, -50%); display: flex; animation: pop-center 0.35s var(--ease) both; }
 .laid .card.small { --cw: clamp(36px, 8vw, 52px); margin-left: calc(var(--cw) * -0.35); box-shadow: var(--shadow-2); }
 .laid .card.small:first-child { margin-left: 0; }
+
+/* on wide screens the settings are plain buttons in the bar; the three-dot menu is for phones */
+.topbar-controls { display: none; }
+.topbar-menu { display: contents; }
+@media (min-width: 900px) {
+  .topbar-controls { display: contents; }
+  .topbar-menu { display: none; }
+}

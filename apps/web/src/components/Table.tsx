@@ -7,7 +7,7 @@ import { AnimatedNumber } from "./AnimatedNumber";
 import { Bidding, bidText } from "./Bidding";
 import { CardBack, CardFace } from "./Card";
 import { AnnouncePrompt, BelotPrompt } from "./Declare";
-import { GameMenu } from "./Controls";
+import { Controls, GameMenu } from "./Controls";
 import { CutPicker, DEAL_FLY, DEAL_GAP, DealPrompt, DeckStage, ShufflePrompt, dealPackets, type Stage } from "./Dealing";
 import { Icon } from "./Icon";
 import { ScoreSheet } from "./ScoreSheet";
@@ -277,7 +277,12 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           <ScoreTeam label={bg.teamUs} value={view.scores[myTeam]} cls="us" />
           <ScoreTeam label={bg.teamThem} value={view.scores[otherTeam]} cls="them" />
         </button>
-        <GameMenu onLeave={onLeave} />
+        <span className="topbar-controls">
+          <Controls />
+        </span>
+        <span className="topbar-menu">
+          <GameMenu onLeave={onLeave} />
+        </span>
       </header>
 
       <div className="felt">
