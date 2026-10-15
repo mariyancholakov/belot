@@ -59,9 +59,6 @@ export function Bidding({ view, names, onBid }: Props) {
           <button className="bid wide" disabled={!canBid("all-trumps")} onClick={() => act({ type: "bid", contract: "all-trumps" })}>
             {contractLabel("all-trumps")}
           </button>
-          <button className="bid ghost wide pass" disabled={!has("pass")} onClick={() => act({ type: "pass" })}>
-            {bg.pass}
-          </button>
           {has("contra") && (
             <button className="bid alert wide" onClick={() => act({ type: "contra" })}>
               {bg.contra}
@@ -72,6 +69,9 @@ export function Bidding({ view, names, onBid }: Props) {
               {bg.recontra}
             </button>
           )}
+          <button className="bid wide pass" disabled={!has("pass")} onClick={() => act({ type: "pass" })}>
+            {bg.pass}
+          </button>
         </div>
       ) : (
         <p className="muted waiting">{bg.waitingFor(names[view.turn] ?? "")}</p>
