@@ -281,7 +281,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
               <CardFace card={play.card} small highlight={winnerSeat === play.seat && !sweeping} />
             </div>
           ))}
-          {trick.length === 0 && view.phase === "playing" && <p className="hint">{myTurn ? bg.yourTurn : bg.waitingFor(names[view.turn] ?? "")}</p>}
         </div>
 
         {stage && !cutting && <DeckStage stage={stage} />}
@@ -298,8 +297,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
           </p>
         )}
 
-        {view.phase === "bidding" && !busy && !myBidTurn && <p className="hint low">{bg.waitingFor(names[view.turn] ?? "")}</p>}
-
         {callout && <div className="callout">{callout}</div>}
 
         {myBidTurn && <Bidding view={view} names={names} onBid={(bid) => send({ type: "bid", bid })} />}
@@ -308,19 +305,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         )}
         {view.phase === "dealing" && stage?.kind === "wait" && view.turn === me && (
           <DealPrompt onDeal={(luckyCard) => send({ type: "deal", lucky: luckyCard })} />
-        )}
-
-        {view.announcements && view.announcements.length > 0 && (
-          <ul className="announced">
-            {view.announcements.flatMap(({ seat, announcements }) =>
-              announcements.map((a, i) => (
-                <li key={`${seat}-${i}`}>
-                  <b>{names[seat]}</b> {announcementName[a.kind]}
-                  {a.suit ? <span className={isRed(a.suit) ? "red" : ""}> {suitSymbol[a.suit]}</span> : null} {rankLabel[a.high]} · {a.points}
-                </li>
-              )),
-            )}
-          </ul>
         )}
       </div>
 
