@@ -40,8 +40,8 @@ await pages[0].getByRole("button", { name: "Започни играта" }).clic
 // Everyone watches the shuffle, then whoever sits right of the dealer cuts the deck.
 const cutter = await Promise.race(pages.map((p) => p.waitForSelector(".cut-picker", { timeout: 15_000 }).then(() => p)));
 if (SHOTS) await cutter.screenshot({ path: `${SHOTS}/${tag}-2b-cut.png` });
-await cutter.locator(".cut-picker input").fill("11");
-await cutter.locator(".cut-picker button.primary").click();
+const spread = await cutter.locator(".cut-picker .spread").boundingBox();
+await cutter.mouse.click(spread.x + (spread.width * 10.5) / 32, spread.y + spread.height / 2);
 // The cut is animated, then the dealer deals (with a lucky card this time) and the cards fly out.
 const dealer = await Promise.race(pages.map((p) => p.waitForSelector(".prompt", { timeout: 15_000 }).then(() => p)));
 await dealer.getByRole("button", { name: "Дай късмет" }).click();

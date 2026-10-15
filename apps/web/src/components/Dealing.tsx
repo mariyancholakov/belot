@@ -84,21 +84,23 @@ interface PickerProps {
   onCut: (position: number) => void;
 }
 
-/** The cutter points along the deck: the cards up to the one under the pointer lift, and "Цепи" cuts there. */
+/** The cutter points along the deck, which opens a gap where it would split; a click cuts there. */
 export function CutPicker({ onCut }: PickerProps) {
-  // Nothing is lifted until the cutter points at the deck: the cards up to the one under the pointer rise.
+  // Pointing at a card shows where the deck would split; a click cuts there.
   const [position, setPosition] = useState<number | null>(null);
   const spread = useRef<HTMLDivElement>(null);
-  const confirm = () => {
-    if (position === null) return;
+  const at = (clientX: number): number | null => {
+    const box = spread.current?.getBoundingClientRect();
+    if (!box) return null;
+    return Math.min(31, Math.max(1, Math.ceil(((clientX - box.left) / box.width) * 32)));
+  };
+  const cut = (n: number) => {
     playSound("tap");
-    onCut(position);
+    onCut(n);
   };
   const point = (clientX: number) => {
-    const box = spread.current?.getBoundingClientRect();
-    if (!box) return;
-    const next = Math.min(31, Math.max(1, Math.ceil(((clientX - box.left) / box.width) * 32)));
-    if (next !== position) {
+    const next = at(clientX);
+    if (next !== null && next !== position) {
       if (position !== null) playSound("tap");
       setPosition(next);
     }
@@ -111,11 +113,16 @@ export function CutPicker({ onCut }: PickerProps) {
         ref={spread}
         onPointerMove={(e) => point(e.clientX)}
         onPointerDown={(e) => point(e.clientX)}
+        onPointerLeave={() => setPosition(null)}
+        onClick={(e) => {
+          const n = at(e.clientX);
+          if (n !== null) cut(n);
+        }}
       >
         {Array.from({ length: 32 }, (_, i) => (
           <i
             key={i}
-            className={`spread-card ${position !== null && i < position ? "lifted" : ""} ${i === (position ?? 0) - 1 ? "edge" : ""}`}
+            className={`spread-card ${position === null ? "" : i < position ? "left" : "right"} ${i === (position ?? 0) - 1 ? "edge" : ""}`}
             style={{ ["--i" as string]: i, ["--j" as string]: `${(((i * 37 + 3) % 7) - 3) * 0.8}deg`, ["--y" as string]: `${(((i * 53 + 5) % 5) - 2) * 1.2}px` }}
           />
         ))}
@@ -127,14 +134,14 @@ export function CutPicker({ onCut }: PickerProps) {
           aria-label={bg.cutLabel}
           aria-valuetext={bg.cutSplit(position ?? 16)}
           onChange={(e) => setPosition(Number(e.target.value))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") cut(position ?? 16);
+          }}
         />
       </div>
       <p className="cut-count" style={{ visibility: position === null ? "hidden" : "visible" }}>
         {bg.cutSplit(position ?? 16)}
       </p>
-      <button className="primary" onClick={confirm} disabled={position === null}>
-        {bg.cutConfirm}
-      </button>
     </div>
   );
 }

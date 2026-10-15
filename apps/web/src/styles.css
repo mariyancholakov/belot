@@ -659,8 +659,10 @@ button:disabled { cursor: default; }
   background: var(--back-bg); border: 3px solid var(--card-bg); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   rotate: var(--j); translate: 0 var(--y); transition: translate 0.2s var(--ease), box-shadow 0.18s;
 }
-.spread-card.lifted { translate: 0 calc(var(--y) - 22px); }
-.spread-card.edge { box-shadow: 0 0 0 2px var(--accent), 0 6px 12px rgba(0, 0, 0, 0.35); }
+.spread-card.left { translate: -7px var(--y); }
+.spread-card.right { translate: 7px var(--y); }
+.spread-card.edge { translate: -7px calc(var(--y) - 12px); }
+.spread-card.edge { box-shadow: 0 8px 14px rgba(0, 0, 0, 0.35); }
 
 /* the red accent is for the interface; on the felt, controls and the active player are paper-coloured */
 .cut-table .primary { background: var(--turn-bg); color: var(--turn-ink); }
