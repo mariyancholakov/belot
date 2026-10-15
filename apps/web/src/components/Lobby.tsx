@@ -27,17 +27,10 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
     }
   };
 
-  const text = `${bg.shareText} ${link}`;
-  const channels = [
-    { name: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(text)}` },
-    { name: "Viber", href: `viber://forward?text=${encodeURIComponent(text)}` },
-    { name: "Telegram", href: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(bg.shareText)}` },
-    { name: "Messenger", href: `fb-messenger://share?link=${encodeURIComponent(link)}` },
-  ];
   const canShare = typeof navigator.share === "function";
   const nativeShare = () => navigator.share({ title: bg.appName, text: bg.shareText, url: link }).catch(() => {});
 
-  // Partners sit across from each other, so a team is a diagonal: seats 0+2 and 1+3.
+  // Partners sit across from each other, so a team is a diagonal: seats 0+2 and 1+3, shown by colour.
   // The grid reads clockwise round the table: 0 and 1 on top, 3 and 2 below.
   const mineParity = room.you === null ? 0 : room.you % 2;
   const teamLabel = (seat: number) =>
@@ -75,22 +68,11 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
               {bg.share}
             </button>
           )}
-          <div className="share-apps">
-            {channels.map((c) => (
-              <a key={c.name} className="chip" href={c.href} target="_blank" rel="noreferrer">
-                {c.name}
-              </a>
-            ))}
-          </div>
         </div>
 
         <div className="stitch" aria-hidden="true" />
 
         <div className="seats" role="group" aria-label={bg.lobbyTableLabel}>
-          <svg className="seats-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <line className={mineParity === 0 ? "ours" : "theirs"} x1="25" y1="25" x2="75" y2="75" />
-            <line className={mineParity === 1 ? "ours" : "theirs"} x1="75" y1="25" x2="25" y2="75" />
-          </svg>
           {order.map((seat) => {
             const s = room.seats[seat];
             const mine = room.you === seat;

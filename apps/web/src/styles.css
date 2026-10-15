@@ -232,23 +232,15 @@ button:disabled { cursor: default; }
 .lobby-panel .stitch { margin: 0; }
 .share { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .share .secondary { min-height: 44px; padding: 0 18px; width: auto; }
-.share-apps { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
-.chip {
-  display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 99px; font-size: 0.9rem; font-weight: 600;
-  background: var(--surface-2); border: 1px solid var(--line); color: var(--text); text-decoration: none;
-}
-.chip:hover { border-color: var(--accent); }
-/* a team is a diagonal: partners sit across from each other, and a line joins them */
+/* a team is a diagonal: partners sit across from each other and share a colour */
 .seats { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.seats-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.seats-lines line { stroke-width: 2.5; stroke-dasharray: 3 5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
-.seats-lines .ours { stroke: var(--ours); } .seats-lines .theirs { stroke: var(--theirs); }
 .slot.ours { --team: var(--ours); --team-ink: var(--ours-ink); } .slot.theirs { --team: var(--theirs); --team-ink: var(--theirs-ink); }
 .slot {
   position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 10px; border-radius: 12px; text-align: left; min-width: 0;
-  background: var(--surface); border: 1.5px dashed var(--team); color: var(--muted);
+  background: var(--surface); border: 1.5px dashed var(--line-strong); color: var(--muted);
+  background: color-mix(in srgb, var(--team) 7%, var(--surface));
 }
-.slot.taken { border-style: solid; border-color: var(--team); color: var(--text); }
+.slot.taken { border-style: solid; border-color: color-mix(in srgb, var(--team) 45%, var(--line)); color: var(--text); }
 .slot:not(:disabled):hover { border-color: var(--accent); }
 .slot:not(:disabled):active { transform: scale(0.98); }
 .slot.mine { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
