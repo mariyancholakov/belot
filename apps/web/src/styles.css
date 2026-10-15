@@ -1,26 +1,26 @@
 /* ---------- tokens ---------- */
 :root {
-  --bg: #f2f3f5;
+  --bg: #f5f1ea;
   --surface: #ffffff;
-  --surface-2: #f6f7f9;
-  --text: #101318;
-  --muted: #5f6876;
-  --line: #e1e4e9;
-  --accent: #0e9f6e;
+  --surface-2: #faf7f2;
+  --text: #1a1613;
+  --muted: #6b625a;
+  --line: #e6dfd4;
+  --accent: #b8322a;
   --accent-ink: #ffffff;
-  --accent-soft: #dff3ea;
-  --danger: #d3222f;
+  --accent-soft: #f6dfdb;
+  --danger: #a31d3a;
   --warn: #b7791f;
-  --felt-a: #2f8662;
-  --felt-b: #1f6046;
+  --felt-a: #23503e;
+  --felt-b: #163626;
   --felt-line: rgba(255, 255, 255, 0.16);
   --chip-bg: rgba(8, 24, 18, 0.62);
   --chip-ink: #f4faf7;
-  --ours: #5eead4;
-  --theirs: #fbbf24;
-  --stitch: #b83a2e;
-  --ours-ink: #0f766e;
-  --theirs-ink: #b45309;
+  --ours: #5bc2a8;
+  --theirs: #e8b84f;
+  --stitch: #b8322a;
+  --ours-ink: #276b59;
+  --theirs-ink: #8f6414;
   --card-bg: #ffffff;
   --card-ink: #141820;
   --card-red: #d3222f;
@@ -40,23 +40,23 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0c0f13;
-    --surface: #161a20;
-    --surface-2: #1d222a;
-    --text: #eceff3;
-    --muted: #98a1ae;
-    --line: #272d36;
-    --accent: #34d399;
-    --accent-ink: #052619;
-    --accent-soft: #11382b;
-    --danger: #ff6b76;
+    --bg: #111513;
+    --surface: #1a201c;
+    --surface-2: #212823;
+    --text: #efebe4;
+    --muted: #a39b90;
+    --line: #2c342e;
+    --accent: #e5594d;
+    --accent-ink: #1a0a08;
+    --accent-soft: #3a1a17;
+    --danger: #ff6b7f;
     --warn: #f2b84b;
-    --felt-a: #1c4d3b;
-    --felt-b: #12372a;
+    --felt-a: #1b4535;
+    --felt-b: #102a20;
     --felt-line: rgba(255, 255, 255, 0.1);
-    --stitch: #e0675a;
-    --ours-ink: #5eead4;
-    --theirs-ink: #fbbf24;
+    --stitch: #e5594d;
+    --ours-ink: #5bc2a8;
+    --theirs-ink: #e8b84f;
     --card-bg: #f1f3f6;
     --card-red: #d92c39;
     --card-edge: rgba(0, 0, 0, 0.35);
@@ -66,23 +66,23 @@
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0c0f13;
-  --surface: #161a20;
-  --surface-2: #1d222a;
-  --text: #eceff3;
-  --muted: #98a1ae;
-  --line: #272d36;
-  --accent: #34d399;
-  --accent-ink: #052619;
-  --accent-soft: #11382b;
-  --danger: #ff6b76;
+  --bg: #111513;
+  --surface: #1a201c;
+  --surface-2: #212823;
+  --text: #efebe4;
+  --muted: #a39b90;
+  --line: #2c342e;
+  --accent: #e5594d;
+  --accent-ink: #1a0a08;
+  --accent-soft: #3a1a17;
+  --danger: #ff6b7f;
   --warn: #f2b84b;
-  --felt-a: #1c4d3b;
-  --felt-b: #12372a;
+  --felt-a: #1b4535;
+  --felt-b: #102a20;
   --felt-line: rgba(255, 255, 255, 0.1);
-  --stitch: #e0675a;
-  --ours-ink: #5eead4;
-  --theirs-ink: #fbbf24;
+  --stitch: #e5594d;
+  --ours-ink: #5bc2a8;
+  --theirs-ink: #e8b84f;
   --card-bg: #f1f3f6;
   --card-red: #d92c39;
   --card-edge: rgba(0, 0, 0, 0.35);
@@ -649,3 +649,7 @@ button:disabled { cursor: default; }
 }
 .spread-card.lifted { translate: 0 calc(var(--y) - 22px); }
 .spread-card.edge { box-shadow: 0 0 0 2px var(--accent), 0 6px 12px rgba(0, 0, 0, 0.35); }
+
+/* the red accent is for the interface; on the felt, controls and the active player are paper-coloured */
+.seat.turn .name { background: var(--card-bg); color: var(--card-ink); }
+.cut-table .primary { background: var(--card-bg); color: var(--card-ink); }
