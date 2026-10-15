@@ -78,11 +78,13 @@ export function scoreRound(input: RoundInput): RoundResult {
   } else {
     outcome = "tie";
     winner = null;
-    recorded[opponent] = rounded[opponent] * multiplier;
-    hanging = rounded[bidder] * multiplier;
+    // Equal points: the side that did not bid records them rounded down, the bidder's hang rounded up.
+    recorded[opponent] = Math.floor(raw[opponent] / 10) * multiplier;
+    hanging = Math.ceil(raw[bidder] / 10) * multiplier;
   }
 
-  if (capo !== null) recorded[capo] += CAPO_BONUS;
+  // The capo bonus is a premium like the others: contra and re-contra multiply it too.
+  if (capo !== null) recorded[capo] += CAPO_BONUS * multiplier;
 
   // Earlier hanging points go to whoever wins this round; a tie keeps them hanging.
   if (winner !== null) recorded[winner] += input.hanging;
@@ -91,7 +93,7 @@ export function scoreRound(input: RoundInput): RoundResult {
   return { recorded, hanging, outcome };
 }
 
-/** Winning team once someone reaches the target, or null if play continues. */
+/** Winning team once someone reaches the target, or null if play continues. A round won with a capo can never end the game: see `finishRound`. */
 export function gameWinner(totals: readonly [number, number], target = TARGET_SCORE): Team | null {
   const [a, b] = totals;
   if (a < target && b < target) return null;

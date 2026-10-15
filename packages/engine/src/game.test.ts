@@ -390,3 +390,22 @@ describe("laying the cards down", () => {
     expect(r.events.some((e) => e.type === "belot")).toBe(true);
   });
 });
+
+describe("a game cannot be won with a capo", () => {
+  it("keeps playing when the round that passed 151 was a capo", () => {
+    const s = playing([[k("J", "hearts"), k("9", "hearts")], [k("A", "spades")], [k("K", "spades")], [k("Q", "spades")]], "hearts");
+    s.decided[0] = true;
+    s.scores = [145, 100];
+    s.tricksPlayed = 0;
+    s.tricksWon = [0, 0];
+    // everything but these four cards has been played, and seat 0 holds the trumps
+    const all: Card[] = [];
+    for (const suit of ["clubs", "diamonds", "hearts", "spades"] as Suit[]) for (const rank of ["7", "8", "9", "10", "J", "Q", "K", "A"] as Rank[]) all.push({ rank, suit });
+    s.collected = all.filter((c) => !s.hands.flat().some((h) => h.rank === c.rank && h.suit === c.suit));
+    const r = applyAction(s, 0, { type: "claim" });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.scores[0]).toBeGreaterThanOrEqual(151);
+    expect(r.state.phase).toBe("roundEnd");
+    expect(r.state.winner).toBeNull();
+  });
+});

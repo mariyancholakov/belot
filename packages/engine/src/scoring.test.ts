@@ -75,7 +75,7 @@ describe("scoreRound", () => {
     const r = scoreRound({ ...base, cardPoints: [81, 81] });
     expect(r.outcome).toBe("tie");
     expect(r.recorded).toEqual([0, 8]);
-    expect(r.hanging).toBe(8);
+    expect(r.hanging).toBe(9);
   });
 
   it("hanging points go to the winner of the next played round", () => {
@@ -86,12 +86,12 @@ describe("scoreRound", () => {
 
   it("hanging points keep hanging through another tie", () => {
     const r = scoreRound({ ...base, cardPoints: [81, 81], hanging: 8 });
-    expect(r.hanging).toBe(16);
+    expect(r.hanging).toBe(17);
   });
 
-  it("capo bonus is added and not multiplied", () => {
+  it("capo bonus is a premium: contra multiplies it too", () => {
     const r = scoreRound({ ...base, multiplier: 2, cardPoints: [162, 0], capo: 0 });
-    expect(r.recorded).toEqual([(16 * 2) + 9, 0]);
+    expect(r.recorded).toEqual([16 * 2 + 9 * 2, 0]);
   });
 });
 

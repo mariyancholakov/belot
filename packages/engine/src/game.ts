@@ -473,7 +473,8 @@ function finishRound(state: GameState, events: GameEvent[]): void {
   state.history.push(summary);
   events.push({ type: "roundScored", result, summary });
 
-  const winner = gameWinner(state.scores);
+  // A game cannot be won with a capo: if the round that took someone past 151 was a capo, another round is played.
+  const winner = capo !== null ? null : gameWinner(state.scores);
   if (winner !== null) {
     state.winner = winner;
     state.phase = "gameOver";

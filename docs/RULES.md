@@ -1,6 +1,6 @@
 # Belot rules implemented
 
-Source: Bulgarian Wikipedia, "Бридж-белот" (bg.wikipedia.org/wiki/Белот), cross-checked against the Sofia University FMI belot page where it was reachable. Target score: **151** (confirmed by the project owner).
+Sources: belot.bg (the rules page, English, checked 2026-10-15), Bulgarian Wikipedia, "Бридж-белот" (bg.wikipedia.org/wiki/Белот), cross-checked against the Sofia University FMI belot page where it was reachable. Target score: **151** (confirmed by the project owner).
 
 ## Table
 4 players, 2 teams, partners opposite (seats 0+2 vs 1+3). 32 cards (7–A). The deck is shuffled once, at the start of a game. After that it is never reshuffled: after a round the played cards are gathered in the order they were played (trick by trick), and after an all-pass deal the same deck is reused. Before every deal the player to the dealer's left (the previous dealer after a redeal) cuts the deck: lifts the top packet, any size from 1 to 31 cards, and puts it under the rest. Only after three all-pass deals in a row may the next dealer choose to shuffle. The dealer may also ask for a "късметче" (lucky card): the first card dealt, to the player under hand, is turned face up and everybody knows it. The player under hand ("под ръка") is the one after the dealer who bids and leads first. Dealing is counter-clockwise: 3 cards, 2 cards, bidding, then 3 more. Bidding starts with the player after the dealer; the player to the right of the dealer leads the first trick.
@@ -40,18 +40,16 @@ Raw team total = card points + last trick + announcements; no-trumps raw is doub
 
 - **Success**: bidding team has more raw points → each team records its own rounded points.
 - **Inside (вътре)**: bidding team has fewer → all round points go to the opponents.
-- **Tie**: the non-bidding team records its own points; the bidder's points hang (висящи) and go to the winner of the next played round.
-- **Contra / re-contra**: the winner takes all round points ×2 / ×4. Capo bonus is not multiplied.
-- **Capo (валат)**: the team that wins all 8 tricks gets +90 raw (recorded as 9).
+- **Tie**: the non-bidding team records its own raw points ÷ 10 rounded down; the bidder's points hang (висящи), ÷ 10 rounded up, and go to the winner of the next played round (belot.bg: "receive 15 and they hang 16"). If the next round also ties, the hanging points pile up.
+- **Contra / re-contra**: the winner takes all round points ×2 / ×4, premiums included, the capo bonus too.
+- **Capo (валат)**: the team that wins all 8 tricks gets +90 raw (recorded as 9, ×2 / ×4 with contra / re-contra). It is the one premium that is not doubled in no-trumps. **A game cannot be won with a capo**: if the round that took a team to 151 was a capo, the game goes on and a later round without a capo decides it (belot.bg: "If a game ends with a valat, then another dealing must be played until a game is won without a valat").
 
 ## Game
 First team to reach 151 wins; if both pass 151 the higher total wins; a tie is played on.
 
 ## Assumptions to confirm with the group
-- Capo bonus recorded as 9 (90 raw ÷ 10), on top of the normal round score. The source says "90 points"; whether that is 9 or 90 in the 151-scale is not stated.
+- Capo bonus recorded as 9 (90 raw ÷ 10), on top of the normal round score. belot.bg says "90 points" without saying whether that is 9 or 90 in the 151 scale; we assume 9, as the other premiums are also divided by 10.
 - Announcements are doubled in no-trumps together with the rest of the raw points.
-- On a tie, both teams are rounded with the "fewer points" rule.
-- The source also mentions a "151–159 after capo" extra round; the wording is unclear, not implemented.
 - Bidding: after a contra no higher bids are allowed (only pass or re-contra); the three other players each get one turn after a contra, and re-contra ends bidding at once. The source does not say whether bidding can continue after a contra.
 - Announcements are declared by the player. Before a seat's first card of the round, if its hand holds any, it is asked whether to declare them; what it does not declare scores nothing. Only the first trick can carry announcements (belot excepted). The team with the stronger best declared announcement (points, then top card) scores all its declared announcements; if the best ones are equal, neither team scores announcements. A carré cancels any sequence that uses one of its cards. Belot (K+Q of trump; in all-trumps, of any suit) is called by the player when playing the first of the pair, or when laying cards down, and then counts 20; a belot not called is lost. Announcements are allowed in every contract (belot excluded in no-trumps).
 - Laying the cards down ("сваляне"): a player who leads may lay their hand down (with at least two cards left) when every card in it is certain to win (no unseen card beats it; a plain-suit card only counts while no trump is unseen). The team takes every remaining card plus the last-trick bonus, and the round ends at once.
