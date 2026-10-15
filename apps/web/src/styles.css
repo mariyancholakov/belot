@@ -328,7 +328,10 @@ button:disabled { cursor: default; }
 .table > .seat.bottom .name { background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); backdrop-filter: none; }
 .backs { display: flex; }
 .seat.top .backs .card.small { --cw: var(--top-cw); margin-left: calc(var(--cw) * -0.62); }
-.seat.left .backs .card.small, .seat.right .backs .card.small { --cw: var(--side-cw); margin-left: calc(var(--cw) * -0.7); }
+/* the players to the left and right hold their cards facing themselves, so from here the fan runs top to bottom and each card lies on its side */
+.seat.left .backs, .seat.right .backs { flex-direction: column; padding: 0 calc(var(--side-cw) * 0.21); }
+.seat.left .backs .card.small, .seat.right .backs .card.small { --cw: var(--side-cw); margin-left: 0; margin-top: calc(var(--cw) * -1.12); rotate: 90deg; }
+.seat.left .backs .card.small:first-child, .seat.right .backs .card.small:first-child { margin-top: 0; }
 .backs .card.small:first-child { margin-left: 0; }
 
 /* trick */
