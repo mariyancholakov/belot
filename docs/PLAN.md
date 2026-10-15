@@ -50,9 +50,9 @@ Pure, deterministic, no I/O. Server and client both import it.
 | 1.4 | Seeded shuffle + deal (3+2, then 3 after bidding), dealer rotation, cut | `deal.ts` | ✅ |
 | 1.5 | Bidding: bid order ♣<♦<♥<♠<no-trumps<all-trumps, pass, contra, re-contra, end conditions, all-pass redeal | `bidding.ts` | ✅ |
 | 1.6 | Announcements: find sequences (terca/fifty/hundred) and carrés in a hand; compare teams (only the strongest team's sequences count, equal strongest cancel); carré cancels sequences; belot detection when K or Q of trump is played | `announcements.ts` | ✅ |
-| 1.7 | Game state machine: one `GameState` type, `applyAction(state, seat, action)` returning new state + events or an error; phases `bidding → playing → roundEnd → gameOver` | `game.ts` | |
+| 1.7 | Game state machine: one `GameState` type, `applyAction(state, seat, action)` returning new state + events or an error; phases `bidding → playing → roundEnd → gameOver` | `game.ts` | ✅ |
 | 1.8 | Per-seat view: redact other hands, include `legalActions` | `view.ts` | |
-| 1.9 | Random playout tests: thousands of seeded games with random legal moves; checks: game always ends, card points per round = 162 / 130 / 258, no illegal move is ever offered, score totals never decrease | `playout.test.ts` | |
+| 1.9 | Random playout tests: thousands of seeded games with random legal moves; checks: game always ends, card points per round = 162 / 130 / 258, no illegal move is ever offered, score totals never decrease | `game.test.ts` | ✅ |
 
 Rule details to verify while building 1.5–1.6 (record the answer in `docs/RULES.md`):
 - Announcements in no-trumps: the common Bulgarian rule is that there are none. `RULES.md` currently assumes they count and are doubled; check and fix.
