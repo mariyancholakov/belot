@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { RoomState } from "@belot/protocol";
 import { bg } from "../i18n/bg";
+import { Avatar } from "./Avatar";
 import { Controls } from "./Controls";
 import { Icon } from "./Icon";
 
@@ -86,7 +87,7 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onStart, onLeave }
             return (
               <button key={seat} className={`slot ${ours ? "ours" : "theirs"} ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} onClick={() => onSit(seat)}>
                 <span className="slot-avatar" aria-hidden="true">
-                  {s ? [...s.nickname][0]?.toUpperCase() : "+"}
+                  {s ? <Avatar name={s.nickname} size={52} /> : "+"}
                 </span>
                 <span className="slot-text">
                   <em>{teamLabel(seat)}</em>

@@ -4,6 +4,7 @@ import type { RoomState } from "@belot/protocol";
 import { announcementName, bg, contractLabel, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
 import { playSound } from "../sound";
 import { AnimatedNumber } from "./AnimatedNumber";
+import { Avatar } from "./Avatar";
 import { Bidding, bidText } from "./Bidding";
 import { CardBack, CardFace } from "./Card";
 import { AnnouncePrompt, BelotPrompt } from "./Declare";
@@ -491,7 +492,7 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
     <div className={`seat ${pos} ${turn ? "turn" : ""} ${ours ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
       <div className="name">
         <i className="avatar" aria-hidden="true">
-          {name.slice(0, 1).toUpperCase()}
+          <Avatar name={name} size={44} />
         </i>
         <span>{name}</span>
         {view.dealer === seat && <em title={bg.dealer}>Р</em>}

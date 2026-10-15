@@ -253,8 +253,8 @@ button:disabled { cursor: default; }
 .slot.mine { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .slot-text em { font-style: normal; font-size: 0.7rem; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: var(--team-ink); }
 .slot-avatar { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); font-weight: 750; }
-.slot.taken .slot-avatar { background: var(--team); color: var(--ours-on); }
-.slot.theirs.taken .slot-avatar { color: var(--theirs-on); }
+.slot-avatar { overflow: hidden; }
+.slot.taken .slot-avatar { background: none; box-shadow: 0 0 0 3px var(--team); }
 .slot-text { display: grid; min-width: 0; }
 .slot-text b { font-size: 0.98rem; overflow-wrap: anywhere; line-height: 1.2; }
 .slot-text small { font-size: 0.78rem; color: var(--muted); }
@@ -303,16 +303,14 @@ button:disabled { cursor: default; }
 /* seats */
 .seat { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 2; }
 .seat .name {
-  display: inline-flex; align-items: center; gap: 6px; max-width: 150px; padding: 3px 10px 3px 3px; border-radius: 99px;
-  font-size: 0.85rem; font-weight: 600; background: var(--chip-bg); color: var(--chip-ink); backdrop-filter: blur(6px);
+  display: inline-flex; align-items: center; gap: 9px; max-width: 190px; padding: 5px 16px 5px 5px; border-radius: 99px;
+  font-size: 0.98rem; font-weight: 600; background: var(--chip-bg); color: var(--chip-ink); backdrop-filter: blur(6px);
   transition: box-shadow 0.2s, background-color 0.2s, color 0.2s;
 }
 .seat .name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.seat .avatar {
-  width: 24px; height: 24px; border-radius: 99px; display: grid; place-items: center; font-style: normal; font-size: 0.75rem; font-weight: 750; color: var(--theirs-on);
-  background: var(--theirs);
-}
-.seat.ours .avatar { background: var(--ours); color: var(--ours-on); }
+.seat .avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex: none; display: block; font-style: normal; box-shadow: 0 0 0 2.5px var(--theirs); }
+.seat.ours .avatar { box-shadow: 0 0 0 2.5px var(--ours); }
+.seat .avatar svg, .slot-avatar svg { display: block; width: 100%; height: 100%; }
 .seat .name em { font-style: normal; font-size: 0.68rem; font-weight: 700; background: var(--chip-ink); color: var(--felt-a); border-radius: 99px; padding: 0 6px; }
 .seat .name small { opacity: 0.7; font-size: 0.78rem; }
 .seat .name small.off { color: var(--theirs); opacity: 1; }
@@ -724,3 +722,5 @@ button:disabled { cursor: default; }
 }
 .leave-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; color: var(--text); font-weight: 600; }
 .leave-btn:hover { background: var(--surface-2); }
+
+@media (min-width: 760px) { .seat .avatar { width: 44px; height: 44px; } .seat .name { font-size: 1.05rem; } }
