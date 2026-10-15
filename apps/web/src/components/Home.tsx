@@ -67,6 +67,10 @@ export function Home({ nickname: saved, initialCode, ready, codeError, onCreate,
 
   return (
     <main className="home">
+      <span className="home-logo" aria-hidden="true">
+        <span className="home-logo-mark">♠</span>
+        {bg.appName}
+      </span>
       <div className="page-controls">
         <Controls />
       </div>

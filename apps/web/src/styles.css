@@ -191,6 +191,20 @@ button:disabled { cursor: default; }
   display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 400px;
   padding: 28px 24px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
 }
+.home > * { position: relative; z-index: 1; }
+/* a faint scatter of suits, faded out toward the middle so the card stays clean */
+.home::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: var(--muted); opacity: 0.16;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' font-family='serif' font-size='30' text-anchor='middle'%3E%3Cg transform='rotate(-12 40 40)'%3E%3Ctext x='40' y='52'%3E♠%3C/text%3E%3C/g%3E%3Cg transform='rotate(10 120 40)'%3E%3Ctext x='120' y='52'%3E♥%3C/text%3E%3C/g%3E%3Cg transform='rotate(14 40 120)'%3E%3Ctext x='40' y='132'%3E♦%3C/text%3E%3C/g%3E%3Cg transform='rotate(-8 120 120)'%3E%3Ctext x='120' y='132'%3E♣%3C/text%3E%3C/g%3E%3C/svg%3E") repeat center / 160px 160px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' font-family='serif' font-size='30' text-anchor='middle'%3E%3Cg transform='rotate(-12 40 40)'%3E%3Ctext x='40' y='52'%3E♠%3C/text%3E%3C/g%3E%3Cg transform='rotate(10 120 40)'%3E%3Ctext x='120' y='52'%3E♥%3C/text%3E%3C/g%3E%3Cg transform='rotate(14 40 120)'%3E%3Ctext x='40' y='132'%3E♦%3C/text%3E%3C/g%3E%3Cg transform='rotate(-8 120 120)'%3E%3Ctext x='120' y='132'%3E♣%3C/text%3E%3C/g%3E%3C/svg%3E") repeat center / 160px 160px;
+  -webkit-mask-composite: source-in; mask-composite: intersect;
+}
+.home::after {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 55% 50% at 50% 50%, var(--bg) 35%, transparent 100%);
+}
+.home-logo { position: absolute; z-index: 1; top: 14px; left: 16px; display: inline-flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 750; letter-spacing: -0.02em; }
+.home-logo-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); font-size: 1.05rem; }
 .home-invite { margin: 0 0 2px; text-align: center; color: var(--muted); }
 .page-controls { position: absolute; top: 12px; right: 12px; }
 .home .primary, .lobby .primary { width: 100%; }
@@ -482,7 +496,8 @@ button:disabled { cursor: default; }
 @media (min-width: 900px) {
   .lobby { max-width: none; padding: 0; align-items: stretch; justify-content: flex-start; gap: 0; display: block; }
   .home { padding: 0 40px; }
-  .home .page-controls { top: 22px; right: 40px; }
+  .home .page-controls { position: absolute; top: 22px; right: 40px; }
+  .home-logo { top: 22px; left: 40px; }
   .page-bar {
     display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1240px; margin: 0 auto; padding: 22px 40px; position: static;
   }
