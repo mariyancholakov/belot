@@ -52,3 +52,4 @@ First team to reach 151 wins; if both pass 151 the higher total wins; a tie is p
 - Announcements are doubled in no-trumps together with the rest of the raw points.
 - On a tie, both teams are rounded with the "fewer points" rule.
 - The source also mentions a "151–159 after capo" extra round; the wording is unclear, not implemented.
+- Bidding: after a contra no higher bids are allowed (only pass or re-contra); the three other players each get one turn after a contra, and re-contra ends bidding at once. The source does not say whether bidding can continue after a contra.
