@@ -1,4 +1,4 @@
-/** A small animal drawn from the player's name, so everybody at the table has a look of their own. */
+/** A tough animal drawn from the player's name: shades, a gold chain, a hat or a cigar, so everybody at the table has a look of their own. */
 
 function hash(text: string): number {
   let h = 2166136261;
@@ -9,7 +9,7 @@ function hash(text: string): number {
   return h >>> 0;
 }
 
-const BACKGROUNDS = ["#cfdcd3", "#e2d3bf", "#ccd4e2", "#e4cdcd", "#dcd9bb", "#d6c8dc", "#c5dadd", "#e8d9b0"];
+const BACKGROUNDS = ["#2c2a30", "#3a2e29", "#25323b", "#3a2a33", "#2d382f", "#3b3526", "#33303f", "#2a2f36"];
 const INK = "#2a211c";
 
 type Draw = (v: number) => React.ReactNode;
@@ -138,10 +138,93 @@ const ANIMALS: Draw[] = [
   },
 ];
 
+
+/** Where each animal's eyes and mouth sit, so shades, brows and a cigar land on the right spot. */
+const ANCHORS = [
+  { eyeY: 20, mouthY: 27 },
+  { eyeY: 21.5, mouthY: 29.5 },
+  { eyeY: 20.5, mouthY: 27.5 },
+  { eyeY: 22, mouthY: 28.5 },
+  { eyeY: 20.3, mouthY: 27.5 },
+  { eyeY: 20.5, mouthY: 26.5 },
+  { eyeY: 14, mouthY: 28 },
+];
+
+const GOLD = "#d9a93a";
+
+function Shades({ y, wide }: { y: number; wide: number }) {
+  return (
+    <>
+      <path d={`M${20 - wide} ${y - 2.400}h${wide - 1.200}q0 5.200-3.200 5.200h-1q-3 0-3-3.200z`} fill="#0d0d10" />
+      <path d={`M${20 + wide} ${y - 2.400}h-${wide - 1.200}q0 5.200 3.200 5.200h1q3 0 3-3.200z`} fill="#0d0d10" />
+      <rect x={20 - 1.400} y={y - 1.800} width="2.800" height="1.100" fill="#0d0d10" />
+      <path d={`M${20 - wide + 1.600} ${y - 1.200}l2.600 0`} stroke="#6f7480" strokeWidth="0.800" strokeLinecap="round" />
+      <path d={`M${20 + 1.800} ${y - 1.200}l2.600 0`} stroke="#6f7480" strokeWidth="0.800" strokeLinecap="round" />
+    </>
+  );
+}
+
+function Brows({ y }: { y: number }) {
+  return (
+    <>
+      <path d={`M10.500 ${y - 3.600}L17.600 ${y - 1.800}`} stroke={INK} strokeWidth="1.700" strokeLinecap="round" />
+      <path d={`M29.500 ${y - 3.600}L22.400 ${y - 1.800}`} stroke={INK} strokeWidth="1.700" strokeLinecap="round" />
+    </>
+  );
+}
+
+function Hat({ kind }: { kind: number }) {
+  if (kind === 0) {
+    // fedora
+    return (
+      <>
+        <ellipse cx="20" cy="11" rx="15" ry="3.200" fill="#17151a" />
+        <path d="M11.500 10.500c0-6 2-8.800 8.500-8.800s8.500 2.800 8.500 8.800z" fill="#201d23" />
+        <rect x="11.500" y="7.800" width="17" height="2.400" fill={GOLD} opacity="0.9" />
+      </>
+    );
+  }
+  if (kind === 1) {
+    // snapback cap, bill to the side
+    return (
+      <>
+        <path d="M10.500 12c0-6.800 4-9.600 9.500-9.600s9.500 2.800 9.500 9.600z" fill="#b23b34" />
+        <path d="M18 12h17q-1 3.200-6 3.200H18z" fill="#8f2f2a" />
+        <circle cx="20" cy="2.800" r="1.200" fill="#8f2f2a" />
+      </>
+    );
+  }
+  if (kind === 2) {
+    // bandana
+    return (
+      <>
+        <path d="M9.800 12.500c1-5.200 5.200-8.600 10.200-8.600s9.200 3.400 10.200 8.600c-3-1.600-6.400-2.400-10.200-2.400s-7.200.8-10.200 2.400z" fill="#1e1e22" />
+        <path d="M11.500 8.500q8.500-3 17 0" stroke="#e8e3d8" strokeWidth="0.700" strokeDasharray="1.200 1.600" fill="none" />
+        <path d="M29 11.500l5 1.500-3 2.600z" fill="#1e1e22" />
+      </>
+    );
+  }
+  // beanie
+  return (
+    <>
+      <path d="M10.800 12.500c0-6.800 3.800-9.600 9.200-9.600s9.200 2.800 9.200 9.600z" fill="#3b3b44" />
+      <rect x="10.200" y="10.500" width="19.600" height="3.200" rx="1.400" fill="#26262c" />
+      <circle cx="20" cy="2.600" r="1.800" fill="#3b3b44" />
+    </>
+  );
+}
+
 export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   const h = hash(name.trim().toLowerCase() || "?");
-  const animal = ANIMALS[h % ANIMALS.length]!;
+  const which = h % ANIMALS.length;
+  const animal = ANIMALS[which]!;
+  const { eyeY, mouthY } = ANCHORS[which]!;
   const bg = BACKGROUNDS[(h >>> 5) % BACKGROUNDS.length]!;
+  const shades = ((h >>> 8) & 3) !== 0; // three in four wear shades, the rest glare
+  const hat = (h >>> 10) % 5; // 0-3 a hat, 4 bareheaded
+  const cigar = ((h >>> 14) & 3) < 2;
+  const scar = ((h >>> 16) & 3) === 0 && !shades;
+  const frog = which === 6;
   return (
     <svg className="avatar-img" viewBox="0 0 40 40" width={size} height={size} aria-hidden="true">
       <defs>
@@ -152,6 +235,21 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
       <g clipPath={`url(#av-${h})`}>
         <rect width="40" height="40" fill={bg} />
         {animal((h >>> 11) % 3)}
+        {scar && <path d={`M25 ${eyeY - 5}l-3.600 9`} stroke="#f0d9c8" strokeWidth="1" strokeLinecap="round" opacity="0.85" />}
+        {shades ? <Shades y={eyeY} wide={frog ? 9.400 : 8.400} /> : <Brows y={eyeY} />}
+        {cigar && (
+          <>
+            <path d={`M21 ${mouthY + 1}l10.500 -2.800`} stroke="#6b4a2c" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="31.800" cy={mouthY - 1.800} r="1.300" fill="#ee7a2e" />
+            <path d={`M33.500 ${mouthY - 3.600}q2-2 0-4.200`} stroke="#d7d4d0" strokeWidth="0.800" fill="none" opacity="0.6" strokeLinecap="round" />
+          </>
+        )}
+        {hat < 4 && <Hat kind={hat} />}
+        <path d="M9.500 35.500q10.500 7 21 0" stroke={GOLD} strokeWidth="1.900" fill="none" strokeLinecap="round" />
+        <circle cx="20" cy="38" r="2.500" fill={GOLD} />
+        <text x="20" y="39.200" fontSize="3.600" fontWeight="800" textAnchor="middle" fill="#7a5a10" fontFamily="system-ui, sans-serif">
+          $
+        </text>
       </g>
     </svg>
   );
