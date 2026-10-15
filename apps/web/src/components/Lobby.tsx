@@ -27,70 +27,91 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
     }
   };
 
-  // Seats 0+2 are one team, 1+3 the other. Whoever is seated sees their own team first.
+  const text = `${bg.shareText} ${link}`;
+  const channels = [
+    { name: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(text)}` },
+    { name: "Viber", href: `viber://forward?text=${encodeURIComponent(text)}` },
+    { name: "Telegram", href: `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(bg.shareText)}` },
+    { name: "Messenger", href: `fb-messenger://share?link=${encodeURIComponent(link)}` },
+  ];
+  const canShare = typeof navigator.share === "function";
+  const nativeShare = () => navigator.share({ title: bg.appName, text: bg.shareText, url: link }).catch(() => {});
+
+  // Partners sit across from each other, so a team is a diagonal: seats 0+2 and 1+3.
+  // The grid reads clockwise round the table: 0 and 1 on top, 3 and 2 below.
   const mineParity = room.you === null ? 0 : room.you % 2;
-  const teams = [mineParity, 1 - mineParity].map((parity) => ({
-    parity,
-    label: room.you === null ? (parity === 0 ? bg.teamOneUnseated : bg.teamTwoUnseated) : parity === mineParity ? bg.teamUs : bg.teamThem,
-    seats: [parity, parity + 2],
-  }));
+  const teamLabel = (seat: number) =>
+    room.you === null ? (seat % 2 === 0 ? bg.teamOneUnseated : bg.teamTwoUnseated) : seat % 2 === mineParity ? bg.teamUs : bg.teamThem;
+  const order = [0, 1, 3, 2];
 
   return (
     <main className="lobby">
       <div className="page-bar">
-        <div className="page-bar-left">
-          <button className="icon-btn" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
-            <Icon name="back" />
-          </button>
-          <span className="home-logo" aria-hidden="true">
-            <span className="home-logo-mark">♠</span>
-            {bg.appName}
-          </span>
-        </div>
+        <span className="home-logo" aria-hidden="true">
+          <span className="home-logo-mark">♠</span>
+          {bg.appName}
+        </span>
         <Controls />
       </div>
 
       <div className="lobby-panel">
+        <button className="icon-btn panel-back" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
+          <Icon name="back" />
+        </button>
         <div className="lobby-code">
           <span className="eyebrow">{bg.roomCode}</span>
-          <div className="code-row">
-            <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
-              {room.code}
-            </h1>
-            <button className="icon-btn" onClick={copy} aria-label={copied ? bg.copied : bg.copyLink} title={copied ? bg.copied : bg.copyLink}>
-              <Icon name={copied ? "check" : "copy"} size={20} />
-            </button>
-          </div>
+          <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
+            {room.code}
+          </h1>
           <p className="muted">{bg.shareHint}</p>
+        </div>
+
+        <div className="share">
+          <button className="secondary" onClick={copy}>
+            <Icon name={copied ? "check" : "copy"} size={18} /> {copied ? bg.copied : bg.copyLink}
+          </button>
+          {canShare && (
+            <button className="secondary" onClick={nativeShare}>
+              {bg.share}
+            </button>
+          )}
+          <div className="share-apps">
+            {channels.map((c) => (
+              <a key={c.name} className="chip" href={c.href} target="_blank" rel="noreferrer">
+                {c.name}
+              </a>
+            ))}
+          </div>
         </div>
 
         <div className="stitch" aria-hidden="true" />
 
-        <div className="teams" role="group" aria-label={bg.lobbyTableLabel}>
-          {teams.map((t) => (
-            <section key={t.parity} className={`team ${t.parity === mineParity ? "ours" : "theirs"}`}>
-              <h2>{t.label}</h2>
-              {t.seats.map((seat) => {
-                const s = room.seats[seat];
-                const mine = room.you === seat;
-                const partner = room.you !== null && !mine && (seat + 2) % 4 === room.you;
-                const note = s
-                  ? [mine ? bg.you : partner ? bg.partnerOf : "", s.bot ? bg.bot : "", !s.connected && !s.bot ? bg.offline : "", room.host === s.nickname ? bg.host : ""].filter(Boolean).join(" · ")
-                  : "";
-                return (
-                  <button key={seat} className={`slot ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} onClick={() => onSit(seat)}>
-                    <span className="slot-avatar" aria-hidden="true">
-                      {s ? [...s.nickname][0]?.toUpperCase() : "+"}
-                    </span>
-                    <span className="slot-text">
-                      <b>{s ? s.nickname : bg.takeSeat}</b>
-                      {note && <small>{note}</small>}
-                    </span>
-                  </button>
-                );
-              })}
-            </section>
-          ))}
+        <div className="seats" role="group" aria-label={bg.lobbyTableLabel}>
+          <svg className="seats-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <line className={mineParity === 0 ? "ours" : "theirs"} x1="25" y1="25" x2="75" y2="75" />
+            <line className={mineParity === 1 ? "ours" : "theirs"} x1="75" y1="25" x2="25" y2="75" />
+          </svg>
+          {order.map((seat) => {
+            const s = room.seats[seat];
+            const mine = room.you === seat;
+            const partner = room.you !== null && !mine && (seat + 2) % 4 === room.you;
+            const ours = seat % 2 === mineParity;
+            const note = s
+              ? [mine ? bg.you : partner ? bg.partnerOf : "", s.bot ? bg.bot : "", !s.connected && !s.bot ? bg.offline : "", room.host === s.nickname ? bg.host : ""].filter(Boolean).join(" · ")
+              : "";
+            return (
+              <button key={seat} className={`slot ${ours ? "ours" : "theirs"} ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} onClick={() => onSit(seat)}>
+                <span className="slot-avatar" aria-hidden="true">
+                  {s ? [...s.nickname][0]?.toUpperCase() : "+"}
+                </span>
+                <span className="slot-text">
+                  <em>{teamLabel(seat)}</em>
+                  <b>{s ? s.nickname : bg.takeSeat}</b>
+                  {note && <small>{note}</small>}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {room.watchers.length > 0 && (

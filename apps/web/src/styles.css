@@ -221,30 +221,41 @@ button:disabled { cursor: default; }
 
 /* ---------- lobby ---------- */
 .page-bar { position: absolute; z-index: 2; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; }
-.page-bar-left { display: flex; align-items: center; gap: 10px; }
 .page-bar .home-logo { position: static; }
+.lobby-panel { position: relative; }
+.panel-back { position: absolute; top: 12px; left: 12px; }
 .lobby-panel { align-items: stretch; gap: 16px; max-width: 440px; }
 .lobby-code { display: grid; justify-items: center; gap: 4px; text-align: center; }
 .eyebrow { font-size: 0.8rem; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.code-row { display: flex; align-items: center; gap: 6px; margin-right: -8px; }
 .room-code { font-size: 2.6rem; line-height: 1.1; letter-spacing: 0.14em; margin-right: -0.14em; color: var(--text); font-weight: 750; }
 .lobby-code p { margin: 0; font-size: 0.92rem; }
 .lobby-panel .stitch { margin: 0; }
-.teams { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.team { display: grid; gap: 8px; align-content: start; padding: 10px; border-radius: 16px; background: var(--surface-2); border-top: 3px solid var(--team); }
-.team.ours { --team: var(--ours); --team-ink: var(--ours-ink); } .team.theirs { --team: var(--theirs); --team-ink: var(--theirs-ink); }
-.team h2 { margin: 0 2px; font-size: 0.78rem; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: var(--team-ink); }
-.slot {
-  display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 10px; border-radius: 12px; text-align: left; min-width: 0;
-  background: var(--surface); border: 1.5px dashed var(--line-strong); color: var(--muted);
+.share { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.share .secondary { min-height: 44px; padding: 0 18px; width: auto; }
+.share-apps { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
+.chip {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border-radius: 99px; font-size: 0.9rem; font-weight: 600;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--text); text-decoration: none;
 }
-.slot.taken { border-style: solid; border-color: var(--line); color: var(--text); }
+.chip:hover { border-color: var(--accent); }
+/* a team is a diagonal: partners sit across from each other, and a line joins them */
+.seats { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.seats-lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.seats-lines line { stroke-width: 2.5; stroke-dasharray: 3 5; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.seats-lines .ours { stroke: var(--ours); } .seats-lines .theirs { stroke: var(--theirs); }
+.slot.ours { --team: var(--ours); --team-ink: var(--ours-ink); } .slot.theirs { --team: var(--theirs); --team-ink: var(--theirs-ink); }
+.slot {
+  position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 8px 10px; border-radius: 12px; text-align: left; min-width: 0;
+  background: var(--surface); border: 1.5px dashed var(--team); color: var(--muted);
+}
+.slot.taken { border-style: solid; border-color: var(--team); color: var(--text); }
 .slot:not(:disabled):hover { border-color: var(--accent); }
 .slot:not(:disabled):active { transform: scale(0.98); }
 .slot.mine { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.slot-text em { font-style: normal; font-size: 0.7rem; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: var(--team-ink); }
 .slot-avatar { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); font-weight: 750; }
 .slot.taken .slot-avatar { background: var(--team); color: var(--ours-on); }
-.team.theirs .slot.taken .slot-avatar { color: var(--theirs-on); }
+.slot.theirs.taken .slot-avatar { color: var(--theirs-on); }
 .slot-text { display: grid; min-width: 0; }
 .slot-text b { font-size: 0.98rem; overflow-wrap: anywhere; line-height: 1.2; }
 .slot-text small { font-size: 0.78rem; color: var(--muted); }
@@ -495,24 +506,21 @@ button:disabled { cursor: default; }
 @media (min-width: 700px) {
   .lobby-panel { max-width: 640px; padding: 34px; gap: 22px; border-radius: 28px; }
   .room-code { font-size: 3.8rem; }
-  .code-row { gap: 10px; margin-right: -14px; }
   .lobby-code { gap: 8px; }
   .lobby-code p { font-size: 1.02rem; }
   .eyebrow { font-size: 0.88rem; }
-  .teams { gap: 20px; }
-  .team { padding: 16px; gap: 12px; border-radius: 20px; }
-  .team h2 { font-size: 0.88rem; }
+  .seats { gap: 22px; }
   .slot { min-height: 76px; padding: 12px 16px; gap: 14px; border-radius: 16px; }
   .slot-avatar { width: 44px; height: 44px; font-size: 1.1rem; }
   .slot-text b { font-size: 1.12rem; }
   .slot-text small { font-size: 0.86rem; }
   .lobby-actions { grid-template-columns: 1fr 1fr; gap: 14px; }
   .lobby-actions .primary:only-child, .lobby-actions .muted { grid-column: 1 / -1; }
+  .panel-back { top: 18px; left: 18px; }
 }
 @media (min-width: 1100px) {
   .lobby-panel { max-width: 780px; padding: 44px 52px; gap: 28px; }
   .room-code { font-size: 4.6rem; }
-  .team { padding: 20px; }
   .slot { min-height: 88px; padding: 14px 20px; }
   .slot-avatar { width: 52px; height: 52px; font-size: 1.25rem; }
   .slot-text b { font-size: 1.25rem; }

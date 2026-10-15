@@ -36,6 +36,8 @@ export const bg = {
   leaveToMenu: "Към главното меню",
   copyLink: "Копирай линка",
   copied: "Копирано",
+  share: "Сподели",
+  shareText: "Влизай в играта ми по белот:",
   shareHint: "Изпрати линка на приятелите си или им кажи кода.",
   takeSeat: "Седни тук",
   freeSeat: "Свободно място",
