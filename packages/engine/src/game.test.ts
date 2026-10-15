@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, legalActions, newGame, type GameAction, type GameState } from "./game";
+import { applyAction, cutterOf, legalActions, newGame, type GameAction, type GameState } from "./game";
 
 /** Tiny seeded RNG for the test players. */
 function rng(seed: number) {
@@ -11,6 +11,14 @@ function rng(seed: number) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+/** A new game with the deck already cut, so it is ready for bidding. */
+function startedGame(seed: number, dealer = 0, position = 16): GameState {
+  const s = newGame(seed, dealer);
+  const r = applyAction(s, cutterOf(dealer), { type: "cut", position });
+  if (!r.ok) throw new Error(r.error);
+  return r.state;
 }
 
 function seatToAct(state: GameState): number {
@@ -47,29 +55,49 @@ function playGame(seed: number) {
 }
 
 describe("game", () => {
-  it("starts in bidding with 5 cards each", () => {
+  it("starts by waiting for the player right of the dealer to cut", () => {
     const s = newGame(1);
+    expect(s.phase).toBe("cutting");
+    expect(s.turn).toBe(3);
+    expect(s.hands.map((h) => h.length)).toEqual([0, 0, 0, 0]);
+    expect(applyAction(s, 1, { type: "cut", position: 10 }).ok).toBe(false);
+    expect(applyAction(s, 3, { type: "cut", position: 0 }).ok).toBe(false);
+    expect(applyAction(s, 3, { type: "cut", position: 32 }).ok).toBe(false);
+    expect(applyAction(s, 3, { type: "bid", bid: { type: "pass" } }).ok).toBe(false);
+  });
+
+  it("the cut changes which cards are dealt but keeps the same 32", () => {
+    const a = startedGame(1, 0, 5);
+    const b = startedGame(1, 0, 20);
+    expect(a.hands).not.toEqual(b.hands);
+    const all = (s: GameState) => [...s.hands.flat(), ...s.talon].map((c) => c.suit + c.rank).sort();
+    expect(all(a)).toEqual(all(b));
+    expect(all(a)).toHaveLength(32);
+  });
+
+  it("starts in bidding with 5 cards each after the cut", () => {
+    const s = startedGame(1);
     expect(s.phase).toBe("bidding");
     expect(s.hands.map((h) => h.length)).toEqual([5, 5, 5, 5]);
     expect(s.turn).toBe(1);
   });
 
   it("rejects actions out of turn and wrong-phase actions", () => {
-    const s = newGame(1);
+    const s = startedGame(1);
     expect(applyAction(s, 3, { type: "bid", bid: { type: "pass" } }).ok).toBe(false);
     expect(applyAction(s, 1, { type: "play", card: s.hands[1]![0]! }).ok).toBe(false);
     expect(applyAction(s, 1, { type: "nextRound" }).ok).toBe(false);
   });
 
   it("does not mutate the previous state", () => {
-    const s = newGame(1);
+    const s = startedGame(1);
     const copy = structuredClone(s);
     applyAction(s, 1, { type: "bid", bid: { type: "bid", contract: "hearts" } });
     expect(s).toEqual(copy);
   });
 
   it("deals the other 3 cards to each player when bidding ends", () => {
-    let s = newGame(1);
+    let s = startedGame(1);
     const moves: [number, GameAction][] = [
       [1, { type: "bid", bid: { type: "bid", contract: "hearts" } }],
       [2, { type: "bid", bid: { type: "pass" } }],
@@ -88,16 +116,20 @@ describe("game", () => {
   });
 
   it("four passes redeal with the next dealer and a new shuffle", () => {
-    let s = newGame(1);
+    let s = startedGame(1);
     const before = s.hands;
     for (const seat of [1, 2, 3, 0]) {
       const r = applyAction(s, seat, { type: "bid", bid: { type: "pass" } });
       if (!r.ok) throw new Error(r.error);
       s = r.state;
     }
-    expect(s.phase).toBe("bidding");
+    expect(s.phase).toBe("cutting");
     expect(s.dealer).toBe(1);
-    expect(s.hands).not.toEqual(before);
+    expect(s.turn).toBe(0);
+    const cut = applyAction(s, 0, { type: "cut", position: 16 });
+    if (!cut.ok) throw new Error(cut.error);
+    expect(cut.state.phase).toBe("bidding");
+    expect(cut.state.hands).not.toEqual(before);
   });
 
   it("is deterministic for a given seed", () => {
@@ -109,7 +141,7 @@ describe("belot call", () => {
   it("is announced once, when the first of K+Q of trump is played", () => {
     // Find a seed where someone holds K+Q of the bid suit, then play it out.
     for (let seed = 1; seed < 200; seed++) {
-      let s = newGame(seed);
+      let s = startedGame(seed);
       const bid = (seat: number, b: GameAction) => {
         const r = applyAction(s, seat, b);
         if (!r.ok) throw new Error(r.error);

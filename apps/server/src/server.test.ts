@@ -162,6 +162,11 @@ describe("a running game", () => {
     const players = await table();
     players[0]!.send({ type: "startGame" });
     await Promise.all(players.map((p) => p.until(() => p.view !== null)));
+    // The deck is shuffled but nobody holds cards until the player right of the dealer cuts.
+    expect(players.every((p) => p.view!.phase === "cutting" && p.view!.hand.length === 0)).toBe(true);
+    expect(players.every((p) => !p.raw.some((r) => r.includes('"deck"')))).toBe(true);
+    players[3]!.send({ type: "action", action: { type: "cut", position: 9 } });
+    await Promise.all(players.map((p) => p.until(() => p.view!.phase === "bidding")));
 
     const key = (c: { suit: string; rank: string }) => c.suit + c.rank;
     const hands = players.map((p) => new Set(p.view!.hand.map(key)));
@@ -267,7 +272,7 @@ describe("static files", () => {
 describe("bots", () => {
   it("fills empty seats and plays their turns until the human has to act", async () => {
     await server.close();
-    server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1 });
+    server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1, botCutDelayMs: 1 });
     const a = await client("Ани");
     a.send({ type: "createRoom" });
     await a.until(() => a.room !== null);

@@ -4,6 +4,9 @@ import { viewFor } from "./view";
 
 function toPlaying(): GameState {
   let s = newGame(5);
+  const cut = applyAction(s, 3, { type: "cut", position: 12 });
+  if (!cut.ok) throw new Error(cut.error);
+  s = cut.state;
   for (const [seat, bid] of [
     [1, { type: "bid", contract: "hearts" }],
     [2, { type: "pass" }],

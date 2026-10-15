@@ -31,12 +31,15 @@ export interface ServerOptions {
   maxMessagesPerSecond?: number;
   /** Pause before a computer player moves. */
   botDelayMs?: number;
+  /** Pause before a computer player cuts: clients play the shuffle animation first. */
+  botCutDelayMs?: number;
   /** Optional handler for non-websocket HTTP requests (static files). */
   onRequest?: Parameters<typeof createServer>[1];
 }
 
 export async function startServer(options: ServerOptions = {}): Promise<GameServer> {
   const botDelayMs = options.botDelayMs ?? 900;
+  const botCutDelayMs = options.botCutDelayMs ?? 3200;
   const maxPerSecond = options.maxMessagesPerSecond ?? DEFAULT_MAX_MESSAGES_PER_SECOND;
   const rooms = new Map<string, Room>();
   /** token -> room code, so a returning player lands back at their table. */
@@ -177,7 +180,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
     const move = room.nextBotMove();
     if (!move) return;
     const game = room.game!;
-    const afterTrick = game.trick.length === 0 && game.tricksPlayed > 0;
+    const afterTrick = game.phase === "playing" && game.trick.length === 0 && game.tricksPlayed > 0;
     const timer = setTimeout(() => {
       botTimers.delete(timer);
       if (!rooms.has(room.code)) return;
@@ -191,7 +194,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
         return;
       }
       scheduleBots(room);
-    }, botDelayMs + (afterTrick ? 1600 : 0));
+    }, game.phase === "cutting" ? botCutDelayMs : botDelayMs + (afterTrick ? 1600 : 0));
     botTimers.add(timer);
   }
 

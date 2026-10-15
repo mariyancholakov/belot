@@ -54,6 +54,7 @@ function choosePlay(state: GameState, seat: number, options: GameAction[]): Game
 export function chooseBotAction(state: GameState, seat: number): GameAction | null {
   const options = legalActions(state, seat);
   if (options.length === 0) return null;
+  if (state.phase === "cutting") return { type: "cut", position: 8 + ((state.seed + state.dealIndex * 7) % 17) };
   if (state.phase === "bidding") return chooseBid(state, seat, options);
   if (state.phase === "playing") return choosePlay(state, seat, options);
   return options[0]!;

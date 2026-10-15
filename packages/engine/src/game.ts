@@ -16,14 +16,17 @@ import { legalPlays, trickWinner, type Play } from "./tricks";
 export const LAST_TRICK_BONUS = 10;
 export const TRICKS_PER_ROUND = 8;
 
-export type Phase = "bidding" | "playing" | "roundEnd" | "gameOver";
+export type Phase = "cutting" | "bidding" | "playing" | "roundEnd" | "gameOver";
 
 export type GameAction =
   | { type: "bid"; bid: BidAction }
   | { type: "play"; card: Card }
-  | { type: "nextRound" };
+  | { type: "nextRound" }
+  /** The cutter lifts the top `position` cards (1-31) and puts them under the rest. */
+  | { type: "cut"; position: number };
 
 export type GameEvent =
+  | { type: "cut"; seat: number; position: number }
   | { type: "dealt"; round: number; dealer: number }
   | { type: "bid"; seat: number; bid: BidAction }
   | { type: "redeal" }
@@ -57,6 +60,8 @@ export interface GameState {
   /** Seat that must act next (bidding or playing); -1 outside those phases. */
   turn: number;
   hands: Card[][];
+  /** The shuffled deck waiting for the cut; empty outside the cutting phase. */
+  deck: Card[];
   /** Cards still to be dealt after bidding. */
   talon: Card[];
   bidding: BiddingState;
@@ -84,20 +89,28 @@ export type ActionResult =
   | { ok: true; state: GameState; events: GameEvent[] }
   | { ok: false; error: string };
 
-function deal(seed: number, dealIndex: number, dealer: number): Pick<GameState, "hands" | "talon" | "bidding" | "turn"> {
-  const { hands, rest } = dealFirst(shuffledDeck(seed + dealIndex), dealer);
-  const bidding = startBidding(dealer);
-  return { hands, talon: rest, bidding, turn: bidding.turn };
+/** The player to the dealer's right cuts the deck. */
+export const cutterOf = (dealer: number): number => (dealer + 3) % 4;
+
+/** Shuffle a fresh deck and wait for the cut. */
+function shuffle(seed: number, dealIndex: number, dealer: number): Pick<GameState, "deck" | "hands" | "talon" | "bidding" | "turn"> {
+  return {
+    deck: shuffledDeck(seed + dealIndex),
+    hands: [[], [], [], []],
+    talon: [],
+    bidding: startBidding(dealer),
+    turn: cutterOf(dealer),
+  };
 }
 
 export function newGame(seed: number, dealer = 0): GameState {
   return {
     seed,
     dealIndex: 1,
-    phase: "bidding",
+    phase: "cutting",
     round: 1,
     dealer,
-    ...deal(seed, 1, dealer),
+    ...shuffle(seed, 1, dealer),
     bidLog: [],
     contract: null,
     trick: [],
@@ -116,6 +129,10 @@ export function newGame(seed: number, dealer = 0): GameState {
 
 /** Every action the given seat may take right now. */
 export function legalActions(state: GameState, seat: number): GameAction[] {
+  if (state.phase === "cutting") {
+    if (seat !== state.turn) return [];
+    return Array.from({ length: 31 }, (_, i) => ({ type: "cut" as const, position: i + 1 }));
+  }
   if (state.phase === "bidding") {
     if (seat !== state.turn) return [];
     return legalBids(state.bidding).map((bid) => ({ type: "bid", bid }));
@@ -143,6 +160,8 @@ export function applyAction(prev: GameState, seat: number, action: GameAction): 
       return applyPlay(state, seat, action.card, events);
     case "nextRound":
       return applyNextRound(state, events);
+    case "cut":
+      return applyCut(state, seat, action.position, events);
   }
 }
 
@@ -177,8 +196,8 @@ function startRound(state: GameState, round: number, dealer: number, events: Gam
   state.round = round;
   state.dealer = dealer;
   state.dealIndex += 1;
-  Object.assign(state, deal(state.seed, state.dealIndex, dealer));
-  state.phase = "bidding";
+  Object.assign(state, shuffle(state.seed, state.dealIndex, dealer));
+  state.phase = "cutting";
   state.bidLog = [];
   state.contract = null;
   state.trick = [];
@@ -188,7 +207,22 @@ function startRound(state: GameState, round: number, dealer: number, events: Gam
   state.announcements = null;
   state.announcementsRevealed = false;
   state.lastTrick = null;
-  events.push({ type: "dealt", round, dealer });
+}
+
+function applyCut(state: GameState, seat: number, position: number, events: GameEvent[]): ActionResult {
+  if (state.phase !== "cutting") return { ok: false, error: "not cutting" };
+  if (seat !== state.turn) return { ok: false, error: "not your cut" };
+  if (!Number.isInteger(position) || position < 1 || position > 31) return { ok: false, error: "bad cut" };
+  const deck = [...state.deck.slice(position), ...state.deck.slice(0, position)];
+  const { hands, rest } = dealFirst(deck, state.dealer);
+  state.deck = [];
+  state.hands = hands;
+  state.talon = rest;
+  state.phase = "bidding";
+  state.turn = state.bidding.turn;
+  events.push({ type: "cut", seat, position });
+  events.push({ type: "dealt", round: state.round, dealer: state.dealer });
+  return { ok: true, state, events };
 }
 
 function applyPlay(state: GameState, seat: number, card: Card, events: GameEvent[]): ActionResult {
