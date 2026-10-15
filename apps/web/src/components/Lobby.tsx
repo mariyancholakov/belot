@@ -8,13 +8,15 @@ interface Props {
   room: RoomState;
   onSit: (seat: number) => void;
   onAddBots: () => void;
+  onRemoveBots: () => void;
   onStart: () => void;
   onLeave: () => void;
 }
 
-export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
+export function Lobby({ room, onSit, onAddBots, onRemoveBots, onStart, onLeave }: Props) {
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/${room.code}`;
+  const hasBots = room.seats.some((s) => s?.bot);
   const full = room.seats.every((s) => s !== null);
 
   const copy = async () => {
@@ -40,10 +42,10 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
   return (
     <main className="lobby">
       <div className="page-bar">
-        <span className="home-logo" aria-hidden="true">
-          <span className="home-logo-mark">♠</span>
+        <button className="home-logo" onClick={onLeave}>
+          <span className="home-logo-mark" aria-hidden="true">♠</span>
           {bg.appName}
-        </span>
+        </button>
         <Controls />
       </div>
 
@@ -106,6 +108,11 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
           {room.youAreHost && !full && (
             <button className="secondary" onClick={onAddBots}>
               {bg.addBots}
+            </button>
+          )}
+          {room.youAreHost && hasBots && (
+            <button className="secondary" onClick={onRemoveBots}>
+              {bg.removeBots}
             </button>
           )}
           {room.youAreHost ? (

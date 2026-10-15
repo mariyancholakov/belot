@@ -161,6 +161,12 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
         deliver(room.broadcast([], false));
         break;
       }
+      case "removeBots": {
+        const room = roomOf(conn);
+        room.removeBots(token);
+        deliver(room.broadcast([], false));
+        break;
+      }
       case "startGame": {
         const room = roomOf(conn);
         room.start(token);

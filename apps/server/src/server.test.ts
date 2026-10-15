@@ -276,6 +276,19 @@ describe("static files", () => {
 });
 
 describe("bots", () => {
+  it("lets the host send the bots away again", async () => {
+    const a = await client("Ани");
+    a.send({ type: "createRoom" });
+    await a.until(() => a.room !== null);
+    a.send({ type: "addBots" });
+    await a.until(() => a.room!.seats.every((s) => s !== null));
+    a.send({ type: "removeBots" });
+    await a.until(() => a.room!.seats.filter((s) => s !== null).length === 1);
+    expect(a.room!.seats[0]?.nickname).toBe("Ани");
+    expect(a.lastError()).toBeUndefined();
+  });
+
+
   it("fills empty seats and plays their turns until the human has to act", async () => {
     await server.close();
     server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1, botCutDelayMs: 1, botDealDelayMs: 1 });

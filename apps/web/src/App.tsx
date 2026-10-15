@@ -68,6 +68,7 @@ export function App() {
         room={room}
         onSit={(seat) => send({ type: "takeSeat", seat })}
         onAddBots={() => send({ type: "addBots" })}
+        onRemoveBots={() => send({ type: "removeBots" })}
         onStart={() => send({ type: "startGame" })}
         onLeave={() => send({ type: "leaveRoom" })}
       />

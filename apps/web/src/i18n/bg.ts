@@ -47,6 +47,7 @@ export const bg = {
   watching: "Spectators",
   start: "Започни играта",
   addBots: "Добави ботове",
+  removeBots: "Махни ботовете",
   needFour: "Трябват четирима играчи",
   waitHost: "Чакаме домакина да започне",
   teamUs: "Ние",

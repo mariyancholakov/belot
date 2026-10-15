@@ -116,6 +116,21 @@ export class Room {
     this.touch();
   }
 
+  /** Host sends every computer player away again, freeing their seats. */
+  removeBots(token: string): void {
+    this.must(token);
+    if (token !== this.host) throw new RoomError("not_host", "only the host can remove bots");
+    if (this.game) throw new RoomError("game_running", "game already started");
+    for (let seat = 0; seat < 4; seat++) {
+      const t = this.seats[seat];
+      if (t && this.members.get(t)?.bot) {
+        this.members.delete(t);
+        this.seats[seat] = null;
+      }
+    }
+    this.touch();
+  }
+
   /** The computer player whose turn it is, with the move it wants to make. */
   nextBotMove(): { token: string; action: GameAction } | null {
     const game = this.game;
