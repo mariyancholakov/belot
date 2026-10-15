@@ -5,6 +5,7 @@ Web app for playing Bulgarian belot with friends. Plan in `docs/PLAN.md`, rules 
 ## Git
 - No AI trail anywhere: no `Co-Authored-By: Claude` line, no "Generated with Claude Code" footer, no AI mention in commit messages, PR descriptions or docs.
 - Commit small logical steps as you go, never a whole feature at once.
+- Commit after every feature (tests passing) as part of the work, not at the end, and push.
 
 ## Conventions
 - Code, docs and commit messages in English; the app UI is in Bulgarian.
