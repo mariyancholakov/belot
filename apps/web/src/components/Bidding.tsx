@@ -34,7 +34,7 @@ export function Bidding({ view, names, onBid }: Props) {
   };
 
   return (
-    <section className="sheet-panel bidding" aria-label={bg.bidTitle}>
+    <section className="felt-pop bidding" aria-label={bg.bidTitle}>
       <div className="bidding-head">
         <h2>{bg.bidTitle}</h2>
         <ol className="bid-log">

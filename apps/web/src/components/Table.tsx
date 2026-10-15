@@ -237,6 +237,10 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
   const dealtSoFar = shown ?? (busy ? [0, 0, 0, 0] : null);
   const myTurn = view.phase === "playing" && view.turn === me && !busy;
   const hand = sortHand(dealtSoFar ? view.hand.slice(0, dealtSoFar[me]) : view.hand);
+  const myBidTurn = view.phase === "bidding" && !busy && view.legalActions.some((a) => a.type === "bid");
+  const cutting = view.phase === "cutting" && stage?.kind === "wait" && view.turn === me;
+  /** The shuffle and deal choices are popups; the status line would repeat them. */
+  const deciding = stage?.kind === "wait" && view.turn === me && (view.phase === "shuffling" || view.phase === "dealing");
   const dealerName = names[view.dealer] ?? "";
   const underHand = names[(view.dealer + 1) % 4] ?? "";
   const lucky = view.lucky && !luckyGone && !luckyHidden && (view.phase === "bidding" || view.phase === "playing") ? view.lucky : null;
@@ -271,7 +275,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
           <ScoreTeam label={bg.teamUs} value={view.scores[myTeam]} cls="us" />
           <ScoreTeam label={bg.teamThem} value={view.scores[otherTeam]} cls="them" />
         </button>
-        <GameMenu />
+        <GameMenu onLeave={onLeave} />
       </header>
 
       <p className="deal-info">
@@ -299,9 +303,10 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
           {trick.length === 0 && view.phase === "playing" && <p className="hint">{myTurn ? bg.yourTurn : bg.waitingFor(names[view.turn] ?? "")}</p>}
         </div>
 
-        {stage && <DeckStage stage={stage} />}
+        {stage && !cutting && <DeckStage stage={stage} />}
         {!stage && view.phase === "bidding" && <DeckStage stage={{ kind: "talon" }} />}
-        {stage && (
+        {cutting && <CutPicker onCut={(position) => send({ type: "cut", position })} />}
+        {stage && !cutting && !deciding && (
           <p className="hint low">
             {stage.kind === "shuffle" && bg.shuffling(dealerName)}
             {stage.kind === "wait" && view.phase === "shuffling" && bg.waitingShuffleChoice(dealerName)}
@@ -312,7 +317,17 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
           </p>
         )}
 
+        {view.phase === "bidding" && !busy && !myBidTurn && <p className="hint low">{bg.waitingFor(names[view.turn] ?? "")}</p>}
+
         {callout && <div className="callout">{callout}</div>}
+
+        {myBidTurn && <Bidding view={view} names={names} onBid={(bid) => send({ type: "bid", bid })} />}
+        {view.phase === "shuffling" && stage?.kind === "wait" && view.turn === me && (
+          <ShufflePrompt onChoose={(shuffle) => send({ type: shuffle ? "shuffle" : "skipShuffle" })} />
+        )}
+        {view.phase === "dealing" && stage?.kind === "wait" && view.turn === me && (
+          <DealPrompt onDeal={(luckyCard) => send({ type: "deal", lucky: luckyCard })} />
+        )}
 
         {view.announcements && view.announcements.length > 0 && (
           <ul className="announced">
@@ -328,22 +343,12 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         )}
       </div>
 
-      {view.phase === "shuffling" && stage?.kind === "wait" && view.turn === me && (
-        <ShufflePrompt onChoose={(shuffle) => send({ type: shuffle ? "shuffle" : "skipShuffle" })} />
-      )}
-      {view.phase === "dealing" && stage?.kind === "wait" && view.turn === me && (
-        <DealPrompt onDeal={(luckyCard) => send({ type: "deal", lucky: luckyCard })} />
-      )}
-      {view.phase === "cutting" && stage?.kind === "wait" && view.turn === me && (
-        <CutPicker onCut={(position) => send({ type: "cut", position })} />
-      )}
-      {view.phase === "bidding" && !busy && <Bidding view={view} names={names} onBid={(bid) => send({ type: "bid", bid })} />}
-
       <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} name={names[me]!} connected ours />
       <div className={`hand ${myTurn ? "active" : ""}`}>
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
-          return <CardFace key={card.suit + card.rank} card={card} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={myTurn && ok ? () => send({ type: "play", card }) : undefined} />;
+          const mid = (hand.length - 1) / 2;
+          return <CardFace key={card.suit + card.rank} card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={myTurn && ok ? () => send({ type: "play", card }) : undefined} />;
         })}
       </div>
 

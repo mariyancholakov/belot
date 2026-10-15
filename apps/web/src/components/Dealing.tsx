@@ -14,12 +14,15 @@ export type Stage =
 
 /** A pile of card backs drawn as a few offset layers. */
 function Pile({ cards, className = "" }: { cards: number; className?: string }) {
-  const layers = Math.max(2, Math.round(cards / 3));
+  const layers = Math.max(3, Math.round(cards / 2.2));
   return (
     <div className={`pile ${className}`}>
-      {Array.from({ length: layers }, (_, i) => (
-        <i key={i} className="pile-card" style={{ transform: `translate(-50%, calc(-50% - ${i * 1.4}px))` }} />
-      ))}
+      {Array.from({ length: layers }, (_, i) => {
+        // A deck that has been handled: every card sits a little off, deterministically so it does not jump on re-render.
+        const dx = (((i * 53 + 7) % 9) - 4) * 0.9;
+        const rot = (((i * 37 + 3) % 11) - 5) * 0.9;
+        return <i key={i} className="pile-card" style={{ transform: `translate(calc(-50% + ${dx}px), calc(-50% - ${i * 1.4}px)) rotate(${rot}deg)` }} />;
+      })}
     </div>
   );
 }
@@ -81,7 +84,7 @@ interface PickerProps {
   onCut: (position: number) => void;
 }
 
-/** The cutter chooses where to split the deck: a spread of the whole deck with a draggable cut point. */
+/** The cutter chooses where to split the deck: the deck lies on the felt, slightly fanned, and a drag along it picks the cut. */
 export function CutPicker({ onCut }: PickerProps) {
   const [position, setPosition] = useState(16);
   const confirm = () => {
@@ -89,12 +92,15 @@ export function CutPicker({ onCut }: PickerProps) {
     onCut(position);
   };
   return (
-    <section className="sheet-panel cut-picker" aria-label={bg.cutTitle}>
-      <h2>{bg.cutTitle}</h2>
-      <p className="muted">{bg.cutHint}</p>
-      <div className="spread" style={{ ["--n" as string]: 32 }}>
+    <div className="cut-table cut-picker">
+      <p className="cut-hint">{bg.cutHint}</p>
+      <div className="spread">
         {Array.from({ length: 32 }, (_, i) => (
-          <i key={i} className={`spread-card ${i < position ? "lifted" : ""} ${i === position - 1 ? "edge" : ""}`} style={{ ["--i" as string]: i }} />
+          <i
+            key={i}
+            className={`spread-card ${i < position ? "lifted" : ""} ${i === position - 1 ? "edge" : ""}`}
+            style={{ ["--i" as string]: i, ["--j" as string]: `${(((i * 37 + 3) % 7) - 3) * 0.8}deg`, ["--y" as string]: `${(((i * 53 + 5) % 5) - 2) * 1.2}px` }}
+          />
         ))}
         <input
           type="range"
@@ -114,7 +120,7 @@ export function CutPicker({ onCut }: PickerProps) {
       <button className="primary" onClick={confirm}>
         {bg.cutConfirm}
       </button>
-    </section>
+    </div>
   );
 }
 
@@ -125,7 +131,7 @@ interface ChoiceProps {
 /** After three all-pass deals in a row the dealer may shuffle. */
 export function ShufflePrompt({ onChoose }: ChoiceProps) {
   return (
-    <section className="sheet-panel prompt" aria-label={bg.shuffleTitle}>
+    <section className="felt-pop prompt" aria-label={bg.shuffleTitle}>
       <h2>{bg.shuffleTitle}</h2>
       <p className="muted">{bg.shuffleHint}</p>
       <div className="prompt-actions">
@@ -143,7 +149,7 @@ export function ShufflePrompt({ onChoose }: ChoiceProps) {
 /** The dealer deals normally or with a "късметче" (first card turned face up). */
 export function DealPrompt({ onDeal }: { onDeal: (lucky: boolean) => void }) {
   return (
-    <section className="sheet-panel prompt" aria-label={bg.dealTitle}>
+    <section className="felt-pop prompt" aria-label={bg.dealTitle}>
       <h2>{bg.dealTitle}</h2>
       <p className="muted">{bg.dealHint}</p>
       <div className="prompt-actions">

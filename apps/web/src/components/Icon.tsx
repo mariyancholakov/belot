@@ -8,12 +8,6 @@ const paths: Record<string, ReactNode> = {
     </>
   ),
   moon: <path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" />,
-  auto: (
-    <>
-      <rect x="3" y="4" width="18" height="12" rx="2" />
-      <path d="M8 20h8M12 16v4" />
-    </>
-  ),
   volume: (
     <>
       <path d="M4 9v6h4l5 4V5L8 9H4Z" />
@@ -27,6 +21,7 @@ const paths: Record<string, ReactNode> = {
     </>
   ),
   list: <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />,
+  exit: <path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9" />,
   back: <path d="m15 5-7 7 7 7" />,
   copy: (
     <>

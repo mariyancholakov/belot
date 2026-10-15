@@ -8,8 +8,8 @@ import { Icon } from "./Icon";
 export function Controls() {
   const { choice, cycle } = useTheme();
   const { on, toggle } = useSound();
-  const themeLabel = { auto: bg.themeAuto, light: bg.themeLight, dark: bg.themeDark }[choice];
-  const themeIcon = { auto: "auto", light: "sun", dark: "moon" }[choice];
+  const themeLabel = { light: bg.themeLight, dark: bg.themeDark }[choice];
+  const themeIcon = { light: "sun", dark: "moon" }[choice];
   return (
     <div className="controls">
       <button className="icon-btn" onClick={cycle} aria-label={`${bg.theme}: ${themeLabel}`} title={`${bg.theme}: ${themeLabel}`}>
@@ -23,13 +23,13 @@ export function Controls() {
 }
 
 /** In a game the two switches live behind one button, so the header stays about the game. */
-export function GameMenu() {
+export function GameMenu({ onLeave }: { onLeave: () => void }) {
   const { choice, cycle } = useTheme();
   const { on, toggle } = useSound();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
-  const themeLabel = { auto: bg.themeAuto, light: bg.themeLight, dark: bg.themeDark }[choice];
-  const themeIcon = { auto: "auto", light: "sun", dark: "moon" }[choice];
+  const themeLabel = { light: bg.themeLight, dark: bg.themeDark }[choice];
+  const themeIcon = { light: "sun", dark: "moon" }[choice];
 
   useEffect(() => {
     if (!open) return;
@@ -60,6 +60,10 @@ export function GameMenu() {
             <span>
               {bg.theme}: {themeLabel}
             </span>
+          </button>
+          <button role="menuitem" onClick={onLeave}>
+            <Icon name="exit" />
+            <span>{bg.leaveToMenu}</span>
           </button>
         </div>
       )}

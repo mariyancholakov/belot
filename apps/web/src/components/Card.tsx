@@ -14,14 +14,17 @@ interface Props {
   land?: boolean;
   /** The face-up "късметче" card. */
   lucky?: boolean;
+  /** Offset from the middle card of a held hand: the card tilts and drops a little, like a fan. */
+  fan?: number;
 }
 
-export function CardFace({ card, onClick, disabled, small, highlight, delay, deal, land, lucky }: Props) {
+export function CardFace({ card, onClick, disabled, small, highlight, delay, deal, land, lucky, fan }: Props) {
   const cls = ["card", isRed(card.suit) ? "red" : "black", small ? "small" : "", disabled ? "dim" : "", highlight ? "winner" : "", deal ? "deal" : "", land ? "land" : "", lucky ? "lucky" : ""]
     .filter(Boolean)
     .join(" ");
   const label = `${rankLabel[card.rank]} ${suitName[card.suit]}`;
-  const style = delay ? { animationDelay: `${delay}ms` } : undefined;
+  const style: React.CSSProperties | undefined =
+    delay || fan !== undefined ? { ...(delay && { animationDelay: `${delay}ms` }), ...(fan !== undefined && { ["--off" as string]: fan }) } : undefined;
   const inner = (
     <>
       <span className="index">
