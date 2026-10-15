@@ -162,6 +162,14 @@ const recipes = {
   dealOne(a: A) {
     flick(a, 0, 1.6);
   },
+  /** A packet of cards slid across to a player. */
+  dealPacket(a: A) {
+    slide(a, 0, 0.16, 0.3, 6000, 2600);
+    click(a, 0.13, 0.28, 2800);
+    click(a, 0.155, 0.2, 2200);
+    click(a, 0.18, 0.16, 3200);
+    thump(a, 0.14, 0.16);
+  },
   /** Riffle shuffle, bridge, then squaring up the deck. */
   shuffle(a: A) {
     const end = riffle(a, 0);

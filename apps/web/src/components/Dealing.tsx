@@ -7,6 +7,8 @@ export type Pos = "bottom" | "right" | "top" | "left";
 export type Stage =
   | { kind: "shuffle" }
   | { kind: "wait" }
+  /** The 12 cards left over while bidding. */
+  | { kind: "talon" }
   | { kind: "cut"; position: number }
   | { kind: "deal"; rest: boolean; order: Pos[] };
 
@@ -42,6 +44,7 @@ export function DeckStage({ stage }: { stage: Stage }) {
         </div>
       )}
       {stage.kind === "wait" && <Pile cards={32} />}
+      {stage.kind === "talon" && <Pile cards={12} />}
       {stage.kind === "cut" && (
         <div className="cut-group">
           <Pile cards={32 - stage.position} className="cut-bottom" />
@@ -51,8 +54,12 @@ export function DeckStage({ stage }: { stage: Stage }) {
       {stage.kind === "deal" && (
         <>
           <Pile cards={stage.rest ? 12 : 32} className="deal-pile" />
-          {Array.from({ length: dealTotal(stage.rest) }, (_, k) => (
-            <i key={k} className={`fly ${stage.order[dealTarget(k, stage.rest)]}`} style={{ animationDelay: `${k * DEAL_GAP}ms` }} />
+          {dealPackets(stage.rest).map((size, p) => (
+            <div key={p} className={`fly ${stage.order[p % 4]}`} style={{ animationDelay: `${p * DEAL_GAP}ms` }}>
+              {Array.from({ length: size }, (_, j) => (
+                <i key={j} className="fly-card" style={{ transform: `translate(calc(-50% + ${j * 5}px), calc(-50% - ${j * 3}px))` }} />
+              ))}
+            </div>
           ))}
         </>
       )}
@@ -60,15 +67,15 @@ export function DeckStage({ stage }: { stage: Stage }) {
   );
 }
 
-/** Cards dealt in the first deal (3 then 2 each) or the second (3 each). */
-export const dealTotal = (rest: boolean) => (rest ? 12 : 20);
+/**
+ * A deal is made in packets: 3 cards to each player, then 2 each (first deal), or 3 each (the rest).
+ * Returns the packet sizes in dealing order; packet p goes to the p % 4-th player after the dealer.
+ */
+export const dealPackets = (rest: boolean): number[] => (rest ? [3, 3, 3, 3] : [3, 3, 3, 3, 2, 2, 2, 2]);
 
-/** Index (0-3, in dealing order) of the player who receives the k-th card. */
-export const dealTarget = (k: number, rest: boolean) => (rest || k < 12 ? Math.floor(k / 3) : Math.floor((k - 12) / 2));
-
-/** Milliseconds between two cards leaving the deck, and how long one takes to arrive. */
-export const DEAL_GAP = 95;
-export const DEAL_FLY = 430;
+/** Milliseconds between two packets leaving the deck, and how long one takes to arrive. */
+export const DEAL_GAP = 340;
+export const DEAL_FLY = 470;
 
 interface PickerProps {
   onCut: (position: number) => void;
@@ -107,6 +114,46 @@ export function CutPicker({ onCut }: PickerProps) {
       <button className="primary" onClick={confirm}>
         {bg.cutConfirm}
       </button>
+    </section>
+  );
+}
+
+interface ChoiceProps {
+  onChoose: (choice: boolean) => void;
+}
+
+/** After three all-pass deals in a row the dealer may shuffle. */
+export function ShufflePrompt({ onChoose }: ChoiceProps) {
+  return (
+    <section className="sheet-panel prompt" aria-label={bg.shuffleTitle}>
+      <h2>{bg.shuffleTitle}</h2>
+      <p className="muted">{bg.shuffleHint}</p>
+      <div className="prompt-actions">
+        <button className="primary" onClick={() => onChoose(true)}>
+          {bg.shuffleDo}
+        </button>
+        <button className="secondary" onClick={() => onChoose(false)}>
+          {bg.shuffleSkip}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+/** The dealer deals normally or with a "късметче" (first card turned face up). */
+export function DealPrompt({ onDeal }: { onDeal: (lucky: boolean) => void }) {
+  return (
+    <section className="sheet-panel prompt" aria-label={bg.dealTitle}>
+      <h2>{bg.dealTitle}</h2>
+      <p className="muted">{bg.dealHint}</p>
+      <div className="prompt-actions">
+        <button className="primary" onClick={() => onDeal(false)}>
+          {bg.dealNormal}
+        </button>
+        <button className="secondary" onClick={() => onDeal(true)}>
+          {bg.dealLucky}
+        </button>
+      </div>
     </section>
   );
 }

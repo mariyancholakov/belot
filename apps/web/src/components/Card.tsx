@@ -12,10 +12,12 @@ interface Props {
   deal?: boolean;
   /** A card that just arrived from the dealer: a short settle instead of the full deal-in. */
   land?: boolean;
+  /** The face-up "късметче" card. */
+  lucky?: boolean;
 }
 
-export function CardFace({ card, onClick, disabled, small, highlight, delay, deal, land }: Props) {
-  const cls = ["card", isRed(card.suit) ? "red" : "black", small ? "small" : "", disabled ? "dim" : "", highlight ? "winner" : "", deal ? "deal" : "", land ? "land" : ""]
+export function CardFace({ card, onClick, disabled, small, highlight, delay, deal, land, lucky }: Props) {
+  const cls = ["card", isRed(card.suit) ? "red" : "black", small ? "small" : "", disabled ? "dim" : "", highlight ? "winner" : "", deal ? "deal" : "", land ? "land" : "", lucky ? "lucky" : ""]
     .filter(Boolean)
     .join(" ");
   const label = `${rankLabel[card.rank]} ${suitName[card.suit]}`;

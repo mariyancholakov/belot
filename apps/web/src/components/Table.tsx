@@ -7,7 +7,7 @@ import { AnimatedNumber } from "./AnimatedNumber";
 import { Bidding, bidText } from "./Bidding";
 import { CardBack, CardFace } from "./Card";
 import { Controls } from "./Controls";
-import { CutPicker, DEAL_FLY, DEAL_GAP, DeckStage, dealTarget, dealTotal, type Stage } from "./Dealing";
+import { CutPicker, DEAL_FLY, DEAL_GAP, DealPrompt, DeckStage, ShufflePrompt, dealPackets, type Stage } from "./Dealing";
 import { Icon } from "./Icon";
 import { ScoreSheet } from "./ScoreSheet";
 
@@ -61,27 +61,47 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
   const viewRef = useRef(view);
   viewRef.current = view;
   const animTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const later = (ms: number, fn: () => void) => {
-    animTimers.current.push(setTimeout(fn, ms));
+  /** Bumped whenever a new animation starts, so a superseded one stops touching the state. */
+  const animGen = useRef(0);
+  const later = (gen: number, ms: number, fn: () => void) => {
+    animTimers.current.push(
+      setTimeout(() => {
+        if (gen === animGen.current) fn();
+      }, ms),
+    );
   };
   useEffect(() => () => animTimers.current.forEach(clearTimeout), []);
 
-  const startDeal = (rest: boolean, dealer: number) => {
-    const order = [1, 2, 3, 4].map((i) => POSITIONS[rel((dealer + i) % 4)]!);
+  // The lucky card ("късметче") stays face up beside its owner until it is played.
+  const [luckyHidden, setLuckyHidden] = useState(false);
+  const [luckyGone, setLuckyGone] = useState(false);
+  /** Cards that arrived by the deal animation settle in; cards on a reloaded page deal in themselves. */
+  const [dealtByAnimation, setDealtByAnimation] = useState(false);
+
+  const startDeal = (rest: boolean, dealer: number, hasLucky: boolean) => {
+    const gen = ++animGen.current;
+    const sizes = dealPackets(rest);
     const seats = [1, 2, 3, 4].map((i) => (dealer + i) % 4);
     const counts = rest ? [5, 5, 5, 5] : [0, 0, 0, 0];
-    const total = dealTotal(rest);
     setShown([...counts]);
-    setStage({ kind: "deal", rest, order });
-    for (let k = 0; k < total; k++) {
-      playSound("dealOne", k * DEAL_GAP);
-      const seat = seats[dealTarget(k, rest)]!;
-      later(k * DEAL_GAP + DEAL_FLY, () => {
-        counts[seat]! += 1;
-        setShown([...counts]);
-      });
+    setStage({ kind: "deal", rest, order: seats.map((seat) => POSITIONS[rel(seat)]!) });
+    setDealtByAnimation(true);
+    if (!rest) {
+      setLuckyGone(false);
+      setLuckyHidden(hasLucky);
     }
-    later(total * DEAL_GAP + DEAL_FLY + 120, () => {
+    sizes.forEach((size, p) => {
+      playSound("dealPacket", p * DEAL_GAP);
+      later(gen, p * DEAL_GAP + DEAL_FLY, () => {
+        counts[seats[p % 4]!]! += size;
+        setShown([...counts]);
+        if (p === 0 && hasLucky) {
+          setLuckyHidden(false);
+          playSound("belot");
+        }
+      });
+    });
+    later(gen, sizes.length * DEAL_GAP + DEAL_FLY + 120, () => {
       setStage(null);
       setShown(null);
       const v = viewRef.current;
@@ -89,22 +109,29 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
     });
   };
 
-  const startCut = (position: number, dealer: number) => {
+  const startCut = (position: number) => {
+    const gen = ++animGen.current;
     setShown(null);
     setStage({ kind: "cut", position });
     playSound("cut");
-    later(CUT_MS, () => startDeal(false, dealer));
+    later(gen, CUT_MS, () => setStage({ kind: "wait" }));
   };
 
-  // A new deal begins with a shuffle that everyone watches.
+  // What sits on the felt while a deal is being prepared: the shuffle, or just the deck.
   useEffect(() => {
-    if (view.phase !== "cutting") return;
-    setShown(null);
-    setStage({ kind: "shuffle" });
-    playSound("shuffle");
-    const t = setTimeout(() => setStage((s) => (s?.kind === "shuffle" ? { kind: "wait" } : s)), SHUFFLE_MS);
-    return () => clearTimeout(t);
-  }, [view.phase, view.dealer, view.round]);
+    if (view.phase === "cutting") setDealtByAnimation(false);
+    if (view.phase === "cutting" && view.fresh) {
+      ++animGen.current;
+      setShown(null);
+      setStage({ kind: "shuffle" });
+      playSound("shuffle");
+      const t = setTimeout(() => setStage((s) => (s?.kind === "shuffle" ? { kind: "wait" } : s)), SHUFFLE_MS);
+      return () => clearTimeout(t);
+    }
+    if (view.phase === "shuffling" || view.phase === "cutting" || view.phase === "dealing") {
+      setStage((s) => s ?? { kind: "wait" });
+    }
+  }, [view.phase, view.dealer, view.round, view.fresh]);
 
   useEffect(() => {
     if (updateId === lastUpdate.current) return;
@@ -113,22 +140,29 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
 
     let animating = stageRef.current !== null;
     const cutEvent = events.find((e) => e.type === "cut");
+    const dealtEvent = events.find((e) => e.type === "dealt");
     if (cutEvent && cutEvent.type === "cut") {
-      startCut(cutEvent.position, view.dealer);
+      startCut(cutEvent.position);
       animating = true;
-    } else if (view.phase !== "cutting" && (stageRef.current?.kind === "shuffle" || stageRef.current?.kind === "wait")) {
-      // The cut update was missed (it arrived together with a later one): animate anyway.
-      startCut(16, view.dealer);
+    }
+    if (dealtEvent && dealtEvent.type === "dealt") {
+      startDeal(false, view.dealer, dealtEvent.lucky !== null);
       animating = true;
+    } else if ((view.phase === "bidding" || view.phase === "playing") && (stageRef.current?.kind === "shuffle" || stageRef.current?.kind === "wait")) {
+      // The deal update was missed (it arrived together with a later one): show the cards anyway.
+      setStage(null);
     }
 
     for (const e of events) {
       switch (e.type) {
         case "played":
           playSound("play");
+          if (viewRef.current.lucky && e.card.suit === viewRef.current.lucky.card.suit && e.card.rank === viewRef.current.lucky.card.rank) {
+            setLuckyGone(true);
+          }
           break;
         case "contract":
-          startDeal(true, view.dealer);
+          startDeal(true, view.dealer, false);
           animating = true;
           break;
         case "bid":
@@ -198,10 +232,14 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
     return set;
   }, [view.legalActions]);
   const busy = stage !== null;
+  /** An animation is moving cards; "wait" is just the deck lying on the felt. */
+  const animating = stage !== null && stage.kind !== "wait";
   const dealtSoFar = shown ?? (busy ? [0, 0, 0, 0] : null);
   const myTurn = view.phase === "playing" && view.turn === me && !busy;
   const hand = sortHand(dealtSoFar ? view.hand.slice(0, dealtSoFar[me]) : view.hand);
   const dealerName = names[view.dealer] ?? "";
+  const underHand = names[(view.dealer + 1) % 4] ?? "";
+  const lucky = view.lucky && !luckyGone && !luckyHidden && (view.phase === "bidding" || view.phase === "playing") ? view.lucky : null;
   const counts = (seat: number) => (dealtSoFar ? dealtSoFar[seat]! : view.handCounts[seat] ?? 0);
   const last = view.history[view.history.length - 1];
 
@@ -237,10 +275,20 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         </button>
       </header>
 
+      <p className="deal-info">
+        {bg.dealerIs} <b>{dealerName}</b> · {bg.underHand} <b>{underHand}</b>
+        {lucky && (
+          <>
+            {" "}
+            · {bg.luckyLabel} <b className={isRed(lucky.card.suit) ? "red" : ""}>{rankLabel[lucky.card.rank]}{suitSymbol[lucky.card.suit]}</b>
+          </>
+        )}
+      </p>
+
       <div className="felt">
         {POSITIONS.slice(1).map((pos, i) => {
           const seat = (me + i + 1) % 4;
-          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={busy} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
+          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
         })}
 
         <div className={`center ${sweepTo ? `sweep-${sweepTo}` : ""}`} aria-live="polite">
@@ -253,10 +301,13 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         </div>
 
         {stage && <DeckStage stage={stage} />}
+        {!stage && view.phase === "bidding" && <DeckStage stage={{ kind: "talon" }} />}
         {stage && (
           <p className="hint low">
             {stage.kind === "shuffle" && bg.shuffling(dealerName)}
-            {stage.kind === "wait" && bg.waitingCut(names[view.turn] ?? "")}
+            {stage.kind === "wait" && view.phase === "shuffling" && bg.waitingShuffleChoice(dealerName)}
+            {stage.kind === "wait" && view.phase === "cutting" && bg.waitingCut(names[view.turn] ?? "")}
+            {stage.kind === "wait" && view.phase === "dealing" && bg.dealing(dealerName)}
             {stage.kind === "cut" && bg.waitingCut(names[(view.dealer + 3) % 4] ?? "")}
             {stage.kind === "deal" && bg.dealing(dealerName)}
           </p>
@@ -278,16 +329,22 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         )}
       </div>
 
+      {view.phase === "shuffling" && stage?.kind === "wait" && view.turn === me && (
+        <ShufflePrompt onChoose={(shuffle) => send({ type: shuffle ? "shuffle" : "skipShuffle" })} />
+      )}
+      {view.phase === "dealing" && stage?.kind === "wait" && view.turn === me && (
+        <DealPrompt onDeal={(luckyCard) => send({ type: "deal", lucky: luckyCard })} />
+      )}
       {view.phase === "cutting" && stage?.kind === "wait" && view.turn === me && (
         <CutPicker onCut={(position) => send({ type: "cut", position })} />
       )}
       {view.phase === "bidding" && !busy && <Bidding view={view} names={names} onBid={(bid) => send({ type: "bid", bid })} />}
 
-      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={busy} name={names[me]!} connected ours />
+      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} name={names[me]!} connected ours />
       <div className={`hand ${myTurn ? "active" : ""}`}>
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
-          return <CardFace key={card.suit + card.rank} card={card} land={busy} deal={!busy} delay={busy ? 0 : i * 45} disabled={!ok} onClick={myTurn && ok ? () => send({ type: "play", card }) : undefined} />;
+          return <CardFace key={card.suit + card.rank} card={card} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={myTurn && ok ? () => send({ type: "play", card }) : undefined} />;
         })}
       </div>
 
@@ -374,10 +431,12 @@ interface SeatProps {
   count: number;
   /** Shuffle, cut and deal animations are running. */
   busy: boolean;
+  /** The face-up lucky card this player holds, if any. */
+  lucky: Card | null;
 }
 
-function Seat({ pos, seat, view, name, connected, ours, count, busy }: SeatProps) {
-  const turn = !busy && view.turn === seat && (view.phase === "cutting" || view.phase === "bidding" || view.phase === "playing");
+function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky }: SeatProps) {
+  const turn = !busy && view.turn === seat && view.phase !== "roundEnd" && view.phase !== "gameOver";
   const lastBid = [...view.bidLog].reverse().find((b) => b.seat === seat);
   return (
     <div className={`seat ${pos} ${turn ? "turn" : ""} ${ours ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
@@ -397,9 +456,9 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy }: SeatProps
       )}
       {pos !== "bottom" && (
         <div className="backs" aria-label={`${count}`}>
-          {Array.from({ length: Math.min(count, 8) }, (_, i) => (
-            <CardBack key={i} small />
-          ))}
+          {Array.from({ length: Math.min(count, 8) }, (_, i) =>
+            i === 0 && lucky ? <CardFace key="lucky" card={lucky} small lucky /> : <CardBack key={i} small />,
+          )}
         </div>
       )}
     </div>

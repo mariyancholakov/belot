@@ -189,7 +189,7 @@ button:disabled { cursor: default; }
 
 /* ---------- table ---------- */
 .table {
-  height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto auto; max-width: 1000px; margin: 0 auto;
+  height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto auto auto; max-width: 1000px; margin: 0 auto;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); position: relative; overflow: hidden;
 }
 .topbar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; }
@@ -439,16 +439,21 @@ button:disabled { cursor: default; }
 @keyframes cut-bottom { 0%, 40% { transform: translate(0, 0); } 70%, 100% { transform: translate(-80px, -10px); } }
 @keyframes cut-group { 0%, 78% { transform: translateX(0); } 100% { transform: translateX(80px); } }
 
-/* deal: cards leave the deck and land at each player */
-.fly { opacity: 0; animation: fly-bottom-out 0.43s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+/* deal: packets of cards leave the deck and land at each player */
+.fly { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; animation: fly-to-center 0.47s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+.fly-card {
+  position: absolute; left: 0; top: 0; display: block; width: clamp(40px, 11.5vw, 58px); aspect-ratio: 1 / 1.42; border-radius: calc(clamp(40px, 11.5vw, 58px) * 0.13);
+  background: repeating-linear-gradient(135deg, var(--felt-a) 0 5px, var(--felt-b) 5px 10px); border: 3px solid var(--card-bg); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+@media (min-width: 760px) { .fly-card { width: 66px; border-radius: 9px; } }
 .fly.bottom { animation-name: fly-to-bottom; }
 .fly.top { animation-name: fly-to-top; }
 .fly.left { animation-name: fly-to-left; }
 .fly.right { animation-name: fly-to-right; }
-@keyframes fly-to-bottom { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 170%) rotate(12deg) scale(1.15); } }
-@keyframes fly-to-top { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -190%) rotate(-10deg) scale(0.85); } }
-@keyframes fly-to-left { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-240%, -50%) rotate(-18deg) scale(0.85); } }
-@keyframes fly-to-right { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(140%, -50%) rotate(18deg) scale(0.85); } }
+@keyframes fly-to-bottom { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(0, 150px) rotate(6deg) scale(1.15); } }
+@keyframes fly-to-top { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(0, -135px) rotate(-5deg) scale(0.85); } }
+@keyframes fly-to-left { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-120px, 0) rotate(-8deg) scale(0.85); } }
+@keyframes fly-to-right { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(120px, 0) rotate(8deg) scale(0.85); } }
 .card.land { animation: land 0.22s var(--ease) both; }
 @keyframes land { from { opacity: 0; transform: translateY(-10px) scale(1.06); } to { opacity: 1; transform: none; } }
 
@@ -465,3 +470,19 @@ button:disabled { cursor: default; }
 .spread-card.edge { box-shadow: 0 0 0 2px var(--accent), 0 4px 10px rgba(0, 0, 0, 0.25); }
 .spread input[type="range"] { position: absolute; inset: -6px -4px; width: calc(100% + 8px); height: calc(100% + 12px); margin: 0; opacity: 0; cursor: grab; touch-action: pan-y; }
 .cut-count { margin: 8px 0 12px; text-align: center; color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+
+/* who deals, who is under hand */
+.deal-info { margin: 2px 12px 6px; text-align: center; font-size: 0.85rem; color: var(--muted); }
+.deal-info b { color: var(--text); font-weight: 650; }
+.deal-info b.red { color: var(--card-red); }
+
+/* the lucky card, face up for everybody */
+.card.lucky { box-shadow: 0 0 0 2px #e8b931, 0 4px 10px rgba(0, 0, 0, 0.25); animation: lucky-pop 0.5s var(--ease) both; }
+.backs .card.small.lucky { transform: rotate(-4deg) translateY(-3px); z-index: 1; }
+@keyframes lucky-pop { from { transform: scale(0.6) rotateY(90deg); } to { transform: none; } }
+
+/* dealer / cutter prompts */
+.prompt h2 { font-size: 1rem; margin-bottom: 2px; }
+.prompt .muted { margin: 0 0 12px; }
+.prompt-actions { display: grid; gap: 8px; }
+@media (min-width: 420px) { .prompt-actions { grid-template-columns: 1fr 1fr; } }
