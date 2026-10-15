@@ -97,6 +97,15 @@ export class Room {
     this.must(token);
     if (token !== this.host) throw new RoomError("not_host", "only the host can add bots");
     if (this.game) throw new RoomError("game_running", "game already started");
+    const host = this.must(token);
+    // Never leave the host without a seat: take the first free one before filling the rest.
+    if (host.seat === null) {
+      const free = this.seats.findIndex((s) => s === null);
+      if (free >= 0) {
+        this.seats[free] = token;
+        host.seat = free;
+      }
+    }
     let n = 0;
     for (let seat = 0; seat < 4; seat++) {
       if (this.seats[seat]) continue;

@@ -271,10 +271,10 @@ describe("bots", () => {
     const a = await client("Ани");
     a.send({ type: "createRoom" });
     await a.until(() => a.room !== null);
-    a.send({ type: "takeSeat", seat: 0 });
-    await a.until(() => a.room?.you === 0);
     a.send({ type: "addBots" });
+    await a.until(() => a.room?.you === 0);
     await a.until(() => a.room!.seats.every((s) => s !== null));
+    expect(a.room!.seats[0]?.nickname).toBe("Ани");
     expect(a.room!.watchers).toEqual([]);
     a.send({ type: "startGame" });
     await a.until(() => a.view?.turn === 0 || a.view?.phase === "bidding");
