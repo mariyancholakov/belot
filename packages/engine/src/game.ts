@@ -214,7 +214,7 @@ export function canClaim(state: GameState, seat: number): boolean {
   if (state.phase !== "playing" || !state.contract || state.turn !== seat || state.trick.length !== 0) return false;
   if (mustDecideAnnouncements(state, seat)) return false;
   const hand = state.hands[seat]!;
-  return hand.length > 0 && holdsAllRemainingTricks(hand, state.collected, state.contract.contract);
+  return hand.length >= 2 && holdsAllRemainingTricks(hand, state.collected, state.contract.contract);
 }
 
 export function applyAction(prev: GameState, seat: number, action: GameAction): ActionResult {

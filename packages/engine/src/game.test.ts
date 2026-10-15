@@ -345,6 +345,12 @@ describe("laying the cards down", () => {
     expect(applyAction(weak, 0, { type: "claim" }).ok).toBe(false);
   });
 
+  it("makes no sense with a single card left", () => {
+    const s = playing([[k("J", "hearts")], [k("A", "spades")], [k("K", "spades")], [k("Q", "spades")]], "hearts");
+    s.tricksPlayed = 7;
+    expect(canClaim(s, 0)).toBe(false);
+  });
+
   it("is only possible when leading", () => {
     const s = playing([strong, [k("A", "spades")], [k("K", "spades")], [k("Q", "spades")]], "hearts", 1);
     expect(canClaim(s, 0)).toBe(false);
