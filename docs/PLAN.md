@@ -27,7 +27,7 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 - [x] M1 — Rules engine
 - [x] M2 — Protocol and server
 - [x] M3 — Web client: playable game
-- [~] M4 — Polish and Bulgarian UX (manifest, icons, landscape, browser smoke test done; sound, turn timer and card-flight animations later)
+- [x] M4 — Polish and Bulgarian UX (modern light/dark redesign, animations, synthesized sounds, manifest, browser smoke test; turn timer later)
 - [~] M5 — Deploy and play with friends (Dockerfile, CI, fly.toml, docs/DEPLOY.md ready; needs the owner to deploy)
 - [ ] M6 — Bots
 - [ ] M7 — History and stats (optional)
