@@ -24,7 +24,7 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 
 ## Status
 - [x] M0 — Scaffold and specs
-- [ ] M1 — Rules engine (in progress: cards, tricks, scoring done)
+- [x] M1 — Rules engine
 - [ ] M2 — Protocol and server
 - [ ] M3 — Web client: playable game
 - [ ] M4 — Polish and Bulgarian UX
@@ -51,7 +51,7 @@ Pure, deterministic, no I/O. Server and client both import it.
 | 1.5 | Bidding: bid order ♣<♦<♥<♠<no-trumps<all-trumps, pass, contra, re-contra, end conditions, all-pass redeal | `bidding.ts` | ✅ |
 | 1.6 | Announcements: find sequences (terca/fifty/hundred) and carrés in a hand; compare teams (only the strongest team's sequences count, equal strongest cancel); carré cancels sequences; belot detection when K or Q of trump is played | `announcements.ts` | ✅ |
 | 1.7 | Game state machine: one `GameState` type, `applyAction(state, seat, action)` returning new state + events or an error; phases `bidding → playing → roundEnd → gameOver` | `game.ts` | ✅ |
-| 1.8 | Per-seat view: redact other hands, include `legalActions` | `view.ts` | |
+| 1.8 | Per-seat view: redact other hands, include `legalActions` | `view.ts` | ✅ |
 | 1.9 | Random playout tests: thousands of seeded games with random legal moves; checks: game always ends, card points per round = 162 / 130 / 258, no illegal move is ever offered, score totals never decrease | `game.test.ts` | ✅ |
 
 Rule details to verify while building 1.5–1.6 (record the answer in `docs/RULES.md`):

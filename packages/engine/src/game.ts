@@ -59,6 +59,8 @@ export interface GameState {
   /** Cards still to be dealt after bidding. */
   talon: Card[];
   bidding: BiddingState;
+  /** Every bid action of the current deal, in order. */
+  bidLog: { seat: number; bid: BidAction }[];
   contract: BidOutcome | null;
   trick: Play[];
   tricksPlayed: number;
@@ -95,6 +97,7 @@ export function newGame(seed: number, dealer = 0): GameState {
     round: 1,
     dealer,
     ...deal(seed, 1, dealer),
+    bidLog: [],
     contract: null,
     trick: [],
     tricksPlayed: 0,
@@ -148,6 +151,7 @@ function applyBidAction(state: GameState, seat: number, bid: BidAction, events: 
   if (!r.ok) return r;
   state.bidding = r.state;
   state.turn = r.state.turn;
+  state.bidLog.push({ seat, bid });
   events.push({ type: "bid", seat, bid });
 
   const result = r.state.result;
@@ -174,6 +178,7 @@ function startRound(state: GameState, round: number, dealer: number, events: Gam
   state.dealIndex += 1;
   Object.assign(state, deal(state.seed, state.dealIndex, dealer));
   state.phase = "bidding";
+  state.bidLog = [];
   state.contract = null;
   state.trick = [];
   state.tricksPlayed = 0;
