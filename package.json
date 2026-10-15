@@ -1,0 +1,13 @@
+{
+  "name": "belot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}
