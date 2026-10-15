@@ -38,9 +38,15 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
   return (
     <main className="lobby">
       <div className="page-bar">
-        <button className="icon-btn" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
-          <Icon name="back" />
-        </button>
+        <div className="page-bar-left">
+          <button className="icon-btn" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
+            <Icon name="back" />
+          </button>
+          <span className="home-logo" aria-hidden="true">
+            <span className="home-logo-mark">♠</span>
+            {bg.appName}
+          </span>
+        </div>
         <Controls />
       </div>
 
