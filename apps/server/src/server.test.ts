@@ -272,7 +272,7 @@ describe("static files", () => {
 describe("bots", () => {
   it("fills empty seats and plays their turns until the human has to act", async () => {
     await server.close();
-    server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1, botCutDelayMs: 1 });
+    server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1, botCutDelayMs: 1, botDealDelayMs: 1 });
     const a = await client("Ани");
     a.send({ type: "createRoom" });
     await a.until(() => a.room !== null);

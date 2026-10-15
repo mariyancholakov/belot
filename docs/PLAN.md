@@ -29,7 +29,7 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 - [x] M3 — Web client: playable game
 - [x] M4 — Polish and Bulgarian UX (modern light/dark redesign, animations, synthesized sounds, manifest, browser smoke test; turn timer later)
 - [~] M5 — Deploy and play with friends (Dockerfile, CI, fly.toml, docs/DEPLOY.md ready; needs the owner to deploy)
-- [ ] M6 — Bots
+- [~] M6 — Bots (simple computer players that fill empty seats are in; stronger play and contra later)
 - [ ] M7 — History and stats (optional)
 
 ---

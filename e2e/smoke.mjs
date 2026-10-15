@@ -37,7 +37,13 @@ for (const p of pages.slice(1)) {
 for (const [i, p] of pages.entries()) await p.locator(".lobby-seat").nth([3, 1, 0, 2][i]).click();
 if (SHOTS) await pages[0].screenshot({ path: `${SHOTS}/${tag}-2-lobby.png` });
 await pages[0].getByRole("button", { name: "Започни играта" }).click();
-await pages[0].waitForSelector(".bidding");
+// Everyone watches the shuffle, then whoever sits right of the dealer cuts the deck.
+const cutter = await Promise.race(pages.map((p) => p.waitForSelector(".cut-picker", { timeout: 15_000 }).then(() => p)));
+if (SHOTS) await cutter.screenshot({ path: `${SHOTS}/${tag}-2b-cut.png` });
+await cutter.locator(".cut-picker input").fill("11");
+await cutter.locator(".cut-picker button.primary").click();
+// The cut and the deal are animated; bidding opens afterwards.
+await pages[0].waitForSelector(".bidding", { timeout: 15_000 });
 // Whoever's turn it is sees the bid buttons; screenshot that player's screen.
 const bidder = await Promise.race(pages.map((p) => p.waitForSelector(".bid-grid").then(() => p)));
 await bidder.waitForTimeout(700);

@@ -10,10 +10,12 @@ interface Props {
   /** Stagger for the deal animation, in ms. */
   delay?: number;
   deal?: boolean;
+  /** A card that just arrived from the dealer: a short settle instead of the full deal-in. */
+  land?: boolean;
 }
 
-export function CardFace({ card, onClick, disabled, small, highlight, delay, deal }: Props) {
-  const cls = ["card", isRed(card.suit) ? "red" : "black", small ? "small" : "", disabled ? "dim" : "", highlight ? "winner" : "", deal ? "deal" : ""]
+export function CardFace({ card, onClick, disabled, small, highlight, delay, deal, land }: Props) {
+  const cls = ["card", isRed(card.suit) ? "red" : "black", small ? "small" : "", disabled ? "dim" : "", highlight ? "winner" : "", deal ? "deal" : "", land ? "land" : ""]
     .filter(Boolean)
     .join(" ");
   const label = `${rankLabel[card.rank]} ${suitName[card.suit]}`;

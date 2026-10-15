@@ -23,11 +23,11 @@ Private and ad-free: no accounts, no strangers, no ranking, no ads. It is a tabl
 - Vocabulary is Bulgarian card-table language: купа, каро, пика, спатия, без коз, всичко коз, контра, реконтра, терца, петдесет, сто, каре, белот, вътре, капо, висящи.
 
 ## Capabilities and Constraints
-- Implemented: rooms by code, seats, full Bulgarian belot rules engine, per-player views (others' cards never reach the client), reconnect to the same seat, round and game summaries, paper-style score sheet, installable to the home screen.
+- Implemented: rooms by code, seats, full Bulgarian belot rules engine, per-player views (others' cards never reach the client), reconnect to the same seat, round and game summaries, paper-style score sheet, installable to the home screen, synthesized card-table sounds with a mute control, an animated shuffle, a real cut chosen by the player right of the dealer, a dealt-card animation, and simple computer players for solo testing.
 - Server is authoritative; one process, state in memory (a restart ends running games).
 - UI is Bulgarian only; code, docs and commits are English.
 - Rule details still to confirm with the group are listed in `docs/RULES.md` (capo value, no-trump announcements, tie rounding).
-- Not built yet: sound, bots, history/stats, turn timer.
+- Not built yet: stronger bots, history/stats, turn timer.
 
 ## Brand Commitments
 - The name is **Белот** and the interface stays Bulgarian-only.

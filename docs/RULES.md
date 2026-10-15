@@ -3,7 +3,7 @@
 Source: Bulgarian Wikipedia, "Бридж-белот" (bg.wikipedia.org/wiki/Белот), cross-checked against the Sofia University FMI belot page where it was reachable. Target score: **151** (confirmed by the project owner).
 
 ## Table
-4 players, 2 teams, partners opposite (seats 0+2 vs 1+3). 32 cards (7–A). Dealing is counter-clockwise: 3 cards, 2 cards, bidding, then 3 more. Bidding starts with the player after the dealer; the player to the right of the dealer leads the first trick.
+4 players, 2 teams, partners opposite (seats 0+2 vs 1+3). 32 cards (7–A). Before every deal the deck is shuffled and the player to the right of the dealer cuts it (lifts the top packet, any size from 1 to 31 cards, and puts it under the rest). Dealing is counter-clockwise: 3 cards, 2 cards, bidding, then 3 more. Bidding starts with the player after the dealer; the player to the right of the dealer leads the first trick.
 
 ## Bidding
 Order, weakest to strongest: ♣ < ♦ < ♥ < ♠ < no-trumps < all-trumps. A player may bid higher, pass, contra or re-contra. Contra only against an opponent's bid, re-contra only against an opponent's contra. Bidding ends when everyone passes after the highest bid, or on re-contra. Everybody passing = redeal.

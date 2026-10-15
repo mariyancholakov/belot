@@ -406,3 +406,62 @@ button:disabled { cursor: default; }
   .seat .backs { display: none; }
   .seat .name small.count { display: inline; }
 }
+
+/* ---------- shuffle, cut and deal ---------- */
+.felt .hint.low { position: absolute; left: 0; right: 0; bottom: 15%; margin: 0; text-align: center; font-size: 0.95rem; color: rgba(255, 255, 255, 0.8); z-index: 3; pointer-events: none; }
+.deck-stage { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 3; pointer-events: none; }
+.pile { position: absolute; left: 0; top: 0; }
+.pile-card, .riffle-card, .fly {
+  position: absolute; left: 0; top: 0; display: block; width: clamp(40px, 11.5vw, 58px); aspect-ratio: 1 / 1.42; border-radius: calc(clamp(40px, 11.5vw, 58px) * 0.13);
+  background: repeating-linear-gradient(135deg, var(--felt-a) 0 5px, var(--felt-b) 5px 10px); border: 3px solid var(--card-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transform: translate(-50%, -50%);
+}
+@media (min-width: 760px) { .pile-card, .riffle-card, .fly { width: 66px; border-radius: 9px; } }
+
+/* riffle: two halves, then cards drop alternately into the middle */
+.shuffle .half { animation: half-in 0.35s var(--ease) both, half-out 0.5s ease-in 1.15s forwards; }
+.shuffle .half.left { transform: translateX(-34px) rotate(-7deg); }
+.shuffle .half.right { transform: translateX(34px) rotate(7deg); }
+.riffle-card { opacity: 0; animation: riffle-l 0.26s var(--ease) both; }
+.riffle-card.from-right { animation-name: riffle-r; }
+.shuffle { animation: square-up 0.3s var(--ease) 1.65s both; }
+@keyframes half-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes half-out { to { opacity: 0; } }
+@keyframes riffle-l { from { opacity: 1; transform: translate(calc(-50% - 36px), calc(-50% - 6px)) rotate(-8deg); } to { opacity: 1; transform: translate(-50%, calc(-50% - var(--lift))) rotate(0); } }
+@keyframes riffle-r { from { opacity: 1; transform: translate(calc(-50% + 36px), calc(-50% - 6px)) rotate(8deg); } to { opacity: 1; transform: translate(-50%, calc(-50% - var(--lift))) rotate(0); } }
+@keyframes square-up { 0% { transform: translateY(0); } 40% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+
+/* cut: lift the top packet aside, set the bottom packet on it, slide the deck back */
+.cut-group { animation: cut-group 1.25s ease-in-out both; }
+.cut-top { animation: cut-top 1.25s var(--ease) both; }
+.cut-bottom { animation: cut-bottom 1.25s var(--ease) both; z-index: 1; }
+@keyframes cut-top { 0% { transform: translate(0, 0); } 30% { transform: translate(-80px, -14px) rotate(-3deg); } 40%, 100% { transform: translate(-80px, 0); } }
+@keyframes cut-bottom { 0%, 40% { transform: translate(0, 0); } 70%, 100% { transform: translate(-80px, -10px); } }
+@keyframes cut-group { 0%, 78% { transform: translateX(0); } 100% { transform: translateX(80px); } }
+
+/* deal: cards leave the deck and land at each player */
+.fly { opacity: 0; animation: fly-bottom-out 0.43s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+.fly.bottom { animation-name: fly-to-bottom; }
+.fly.top { animation-name: fly-to-top; }
+.fly.left { animation-name: fly-to-left; }
+.fly.right { animation-name: fly-to-right; }
+@keyframes fly-to-bottom { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 170%) rotate(12deg) scale(1.15); } }
+@keyframes fly-to-top { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -190%) rotate(-10deg) scale(0.85); } }
+@keyframes fly-to-left { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-240%, -50%) rotate(-18deg) scale(0.85); } }
+@keyframes fly-to-right { 0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(140%, -50%) rotate(18deg) scale(0.85); } }
+.card.land { animation: land 0.22s var(--ease) both; }
+@keyframes land { from { opacity: 0; transform: translateY(-10px) scale(1.06); } to { opacity: 1; transform: none; } }
+
+/* the cutter's picker */
+.cut-picker h2 { font-size: 1rem; margin-bottom: 2px; }
+.cut-picker .muted { margin: 0 0 10px; }
+.spread { position: relative; height: calc(clamp(40px, 11.5vw, 58px) * 1.42 + 22px); margin: 0 4px 6px; }
+.spread-card {
+  position: absolute; bottom: 0; left: calc((100% - clamp(40px, 11.5vw, 58px)) * var(--i) / 31); display: block; width: clamp(40px, 11.5vw, 58px); aspect-ratio: 1 / 1.42; border-radius: 7px;
+  background: repeating-linear-gradient(135deg, var(--felt-a) 0 5px, var(--felt-b) 5px 10px); border: 2px solid var(--card-bg); box-shadow: 0 0 0 1px var(--line), 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.18s var(--ease), box-shadow 0.18s;
+}
+.spread-card.lifted { transform: translateY(-18px); }
+.spread-card.edge { box-shadow: 0 0 0 2px var(--accent), 0 4px 10px rgba(0, 0, 0, 0.25); }
+.spread input[type="range"] { position: absolute; inset: -6px -4px; width: calc(100% + 8px); height: calc(100% + 12px); margin: 0; opacity: 0; cursor: grab; touch-action: pan-y; }
+.cut-count { margin: 8px 0 12px; text-align: center; color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
