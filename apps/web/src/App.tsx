@@ -32,6 +32,8 @@ export function App() {
   // A visit to /ABCD with a saved name joins straight away.
   const autoJoined = useRef(false);
   useEffect(() => {
+    // Once there is a table (made or joined by hand), leaving it must not pull the player back in.
+    if (room) autoJoined.current = true;
     if (autoJoined.current || !session.ready || room || !pathCode || !nickname.trim()) return;
     autoJoined.current = true;
     send({ type: "joinRoom", code: pathCode });
