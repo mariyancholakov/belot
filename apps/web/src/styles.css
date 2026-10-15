@@ -719,4 +719,7 @@ button:disabled { cursor: default; }
 @media (min-width: 900px) {
   .topbar-controls { display: contents; }
   .topbar-menu { display: none; }
+  .topbar-back { display: none; }
 }
+.leave-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; color: var(--text); font-weight: 600; }
+.leave-btn:hover { background: var(--surface-2); }

@@ -268,7 +268,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   return (
     <div className="table">
       <header className="topbar">
-        <button className="icon-btn" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
+        <button className="icon-btn topbar-back" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
           <Icon name="back" />
         </button>
         <div className="chips">
@@ -279,6 +279,9 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         </button>
         <span className="topbar-controls">
           <Controls />
+          <button className="leave-btn" onClick={onLeave}>
+            <Icon name="exit" size={18} /> {bg.leave}
+          </button>
         </span>
         <span className="topbar-menu">
           <GameMenu onLeave={onLeave} />
