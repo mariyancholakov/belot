@@ -321,19 +321,28 @@ button:disabled { cursor: default; }
 .seat.offline { opacity: 0.55; }
 /* what a player says (a bid, the belot, an announcement) comes out of their name like a speech balloon */
 .seat .name { position: relative; }
-.balloon {
-  position: absolute; z-index: 6; width: max-content; max-width: 180px; padding: 6px 12px; border-radius: 10px; white-space: normal; text-align: center; line-height: 1.25;
-  background: var(--card-bg); color: var(--card-ink); font-size: 0.85rem; font-weight: 700; box-shadow: var(--shadow-2); animation: pop 0.35s var(--ease);
+/* the time left to move runs down as a bar under the name */
+.clock {
+  position: absolute; left: 10px; right: 10px; bottom: -8px; height: 4px; border-radius: 2px; background: var(--ring); transform-origin: left center;
+  animation: clock-run linear forwards;
 }
-.balloon::after { content: ""; position: absolute; width: 10px; height: 10px; background: inherit; transform: rotate(45deg); border-radius: 2px; }
-.seat.top .balloon { top: calc(100% + 10px); left: 50%; translate: -50% 0; }
-.seat.top .balloon::after { top: -4px; left: calc(50% - 5px); }
-.seat.left .balloon { left: calc(100% + 12px); top: 50%; translate: 0 -50%; }
-.seat.left .balloon::after { left: -4px; top: calc(50% - 5px); }
-.seat.right .balloon { right: calc(100% + 12px); top: 50%; translate: 0 -50%; }
-.seat.right .balloon::after { right: -4px; top: calc(50% - 5px); }
-.seat.bottom .balloon { bottom: calc(100% + 10px); left: 50%; translate: -50% 0; }
-.seat.bottom .balloon::after { bottom: -4px; left: calc(50% - 5px); }
+@keyframes clock-run { 0% { transform: scaleX(1); } 70% { background: var(--ring); } 100% { transform: scaleX(0); background: var(--danger); } }
+.balloon {
+  position: absolute; z-index: 6; width: max-content; max-width: 220px; padding: 12px 22px; border-radius: 26px; white-space: normal; text-align: center; line-height: 1.2;
+  background: var(--card-bg); color: var(--card-ink); font-size: 1.15rem; font-weight: 700; box-shadow: var(--shadow-2); animation: pop 0.35s var(--ease);
+}
+/* two little circles lead from the name to the cloud, as in a thought bubble */
+.balloon::before, .balloon::after { content: ""; position: absolute; border-radius: 50%; background: var(--card-bg); box-shadow: var(--shadow-1); }
+.balloon::before { width: 14px; height: 14px; }
+.balloon::after { width: 8px; height: 8px; }
+.seat.top .balloon { top: calc(100% + 26px); left: 50%; translate: -50% 0; }
+.seat.top .balloon::before { top: -12px; left: calc(50% - 7px); } .seat.top .balloon::after { top: -22px; left: calc(50% - 4px); }
+.seat.left .balloon { left: calc(100% + 30px); top: 50%; translate: 0 -50%; }
+.seat.left .balloon::before { left: -12px; top: calc(50% - 7px); } .seat.left .balloon::after { left: -22px; top: calc(50% - 4px); }
+.seat.right .balloon { right: calc(100% + 30px); top: 50%; translate: 0 -50%; }
+.seat.right .balloon::before { right: -12px; top: calc(50% - 7px); } .seat.right .balloon::after { right: -22px; top: calc(50% - 4px); }
+.seat.bottom .balloon { bottom: calc(100% + 26px); left: 50%; translate: -50% 0; }
+.seat.bottom .balloon::before { bottom: -12px; left: calc(50% - 7px); } .seat.bottom .balloon::after { bottom: -22px; left: calc(50% - 4px); }
 .felt .seat { position: absolute; }
 .felt .seat.top { top: 12px; left: 50%; transform: translateX(-50%); }
 .felt .seat.left { left: 10px; top: 50%; transform: translateY(-50%); }
