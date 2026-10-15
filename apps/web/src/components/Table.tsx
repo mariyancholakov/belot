@@ -233,6 +233,7 @@ function Seat({ pos, seat, view, name, connected, partner }: SeatProps) {
     <div className={`seat ${pos} ${turn ? "turn" : ""} ${partner ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
       <div className="name">
         <span>{name}</span>
+        {pos !== "bottom" && <small className="count">{count}</small>}
         {view.dealer === seat && <em title={bg.dealer}>Р</em>}
         {!connected && <small>{bg.offline}</small>}
       </div>

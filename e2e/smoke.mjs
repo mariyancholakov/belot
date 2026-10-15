@@ -14,7 +14,7 @@ const browser = await chromium.launch();
 const errors = [];
 const pages = [];
 for (const name of names) {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 780 }, deviceScaleFactor: 2 });
+  const ctx = await browser.newContext({ viewport: { width: Number(process.env.W ?? 390), height: Number(process.env.H ?? 780) }, deviceScaleFactor: 2 });
   const page = await ctx.newPage();
   page.on("pageerror", (e) => errors.push(`${name}: ${e.message}`));
   page.on("console", (m) => m.type() === "error" && errors.push(`${name}: ${m.text()}`));
@@ -61,6 +61,7 @@ while (Date.now() < deadline) {
       await playable.first().click();
       acted = true;
       moves++;
+      if (SHOTS && moves === 5) await pages[1].screenshot({ path: `${SHOTS}/smoke-playing-${process.env.W ?? 390}.png` });
       // Reconnect check: a player reloads mid-round and must get the same seat and hand back.
       if (!reloaded && moves === 6) {
         reloaded = true;

@@ -26,8 +26,8 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 - [x] M0 — Scaffold and specs
 - [x] M1 — Rules engine
 - [x] M2 — Protocol and server
-- [ ] M3 — Web client: playable game
-- [ ] M4 — Polish and Bulgarian UX
+- [x] M3 — Web client: playable game
+- [~] M4 — Polish and Bulgarian UX (manifest, icons, landscape, browser smoke test done; sound, turn timer and card-flight animations later)
 - [ ] M5 — Deploy and play with friends
 - [ ] M6 — Bots
 - [ ] M7 — History and stats (optional)

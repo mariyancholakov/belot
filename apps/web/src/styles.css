@@ -139,6 +139,7 @@ button:disabled { cursor: default; }
 .seat.ours .name { border-color: #5cb4d6; } .seat.theirs .name { border-color: #e3a56a; }
 .seat .name em { font-style: normal; font-size: 0.7rem; background: var(--brass); color: #231a07; border-radius: 99px; padding: 0 6px; }
 .seat .name small { color: var(--bad); }
+.seat .name small.count { display: none; color: inherit; opacity: .7; }
 .seat.turn .name { background: var(--brass); color: #231a07; box-shadow: 0 0 0 4px rgba(211, 162, 75, .35); }
 .seat.offline { opacity: 0.55; }
 .bubble { background: var(--ivory); color: var(--card-ink); font-size: 0.8rem; font-weight: 700; padding: 2px 10px; border-radius: 10px; }
@@ -264,6 +265,8 @@ button:disabled { cursor: default; }
   :root { --cw: 52px; }
   .card.small { --cw: 36px; }
   .hand { padding-bottom: 6px; }
+  .seat .backs { display: none; }
+  .seat .name small.count { display: inline; }
 }
 
 .callout {
