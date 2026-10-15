@@ -179,6 +179,7 @@ button:disabled { cursor: default; }
 }
 .field input::placeholder { color: var(--muted); opacity: 0.7; }
 .field input:focus { border-color: var(--accent); outline: 3px solid var(--accent-soft); outline-offset: 0; }
+.field input.code::placeholder { letter-spacing: normal; font-weight: 500; }
 .field input.code { text-transform: uppercase; letter-spacing: 0.4em; text-align: center; font-weight: 700; }
 
 /* ---------- home ---------- */
@@ -186,7 +187,7 @@ button:disabled { cursor: default; }
   min-height: 100dvh; max-width: 440px; margin: 0 auto; padding: 24px 20px calc(32px + env(safe-area-inset-bottom));
   display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative;
 }
-.home { justify-content: center; gap: 14px; }
+.home { justify-content: center; gap: 14px; max-width: none; }
 .home-panel {
   display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 400px;
   padding: 28px 24px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);

@@ -3,7 +3,7 @@ import type { Contract, Rank, Suit } from "@belot/engine";
 /** All user-facing text lives here. */
 export const bg = {
   appName: "Белот",
-  invited: "Поканен си на маса. Въведи името си и влез.",
+  invited: "Поканен си в игра. Въведи името си и влез.",
   teamOneUnseated: "Отбор 1",
   teamTwoUnseated: "Отбор 2",
   bot: "бот",
@@ -25,9 +25,10 @@ export const bg = {
   roundShort: "Ръка",
   nickname: "Твоето име",
   nicknamePlaceholder: "напр. Иван",
-  newRoom: "Нова маса",
+  newRoom: "Създай игра",
   joinRoom: "Влез с код",
-  roomCode: "Код на масата",
+  codePlaceholder: "Въведи код",
+  roomCode: "Код на играта",
   join: "Влез",
   connecting: "Свързване…",
   reconnecting: "Връзката се прекъсна. Свързваме отново…",
@@ -104,7 +105,7 @@ export const bg = {
   error: {
     bad_message: "Невалидно съобщение.",
     no_hello: "Първо въведи име.",
-    room_not_found: "Няма такава маса. Провери кода.",
+    room_not_found: "Няма такава игра. Провери кода.",
     not_in_room: "Не си на маса.",
     seat_taken: "Мястото е заето.",
     not_seated: "Първо седни на място.",

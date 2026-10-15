@@ -40,7 +40,7 @@ export function Home({ nickname: saved, initialCode, ready, codeError, onCreate,
           className="code"
           value={code}
           maxLength={4}
-          placeholder="ABCD"
+          placeholder={bg.codePlaceholder}
           autoCapitalize="characters"
           autoComplete="off"
           aria-invalid={invalid}

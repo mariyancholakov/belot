@@ -25,7 +25,7 @@ for (const name of names) {
 
 const tag = `${process.env.THEME ?? "light"}-${process.env.W ?? 390}`;
 if (SHOTS) await pages[0].screenshot({ path: `${SHOTS}/${tag}-1-home.png` });
-await pages[0].getByRole("button", { name: "Нова маса" }).click();
+await pages[0].getByRole("button", { name: "Създай игра" }).click();
 await pages[0].waitForSelector(".room-code");
 const code = (await pages[0].textContent(".room-code")).trim();
 for (const p of pages.slice(1)) {
