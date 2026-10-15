@@ -53,3 +53,4 @@ First team to reach 151 wins; if both pass 151 the higher total wins; a tie is p
 - On a tie, both teams are rounded with the "fewer points" rule.
 - The source also mentions a "151–159 after capo" extra round; the wording is unclear, not implemented.
 - Bidding: after a contra no higher bids are allowed (only pass or re-contra); the three other players each get one turn after a contra, and re-contra ends bidding at once. The source does not say whether bidding can continue after a contra.
+- Announcements are detected automatically from the dealt hand (players cannot hide or misdeclare them). The team with the stronger best announcement (points, then top card) scores all of its announcements; if the best ones are equal, neither team scores announcements. A carré cancels any sequence that uses one of its cards. Belot (K+Q of trump; in all-trumps, of any suit) always counts, 20 each. Announcements are allowed in every contract (belot excluded in no-trumps).
