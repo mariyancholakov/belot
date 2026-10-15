@@ -420,7 +420,7 @@ button:disabled { cursor: default; }
 .hand.active { cursor: default; }
 .hand.active:has(.hand-slot[data-hot]:not(.off)) { cursor: pointer; }
 /* the card under the pointer comes up out of the fan and straightens, as if picked up */
-.hand.active .hand-slot[data-hot]:not(.off) .card { translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px) - 24px); rotate: 0deg; z-index: 2; box-shadow: 0 12px 20px rgba(0, 0, 0, 0.26); }
+.hand.active .hand-slot[data-hot]:not(.off) .card { translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px) - 24px); z-index: 2; box-shadow: 0 12px 20px rgba(0, 0, 0, 0.26); }
 .hand.active .card.dim { opacity: 1; filter: brightness(0.55); }
 
 /* ---------- bidding ---------- */
