@@ -105,6 +105,39 @@ describe("game", () => {
   });
 });
 
+describe("belot call", () => {
+  it("is announced once, when the first of K+Q of trump is played", () => {
+    // Find a seed where someone holds K+Q of the bid suit, then play it out.
+    for (let seed = 1; seed < 200; seed++) {
+      let s = newGame(seed);
+      const bid = (seat: number, b: GameAction) => {
+        const r = applyAction(s, seat, b);
+        if (!r.ok) throw new Error(r.error);
+        s = r.state;
+      };
+      bid(1, { type: "bid", bid: { type: "bid", contract: "hearts" } });
+      for (const seat of [2, 3, 0]) bid(seat, { type: "bid", bid: { type: "pass" } });
+      const holder = s.hands.findIndex(
+        (h) => h.some((c) => c.suit === "hearts" && c.rank === "K") && h.some((c) => c.suit === "hearts" && c.rank === "Q"),
+      );
+      if (holder < 0) continue;
+
+      const rand = rng(seed);
+      const belots: number[] = [];
+      while (s.phase === "playing") {
+        const options = legalActions(s, s.turn);
+        const r = applyAction(s, s.turn, options[Math.floor(rand() * options.length)]!);
+        if (!r.ok) throw new Error(r.error);
+        belots.push(...r.events.flatMap((e) => (e.type === "belot" ? [e.seat] : [])));
+        s = r.state;
+      }
+      expect(belots).toEqual([holder]);
+      return;
+    }
+    throw new Error("no seed with a belot found");
+  });
+});
+
 describe("random playouts", () => {
   it("300 seeded games always finish with a winner and consistent points", () => {
     for (let seed = 1; seed <= 300; seed++) {

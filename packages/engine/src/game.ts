@@ -1,4 +1,4 @@
-import { cardEquals, points, type Card, type Contract } from "./cards";
+import { cardEquals, points, type Card, type Contract, type Suit } from "./cards";
 import { resolveAnnouncements, type AnnouncementResult } from "./announcements";
 import {
   applyBid,
@@ -28,6 +28,7 @@ export type GameEvent =
   | { type: "bid"; seat: number; bid: BidAction }
   | { type: "redeal" }
   | { type: "contract"; outcome: BidOutcome }
+  | { type: "belot"; seat: number; suit: Suit }
   | { type: "played"; seat: number; card: Card }
   | { type: "trickWon"; winner: number; plays: Play[] }
   | { type: "announcements"; result: AnnouncementResult }
@@ -203,6 +204,16 @@ function applyPlay(state: GameState, seat: number, card: Card, events: GameEvent
 
   state.hands[seat] = hand.filter((c) => !cardEquals(c, card));
   state.trick.push({ seat, card });
+
+  // Belot is called when the first card of a held K+Q pair is played.
+  const partnerRank = card.rank === "K" ? "Q" : card.rank === "Q" ? "K" : null;
+  if (
+    partnerRank &&
+    state.announcements?.belots[seat]?.includes(card.suit) &&
+    hand.some((c) => c.suit === card.suit && c.rank === partnerRank)
+  ) {
+    events.push({ type: "belot", seat, suit: card.suit });
+  }
   events.push({ type: "played", seat, card });
 
   if (state.trick.length < 4) {
