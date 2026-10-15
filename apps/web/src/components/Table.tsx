@@ -37,10 +37,16 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
 
   // Keep a finished trick on screen for a moment so everyone can see how it ended.
   const [held, setHeld] = useState<{ plays: Play[]; winner: number } | null>(null);
+  const [callout, setCallout] = useState<string | null>(null);
   const lastUpdate = useRef(0);
   useEffect(() => {
     if (updateId === lastUpdate.current) return;
     lastUpdate.current = updateId;
+    const belot = events.find((e): e is Extract<GameEvent, { type: "belot" }> => e.type === "belot");
+    if (belot) {
+      setCallout(`${bg.belot}! ${names[belot.seat]} ${suitSymbol[belot.suit]} +20`);
+      setTimeout(() => setCallout(null), 2200);
+    }
     const won = events.find((e): e is Extract<GameEvent, { type: "trickWon" }> => e.type === "trickWon");
     if (!won) return;
     setHeld({ plays: won.plays, winner: won.winner });
@@ -115,6 +121,8 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
           ))}
           {trick.length === 0 && view.phase === "playing" && <p className="hint muted">{myTurn ? bg.yourTurn : bg.waitingFor(names[view.turn] ?? "")}</p>}
         </div>
+
+        {callout && <div className="callout">{callout}</div>}
 
         {view.announcements && view.announcements.length > 0 && (
           <ul className="announced">

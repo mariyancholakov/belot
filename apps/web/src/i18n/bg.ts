@@ -52,6 +52,7 @@ export const bg = {
   hanging: "Висящи",
   lastTrickBonus: "последна ръка +10",
   announcements: "Обявявания",
+  belot: "Белот",
   redeal: "Всички пасуваха — раздава се наново",
   error: {
     bad_message: "Невалидно съобщение.",
