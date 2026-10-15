@@ -1,4 +1,4 @@
-import { RANKS, SUITS, type Card, type Contract, type Rank, type Suit } from "./cards";
+import { cardEquals, fullDeck, isTrump, RANKS, strength, SUITS, type Card, type Contract, type Rank, type Suit } from "./cards";
 import type { Team } from "./scoring";
 
 export type AnnouncementKind = "terca" | "fifty" | "hundred" | "carre";
@@ -96,20 +96,18 @@ export interface AnnouncementResult {
 }
 
 /**
- * Work out which announcements count. The team whose best announcement is
- * stronger scores all of its announcements; if the best ones tie, neither team
- * scores announcements. Belot always counts for the player who holds it.
+ * Work out which announcements count, from what each seat actually declared. The team whose
+ * best declared announcement is stronger scores all of its declared announcements; if the best
+ * ones tie, neither team scores announcements. Declared belots always count for the player who
+ * called them.
  */
-export function resolveAnnouncements(hands: readonly (readonly Card[])[], contract: Contract): AnnouncementResult {
-  const all = hands.map((h) => findAnnouncements(h));
-  const belots = hands.map((h) => findBelots(h, contract));
-
-  const teamAnnouncements = (team: Team) => all.filter((_, seat) => seat % 2 === team).flat();
+export function resolveDeclared(declared: readonly (readonly Announcement[])[], belots: readonly (readonly Suit[])[]): AnnouncementResult {
+  const teamAnnouncements = (team: Team) => declared.filter((_, seat) => seat % 2 === team).flat();
   const bestA = best(teamAnnouncements(0));
   const bestB = best(teamAnnouncements(1));
   const winner: Team | null = bestA === bestB ? null : bestA > bestB ? 0 : 1;
 
-  const counted = all.map((list, seat) => (winner !== null && seat % 2 === winner ? list : []));
+  const counted = declared.map((list, seat) => (winner !== null && seat % 2 === winner ? [...list] : []));
 
   const points: [number, number] = [0, 0];
   counted.forEach((list, seat) => {
@@ -119,5 +117,34 @@ export function resolveAnnouncements(hands: readonly (readonly Card[])[], contra
     points[seat % 2 as Team] += suits.length * BELOT_POINTS;
   });
 
-  return { counted, belots, points };
+  return { counted, belots: belots.map((b) => [...b]), points };
+}
+
+/** Everything the hands hold, as if every player declared all of it (used by tests and by bots). */
+export function resolveAnnouncements(hands: readonly (readonly Card[])[], contract: Contract): AnnouncementResult {
+  return resolveDeclared(
+    hands.map((h) => findAnnouncements(h)),
+    hands.map((h) => findBelots(h, contract)),
+  );
+}
+
+/** Whether `card` is a K or Q that completes the call of a belot the hand holds in `contract`. */
+export function belotCallable(hand: readonly Card[], card: Card, contract: Contract): boolean {
+  const partner = card.rank === "K" ? "Q" : card.rank === "Q" ? "K" : null;
+  return partner !== null && findBelots(hand, contract).includes(card.suit) && hand.some((c) => c.suit === card.suit && c.rank === partner);
+}
+
+/**
+ * Can this hand take every remaining trick for certain? True when each card in it beats every
+ * card that has not been seen (the unseen cards sit in the other hands), so it wins whenever it
+ * is led. Deliberately cautious: a plain-suit card only counts while no trump is left unseen.
+ */
+export function holdsAllRemainingTricks(hand: readonly Card[], seen: readonly Card[], contract: Contract): boolean {
+  const known = [...hand, ...seen];
+  const unseen = fullDeck().filter((c) => !known.some((k) => cardEquals(k, c)));
+  const unseenTrumps = unseen.some((c) => isTrump(c, contract));
+  return hand.every((card) => {
+    if (unseen.some((u) => u.suit === card.suit && strength(u, contract) > strength(card, contract))) return false;
+    return isTrump(card, contract) || !unseenTrumps;
+  });
 }

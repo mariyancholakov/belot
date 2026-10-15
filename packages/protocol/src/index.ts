@@ -15,7 +15,9 @@ const bidAction = z.discriminatedUnion("type", [
 
 export const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("bid"), bid: bidAction }),
-  z.object({ type: z.literal("play"), card }),
+  z.object({ type: z.literal("play"), card, belot: z.boolean().optional() }),
+  z.object({ type: z.literal("announce"), declare: z.boolean() }),
+  z.object({ type: z.literal("claim"), belot: z.boolean().optional() }),
   z.object({ type: z.literal("nextRound") }),
   z.object({ type: z.literal("cut"), position: z.number().int().min(1).max(31) }),
   z.object({ type: z.literal("shuffle") }),

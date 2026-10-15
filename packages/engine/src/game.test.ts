@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, cutterOf, legalActions, newGame, type GameAction, type GameState } from "./game";
+import type { Card, Rank, Suit } from "./cards";
+import { applyAction, canClaim, cutterOf, legalActions, newGame, type GameAction, type GameState } from "./game";
 
 /** Tiny seeded RNG for the test players. */
 function rng(seed: number) {
@@ -229,7 +230,7 @@ describe("game", () => {
 });
 
 describe("belot call", () => {
-  it("is announced once, when the first of K+Q of trump is played", () => {
+  it("is called once, when the first of K+Q of trump is played and the player says so", () => {
     // Find a seed where someone holds K+Q of the bid suit, then play it out.
     for (let seed = 1; seed < 200; seed++) {
       let s = startedGame(seed);
@@ -249,7 +250,8 @@ describe("belot call", () => {
       const belots: number[] = [];
       while (s.phase === "playing") {
         const options = legalActions(s, s.turn);
-        const r = applyAction(s, s.turn, options[Math.floor(rand() * options.length)]!);
+        const pick = options[Math.floor(rand() * options.length)]!;
+        const r = applyAction(s, s.turn, pick.type === "play" && s.hands[s.turn]!.length > 0 ? { ...pick, belot: true } : pick);
         if (!r.ok) throw new Error(r.error);
         belots.push(...r.events.flatMap((e) => (e.type === "belot" ? [e.seat] : [])));
         s = r.state;
@@ -274,5 +276,111 @@ describe("random playouts", () => {
         expect(total).toBe(expected);
       }
     }
+  });
+});
+
+const k = (rank: Rank, suit: Suit): Card => ({ rank, suit });
+
+/** A game in the playing phase with the given hands, `turn` to lead. */
+function playing(hands: Card[][], contract: "hearts" | "no-trumps" | "all-trumps", turn = 0): GameState {
+  const s = structuredClone(startedGame(1));
+  s.phase = "playing";
+  s.contract = { contract, bidder: 0, multiplier: 1 };
+  s.hands = hands;
+  s.turn = turn;
+  s.trick = [];
+  s.tricksPlayed = 0;
+  s.collected = [];
+  return s;
+}
+
+describe("announcements are declared by the player", () => {
+  const terca = [k("7", "spades"), k("8", "spades"), k("9", "spades")];
+  const filler = (n: number) => [k("A", "clubs"), k("10", "diamonds"), k("K", "hearts"), k("8", "clubs"), k("J", "diamonds")].slice(0, n);
+  const hands = () => [[...terca, ...filler(5)], [k("7", "hearts"), k("8", "hearts")], [k("9", "hearts")], [k("J", "hearts")]];
+
+  it("asks before the first card and offers nothing else until answered", () => {
+    const s = playing(hands(), "hearts");
+    expect(legalActions(s, 0).every((a) => a.type === "announce")).toBe(true);
+    const r = applyAction(s, 0, { type: "play", card: k("A", "clubs") });
+    expect(r.ok).toBe(false);
+  });
+
+  it("scores a declared terca and ignores one that was kept quiet", () => {
+    for (const declare of [true, false]) {
+      const s = playing(hands(), "hearts");
+      const r = applyAction(s, 0, { type: "announce", declare });
+      if (!r.ok) throw new Error(r.error);
+      expect(r.events.some((e) => e.type === "announced")).toBe(declare);
+      expect(legalActions(r.state, 0).some((a) => a.type === "play")).toBe(true);
+      expect(r.state.decided[0]).toBe(true);
+      expect(r.state.declared[0]!.length).toBe(declare ? 1 : 0);
+    }
+  });
+});
+
+describe("belot is only counted when called", () => {
+  it("does not count a belot the player stays quiet about", () => {
+    const hand = [k("K", "hearts"), k("Q", "hearts"), k("7", "clubs")];
+    const s = playing([hand, [k("7", "spades")], [k("8", "spades")], [k("9", "spades")]], "hearts");
+    const quiet = applyAction(s, 0, { type: "play", card: k("K", "hearts") });
+    expect(quiet.ok && quiet.events.some((e) => e.type === "belot")).toBe(false);
+    const called = applyAction(s, 0, { type: "play", card: k("K", "hearts"), belot: true });
+    expect(called.ok && called.events.some((e) => e.type === "belot")).toBe(true);
+    expect(called.ok && called.state.belots[0]).toEqual(["hearts"]);
+  });
+});
+
+describe("laying the cards down", () => {
+  // Trump is hearts. Seat 0 holds the top trumps and top plain cards, with nothing unseen that could beat them.
+  const strong = [k("J", "hearts"), k("9", "hearts"), k("A", "hearts"), k("10", "hearts"), k("K", "hearts"), k("Q", "hearts"), k("8", "hearts"), k("7", "hearts")];
+
+  it("is offered when every card is certain to win, and not otherwise", () => {
+    const s = playing([strong, [k("A", "spades")], [k("K", "spades")], [k("Q", "spades")]], "hearts");
+    s.decided[0] = true;
+    expect(canClaim(s, 0)).toBe(true);
+    expect(legalActions(s, 0).some((a) => a.type === "claim")).toBe(true);
+    const weak = playing([[k("J", "hearts"), k("A", "spades")], [k("9", "hearts")], [k("7", "clubs")], [k("8", "clubs")]], "hearts");
+    expect(canClaim(weak, 0)).toBe(false);
+    expect(applyAction(weak, 0, { type: "claim" }).ok).toBe(false);
+  });
+
+  it("is only possible when leading", () => {
+    const s = playing([strong, [k("A", "spades")], [k("K", "spades")], [k("Q", "spades")]], "hearts", 1);
+    expect(canClaim(s, 0)).toBe(false);
+  });
+
+  it("gives the claimer's team every remaining card and the last trick", () => {
+    const hands = [[k("J", "hearts"), k("9", "hearts")], [k("A", "spades"), k("10", "spades")], [k("7", "clubs"), k("8", "clubs")], [k("Q", "diamonds"), k("K", "diamonds")]];
+    const s = playing(hands, "hearts");
+    s.tricksPlayed = 6;
+    s.cardPoints = [0, 0];
+    // everything else has been played, so nothing unseen can beat the claimer
+    const all = [] as Card[];
+    for (const suit of ["clubs", "diamonds", "hearts", "spades"] as Suit[]) for (const rank of ["7", "8", "9", "10", "J", "Q", "K", "A"] as Rank[]) all.push({ rank, suit });
+    s.collected = all.filter((c) => !hands.flat().some((h) => h.rank === c.rank && h.suit === c.suit));
+    const r = applyAction(s, 0, { type: "claim" });
+    if (!r.ok) throw new Error(r.error);
+    // J+9 trump 34, A+10 spades 21, 7+8 clubs 0, Q+K diamonds 7, plus 10 for the last trick
+    expect(r.state.cardPoints[0]).toBe(34 + 21 + 7 + 10);
+    expect(r.state.cardPoints[1]).toBe(0);
+    expect(r.state.tricksWon[0]).toBe(2);
+    expect(r.state.hands.every((h) => h.length === 0)).toBe(true);
+    expect(["roundEnd", "gameOver"]).toContain(r.state.phase);
+    expect(r.state.collected.length).toBe(32);
+    expect(r.events.some((e) => e.type === "claimed")).toBe(true);
+  });
+
+  it("lets the claimer call a belot on the cards they lay down", () => {
+    const s = playing([[k("K", "hearts"), k("Q", "hearts"), k("J", "hearts")], [k("7", "spades")], [k("8", "spades")], [k("9", "spades")]], "hearts");
+    s.tricksPlayed = 5;
+    const all: Card[] = [];
+    for (const suit of ["clubs", "diamonds", "hearts", "spades"] as Suit[]) for (const rank of ["7", "8", "9", "10", "J", "Q", "K", "A"] as Rank[]) all.push({ rank, suit });
+    s.collected = all.filter((c) => !s.hands.flat().some((h) => h.rank === c.rank && h.suit === c.suit));
+    s.decided[0] = true;
+    const r = applyAction(s, 0, { type: "claim", belot: true });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.belots[0]).toEqual(["hearts"]);
+    expect(r.events.some((e) => e.type === "belot")).toBe(true);
   });
 });

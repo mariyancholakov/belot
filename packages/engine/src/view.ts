@@ -1,7 +1,7 @@
-import type { Announcement } from "./announcements";
+import { belotCallable, findAnnouncements, findBelots, type Announcement } from "./announcements";
 import type { Card } from "./cards";
 import type { BidAction, BidOutcome } from "./bidding";
-import { legalActions, type GameAction, type LuckyCard, type GameState, type Phase, type RoundSummary } from "./game";
+import { legalActions, mustDecideAnnouncements, type GameAction, type LuckyCard, type GameState, type Phase, type RoundSummary } from "./game";
 import type { Team } from "./scoring";
 import type { Play } from "./tricks";
 
@@ -23,6 +23,12 @@ export interface GameView {
   highestBid: { seat: number; contract: string } | null;
   contract: BidOutcome | null;
   tricksWon: [number, number];
+  /** The announcements this seat must decide about before playing its first card, if any. */
+  pendingAnnouncements: Announcement[] | null;
+  /** Cards that would call a belot if played now (own hand). */
+  belotCards: Card[];
+  /** Belot suits this seat could still call when laying its cards down. */
+  claimBelots: string[];
   /** Announcements that count, shown to everyone after the first trick. */
   announcements: { seat: number; announcements: Announcement[] }[] | null;
   scores: [number, number];
@@ -55,6 +61,9 @@ export function viewFor(state: GameState, seat: number): GameView {
     highestBid: state.bidding.highest,
     contract: state.contract,
     tricksWon: state.tricksWon,
+    pendingAnnouncements: mustDecideAnnouncements(state, seat) ? findAnnouncements(state.hands[seat]!) : null,
+    belotCards: state.contract && state.phase === "playing" ? (state.hands[seat] ?? []).filter((c) => belotCallable(state.hands[seat]!, c, state.contract!.contract) && !state.belots[seat]!.includes(c.suit)) : [],
+    claimBelots: state.contract && state.phase === "playing" ? findBelots(state.hands[seat] ?? [], state.contract.contract).filter((s) => !state.belots[seat]!.includes(s)) : [],
     announcements: revealed
       ? state.announcements!.counted
           .map((announcements, s) => ({ seat: s, announcements }))

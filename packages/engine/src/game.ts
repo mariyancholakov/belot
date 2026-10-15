@@ -1,5 +1,14 @@
 import { cardEquals, points, type Card, type Contract, type Suit } from "./cards";
-import { resolveAnnouncements, type AnnouncementResult } from "./announcements";
+import {
+  belotCallable,
+  findAnnouncements,
+  findBelots,
+  holdsAllRemainingTricks,
+  resolveDeclared,
+  type Announcement,
+  type AnnouncementKind,
+  type AnnouncementResult,
+} from "./announcements";
 import {
   applyBid,
   legalBids,
@@ -20,7 +29,12 @@ export type Phase = "shuffling" | "cutting" | "dealing" | "bidding" | "playing" 
 
 export type GameAction =
   | { type: "bid"; bid: BidAction }
-  | { type: "play"; card: Card }
+  /** `belot`: call the belot when this is the first card of a held K+Q of trump. */
+  | { type: "play"; card: Card; belot?: boolean }
+  /** Before a seat's first card: declare the announcements it holds, or keep them to itself. */
+  | { type: "announce"; declare: boolean }
+  /** Lay the cards down when every remaining trick is certain; the team takes them all. */
+  | { type: "claim"; belot?: boolean }
   | { type: "nextRound" }
   /** The cutter lifts the top `position` cards (1-31) and puts them under the rest. */
   | { type: "cut"; position: number }
@@ -40,6 +54,8 @@ export type GameEvent =
   | { type: "belot"; seat: number; suit: Suit }
   | { type: "played"; seat: number; card: Card }
   | { type: "trickWon"; winner: number; plays: Play[] }
+  | { type: "announced"; seat: number; kinds: AnnouncementKind[] }
+  | { type: "claimed"; seat: number; cards: Card[] }
   | { type: "announcements"; result: AnnouncementResult }
   | { type: "roundScored"; result: RoundResult; summary: RoundSummary }
   | { type: "gameOver"; winner: Team };
@@ -92,6 +108,11 @@ export interface GameState {
   tricksWon: [number, number];
   /** Card points collected this round, per team. */
   cardPoints: [number, number];
+  /** What each seat declared before its first card, and whether it has decided yet. */
+  declared: Announcement[][];
+  decided: boolean[];
+  /** Belots called so far, per seat. */
+  belots: Suit[][];
   announcements: AnnouncementResult | null;
   /** True once the first trick is complete and announcements are shown to everyone. */
   announcementsRevealed: boolean;
@@ -136,6 +157,9 @@ export function newGame(seed: number, dealer = 0): GameState {
     tricksPlayed: 0,
     tricksWon: [0, 0],
     cardPoints: [0, 0],
+    declared: [[], [], [], []],
+    decided: [false, false, false, false],
+    belots: [[], [], [], []],
     announcements: null,
     announcementsRevealed: false,
     lastTrick: null,
@@ -169,13 +193,28 @@ export function legalActions(state: GameState, seat: number): GameAction[] {
   }
   if (state.phase === "playing") {
     if (seat !== state.turn || !state.contract) return [];
-    return legalPlays(state.hands[seat]!, state.trick, state.contract.contract, seat).map((card) => ({
-      type: "play",
+    if (mustDecideAnnouncements(state, seat)) return [{ type: "announce", declare: true }, { type: "announce", declare: false }];
+    const plays = legalPlays(state.hands[seat]!, state.trick, state.contract.contract, seat).map((card) => ({
+      type: "play" as const,
       card,
     }));
+    return canClaim(state, seat) ? [...plays, { type: "claim" as const }] : plays;
   }
   if (state.phase === "roundEnd") return [{ type: "nextRound" }];
   return [];
+}
+
+/** The seat is about to play its first card and holds announcements it has not yet decided about. */
+export function mustDecideAnnouncements(state: GameState, seat: number): boolean {
+  return state.phase === "playing" && state.tricksPlayed === 0 && !state.decided[seat] && findAnnouncements(state.hands[seat]!).length > 0;
+}
+
+/** Whether `seat` may lay its cards down now: it leads, and every card it holds is certain to win. */
+export function canClaim(state: GameState, seat: number): boolean {
+  if (state.phase !== "playing" || !state.contract || state.turn !== seat || state.trick.length !== 0) return false;
+  if (mustDecideAnnouncements(state, seat)) return false;
+  const hand = state.hands[seat]!;
+  return hand.length > 0 && holdsAllRemainingTricks(hand, state.collected, state.contract.contract);
 }
 
 export function applyAction(prev: GameState, seat: number, action: GameAction): ActionResult {
@@ -187,7 +226,11 @@ export function applyAction(prev: GameState, seat: number, action: GameAction): 
     case "bid":
       return applyBidAction(state, seat, action.bid, events);
     case "play":
-      return applyPlay(state, seat, action.card, events);
+      return applyPlay(state, seat, action.card, action.belot === true, events);
+    case "announce":
+      return applyAnnounce(state, seat, action.declare, events);
+    case "claim":
+      return applyClaim(state, seat, action.belot === true, events);
     case "nextRound":
       return applyNextRound(state, events);
     case "cut":
@@ -222,7 +265,6 @@ function applyBidAction(state: GameState, seat: number, bid: BidAction, events: 
     state.talon = [];
     state.phase = "playing";
     state.turn = nextSeat(state.dealer);
-    state.announcements = resolveAnnouncements(state.hands, result.contract);
     events.push({ type: "contract", outcome: result });
   }
   return { ok: true, state, events };
@@ -251,6 +293,9 @@ function startRound(state: GameState, round: number, dealer: number, deck: Card[
   state.tricksPlayed = 0;
   state.tricksWon = [0, 0];
   state.cardPoints = [0, 0];
+  state.declared = [[], [], [], []];
+  state.decided = [false, false, false, false];
+  state.belots = [[], [], [], []];
   state.announcements = null;
   state.announcementsRevealed = false;
   state.lastTrick = null;
@@ -302,9 +347,22 @@ function applyDeal(state: GameState, seat: number, lucky: boolean, events: GameE
   return { ok: true, state, events };
 }
 
-function applyPlay(state: GameState, seat: number, card: Card, events: GameEvent[]): ActionResult {
+function applyAnnounce(state: GameState, seat: number, declare: boolean, events: GameEvent[]): ActionResult {
   if (state.phase !== "playing" || !state.contract) return { ok: false, error: "not in play" };
   if (seat !== state.turn) return { ok: false, error: "not your turn" };
+  if (!mustDecideAnnouncements(state, seat)) return { ok: false, error: "nothing to announce" };
+  state.decided[seat] = true;
+  if (declare) {
+    state.declared[seat] = findAnnouncements(state.hands[seat]!);
+    events.push({ type: "announced", seat, kinds: state.declared[seat]!.map((a) => a.kind) });
+  }
+  return { ok: true, state, events };
+}
+
+function applyPlay(state: GameState, seat: number, card: Card, belot: boolean, events: GameEvent[]): ActionResult {
+  if (state.phase !== "playing" || !state.contract) return { ok: false, error: "not in play" };
+  if (seat !== state.turn) return { ok: false, error: "not your turn" };
+  if (mustDecideAnnouncements(state, seat)) return { ok: false, error: "decide about your announcements first" };
 
   const hand = state.hands[seat]!;
   const contract = state.contract.contract;
@@ -317,13 +375,9 @@ function applyPlay(state: GameState, seat: number, card: Card, events: GameEvent
   state.trick.push({ seat, card });
   state.collected.push(card);
 
-  // Belot is called when the first card of a held K+Q pair is played.
-  const partnerRank = card.rank === "K" ? "Q" : card.rank === "Q" ? "K" : null;
-  if (
-    partnerRank &&
-    state.announcements?.belots[seat]?.includes(card.suit) &&
-    hand.some((c) => c.suit === card.suit && c.rank === partnerRank)
-  ) {
+  // Belot counts only when the player calls it as the first card of a held K+Q pair is played.
+  if (belot && belotCallable(hand, card, contract) && !state.belots[seat]!.includes(card.suit)) {
+    state.belots[seat]!.push(card.suit);
     events.push({ type: "belot", seat, suit: card.suit });
   }
   events.push({ type: "played", seat, card });
@@ -345,10 +399,7 @@ function applyPlay(state: GameState, seat: number, card: Card, events: GameEvent
   state.turn = winner;
   events.push({ type: "trickWon", winner, plays });
 
-  if (state.tricksPlayed === 1 && state.announcements) {
-    state.announcementsRevealed = true;
-    events.push({ type: "announcements", result: state.announcements });
-  }
+  if (state.tricksPlayed === 1) revealAnnouncements(state, events);
 
   if (state.tricksPlayed === TRICKS_PER_ROUND) {
     state.cardPoints[team] += LAST_TRICK_BONUS;
@@ -357,9 +408,42 @@ function applyPlay(state: GameState, seat: number, card: Card, events: GameEvent
   return { ok: true, state, events };
 }
 
+function revealAnnouncements(state: GameState, events: GameEvent[]): void {
+  state.announcements = resolveDeclared(state.declared, state.belots);
+  state.announcementsRevealed = true;
+  events.push({ type: "announcements", result: state.announcements });
+}
+
+function applyClaim(state: GameState, seat: number, belot: boolean, events: GameEvent[]): ActionResult {
+  if (!canClaim(state, seat)) return { ok: false, error: "cannot lay the cards down" };
+  const contract = state.contract!.contract;
+  const team = teamOf(seat);
+  const laid = [...state.hands[seat]!];
+
+  if (belot) {
+    for (const suit of findBelots(laid, contract)) {
+      if (state.belots[seat]!.includes(suit)) continue;
+      state.belots[seat]!.push(suit);
+      events.push({ type: "belot", seat, suit });
+    }
+  }
+  events.push({ type: "claimed", seat, cards: laid });
+
+  // Every card still in a hand goes to the claimer's team, wherever it sits.
+  const rest = [0, 1, 2, 3].flatMap((i) => state.hands[(seat + i) % 4]!);
+  state.cardPoints[team] += rest.reduce((sum, c) => sum + points(c, contract), 0) + LAST_TRICK_BONUS;
+  state.tricksWon[team] += TRICKS_PER_ROUND - state.tricksPlayed;
+  state.tricksPlayed = TRICKS_PER_ROUND;
+  state.collected.push(...rest);
+  state.hands = [[], [], [], []];
+  if (!state.announcementsRevealed) revealAnnouncements(state, events);
+  finishRound(state, events);
+  return { ok: true, state, events };
+}
+
 function finishRound(state: GameState, events: GameEvent[]): void {
   const contract = state.contract!;
-  const announcements = state.announcements!.points;
+  const announcements = resolveDeclared(state.declared, state.belots).points;
   const capo: Team | null = state.tricksWon[0] === TRICKS_PER_ROUND ? 0 : state.tricksWon[1] === TRICKS_PER_ROUND ? 1 : null;
 
   const result = scoreRound({

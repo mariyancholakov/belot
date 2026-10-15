@@ -1,4 +1,5 @@
 import { isTrump, points, strength, SUITS, type Card, type Contract, type Suit } from "./cards";
+import { belotCallable } from "./announcements";
 import { legalActions, type GameAction, type GameState } from "./game";
 import { isPartner, trickWinner } from "./tricks";
 
@@ -29,7 +30,7 @@ function chooseBid(state: GameState, seat: number, options: GameAction[]): GameA
 
 function choosePlay(state: GameState, seat: number, options: GameAction[]): GameAction {
   const contract = state.contract!.contract as Contract;
-  const cards = options.map((a) => (a as { card: Card }).card);
+  const cards = options.flatMap((a) => (a.type === "play" ? [a.card] : []));
   const play = (card: Card): GameAction => ({ type: "play", card });
   const byStrength = (a: Card, b: Card) => strength(a, contract) - strength(b, contract);
   const byValue = (a: Card, b: Card) => points(a, contract) - points(b, contract) || byStrength(a, b);
@@ -58,6 +59,11 @@ export function chooseBotAction(state: GameState, seat: number): GameAction | nu
   if (state.phase === "dealing") return { type: "deal", lucky: false };
   if (state.phase === "cutting") return { type: "cut", position: 8 + ((state.seed + state.dealIndex * 7) % 17) };
   if (state.phase === "bidding") return chooseBid(state, seat, options);
-  if (state.phase === "playing") return choosePlay(state, seat, options);
+  if (state.phase === "playing") {
+    if (options.some((a) => a.type === "announce")) return { type: "announce", declare: true };
+    if (options.some((a) => a.type === "claim")) return { type: "claim", belot: true };
+    const play = choosePlay(state, seat, options);
+    return play.type === "play" && belotCallable(state.hands[seat]!, play.card, state.contract!.contract) ? { ...play, belot: true } : play;
+  }
   return options[0]!;
 }
