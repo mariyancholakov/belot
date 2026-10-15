@@ -48,6 +48,6 @@ export function CardFace({ card, onClick, disabled, small, highlight, delay, dea
   );
 }
 
-export function CardBack({ small }: { small?: boolean }) {
-  return <div className={`card back ${small ? "small" : ""}`} aria-hidden="true" />;
+export function CardBack({ small, fan }: { small?: boolean; fan?: number }) {
+  return <div className={`card back ${small ? "small" : ""}`} style={fan === undefined ? undefined : { ["--off" as string]: fan }} aria-hidden="true" />;
 }

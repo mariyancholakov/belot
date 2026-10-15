@@ -350,11 +350,17 @@ button:disabled { cursor: default; }
 .table > .seat.bottom { padding: 8px 0 2px; }
 .table > .seat.bottom .name { background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); backdrop-filter: none; }
 .backs { display: flex; }
-.backs .card.small { border-radius: calc(var(--cw) * 0.2); }
-.seat.top .backs .card.small { --cw: var(--top-cw); margin-left: calc(var(--cw) * -0.62); }
+/* the other players hold their cards in a curved fan too: each card tilts and sits a little further out the further it is from the middle */
+.backs { --bf-rot: 3.2deg; --bf-drop: 1.3px; }
+.seat.top .backs .card.small {
+  --cw: var(--top-cw); margin-left: calc(var(--cw) * -0.62);
+  rotate: calc(180deg - var(--off, 0) * var(--bf-rot)); translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--bf-drop) * -1);
+}
 /* the players to the left and right hold their cards facing themselves, so from here the fan runs top to bottom and each card lies on its side */
 .seat.left .backs, .seat.right .backs { flex-direction: column; padding: 0 calc(var(--side-cw) * 0.21); }
-.seat.left .backs .card.small, .seat.right .backs .card.small { --cw: var(--side-cw); margin-left: 0; margin-top: calc(var(--cw) * -1.12); rotate: 90deg; }
+.seat.left .backs .card.small, .seat.right .backs .card.small { --cw: var(--side-cw); margin-left: 0; margin-top: calc(var(--cw) * -1.12); }
+.seat.left .backs .card.small { rotate: calc(90deg + var(--off, 0) * var(--bf-rot)); translate: calc(var(--off, 0) * var(--off, 0) * var(--bf-drop) * -1) 0; }
+.seat.right .backs .card.small { rotate: calc(-90deg - var(--off, 0) * var(--bf-rot)); translate: calc(var(--off, 0) * var(--off, 0) * var(--bf-drop)) 0; }
 .seat.left .backs .card.small:first-child, .seat.right .backs .card.small:first-child { margin-top: 0; }
 .backs .card.small:first-child { margin-left: 0; }
 
@@ -619,7 +625,7 @@ button:disabled { cursor: default; }
 
 /* the lucky card, face up for everybody */
 .card.lucky { box-shadow: 0 0 0 2px #e8b931, 0 4px 10px rgba(0, 0, 0, 0.25); animation: lucky-pop 0.5s var(--ease) both; }
-.backs .card.small.lucky { transform: rotate(-4deg) translateY(-3px); z-index: 1; }
+.backs .card.small.lucky { z-index: 1; }
 @keyframes lucky-pop { from { transform: scale(0.6) rotateY(90deg); } to { transform: none; } }
 
 /* dealer / cutter prompts */

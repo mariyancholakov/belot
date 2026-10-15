@@ -497,9 +497,10 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
       </div>
       {pos !== "bottom" && (
         <div className="backs" aria-label={`${count}`}>
-          {Array.from({ length: Math.min(count, 8) }, (_, i) =>
-            i === 0 && lucky ? <CardFace key="lucky" card={lucky} small lucky /> : <CardBack key={i} small />,
-          )}
+          {Array.from({ length: Math.min(count, 8) }, (_, i, all) => {
+            const off = i - (all.length - 1) / 2;
+            return i === 0 && lucky ? <CardFace key="lucky" card={lucky} small lucky fan={off} /> : <CardBack key={i} small fan={off} />;
+          })}
         </div>
       )}
     </div>
