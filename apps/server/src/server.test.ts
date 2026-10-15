@@ -294,6 +294,24 @@ describe("turn clock", () => {
   });
 });
 
+describe("card back", () => {
+  it("is chosen by the host before the game and shown to everybody", async () => {
+    const a = await client("Ани");
+    a.send({ type: "createRoom" });
+    await a.until(() => a.room !== null);
+    expect(a.room!.cardBack).toBe("classic");
+    const code = a.room!.code;
+    const b = await client("Бони");
+    b.send({ type: "joinRoom", code });
+    await b.until(() => b.room !== null);
+    b.send({ type: "setCardBack", back: "stars" });
+    await b.until(() => b.lastError() !== undefined);
+    expect(a.room!.cardBack).toBe("classic");
+    a.send({ type: "setCardBack", back: "stars" });
+    await b.until(() => b.room?.cardBack === "stars");
+  });
+});
+
 describe("bots", () => {
   it("lets the host send the bots away again", async () => {
     const a = await client("Ани");

@@ -400,7 +400,7 @@ button:disabled { cursor: default; }
 .card .index i { font-style: normal; font-size: calc(var(--cw) * 0.27); margin-top: 1px; }
 .card .pip { position: absolute; right: 11%; bottom: 7%; font-size: calc(var(--cw) * 0.5); line-height: 1; }
 .card.back {
-  background: repeating-linear-gradient(135deg, var(--back-a) 0 5px, var(--back-b) 5px 10px); border: 3px solid var(--card-bg);
+  background: var(--back-bg); border: 3px solid var(--card-bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.22);
 }
 .card.dim { opacity: 0.4; }
@@ -572,7 +572,7 @@ button:disabled { cursor: default; }
 .pile { position: absolute; left: 0; top: 0; }
 .pile-card, .riffle-card, .fly {
   position: absolute; left: 0; top: 0; display: block; width: clamp(40px, 11.5vw, 58px); aspect-ratio: 1 / 1.42; border-radius: calc(clamp(40px, 11.5vw, 58px) * 0.13);
-  background: repeating-linear-gradient(135deg, var(--back-a) 0 5px, var(--back-b) 5px 10px); border: 3px solid var(--card-bg);
+  background: var(--back-bg); border: 3px solid var(--card-bg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transform: translate(-50%, -50%);
 }
 @media (min-width: 760px) { .pile-card, .riffle-card, .fly { width: 66px; border-radius: 9px; } }
@@ -602,7 +602,7 @@ button:disabled { cursor: default; }
 .fly { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; animation: fly-to-center 0.47s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
 .fly-card {
   position: absolute; left: 0; top: 0; display: block; width: clamp(40px, 11.5vw, 58px); aspect-ratio: 1 / 1.42; border-radius: calc(clamp(40px, 11.5vw, 58px) * 0.13);
-  background: repeating-linear-gradient(135deg, var(--back-a) 0 5px, var(--back-b) 5px 10px); border: 3px solid var(--card-bg); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  background: var(--back-bg); border: 3px solid var(--card-bg); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 @media (min-width: 760px) { .fly-card { width: 66px; border-radius: 9px; } }
 .fly.bottom { animation-name: fly-to-bottom; }
@@ -656,7 +656,7 @@ button:disabled { cursor: default; }
 @media (min-width: 760px) { .spread { --cw: 66px; --step: 9px; } }
 .spread-card {
   position: absolute; bottom: 4px; left: calc(var(--i) * var(--step)); width: var(--cw); aspect-ratio: 1 / 1.42; border-radius: calc(var(--cw) * 0.13);
-  background: repeating-linear-gradient(135deg, var(--back-a) 0 5px, var(--back-b) 5px 10px); border: 3px solid var(--card-bg); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  background: var(--back-bg); border: 3px solid var(--card-bg); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
   rotate: var(--j); translate: 0 var(--y); transition: translate 0.2s var(--ease), box-shadow 0.18s;
 }
 .spread-card.lifted { translate: 0 calc(var(--y) - 22px); }
@@ -724,3 +724,19 @@ button:disabled { cursor: default; }
 .leave-btn:hover { background: var(--surface-2); }
 
 @media (min-width: 760px) { .seat .avatar { width: 44px; height: 44px; } .seat .name { font-size: 1.05rem; } }
+
+/* the designs on the back of the cards, picked by the host and applied to every deck through data-back */
+:root { --back-bg: repeating-linear-gradient(135deg, var(--back-a) 0 5px, var(--back-b) 5px 10px); }
+[data-back="classic"] { --back-bg: repeating-linear-gradient(135deg, var(--back-a) 0 5px, var(--back-b) 5px 10px); }
+[data-back="shevitsa"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M8 1l7 7-7 7-7-7z' fill='none' stroke='%23a85b45' stroke-width='1.6'/%3E%3Cpath d='M8 5l3 3-3 3-3-3z' fill='%232f2a26'/%3E%3C/svg%3E") 0 0 / 16px 16px, #f1e8dc; }
+[data-back="diamonds"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 0l7 7-7 7-7-7z' fill='none' stroke='%237189b0' stroke-width='1'/%3E%3Ccircle cx='7' cy='7' r='1.1' fill='%23a9bbd6'/%3E%3C/svg%3E") 0 0 / 14px 14px, #34476a; }
+[data-back="forest"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Ccircle cx='3.500' cy='3.500' r='1.500' fill='%2378a286'/%3E%3Ccircle cx='10.500' cy='10.500' r='1.500' fill='%2378a286'/%3E%3Ccircle cx='10.500' cy='3.500' r='1' fill='%235b8670'/%3E%3Ccircle cx='3.500' cy='10.500' r='1' fill='%235b8670'/%3E%3C/svg%3E") 0 0 / 14px 14px, #3f6050; }
+[data-back="stars"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M6 2l1 3 3 1-3 1-1 3-1-3-3-1 3-1z' fill='%23d3cef5'/%3E%3Cpath d='M18 14l.8 2.200 2.200.8-2.200.8-.8 2.200-.8-2.200-2.200-.8 2.200-.8z' fill='%23a9a3e0'/%3E%3Ccircle cx='17' cy='5' r='0.800' fill='%23a9a3e0'/%3E%3Ccircle cx='5' cy='17' r='0.800' fill='%23a9a3e0'/%3E%3C/svg%3E") 0 0 / 24px 24px, #2b2d56; }
+.back-pick { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.back-swatch {
+  width: 38px; height: 54px; padding: 0; border-radius: 6px; border: 3px solid var(--card-bg); background: var(--back-bg); cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--line-strong); transition: transform 0.15s var(--ease), box-shadow 0.15s;
+}
+.back-swatch:disabled { cursor: default; opacity: 0.55; }
+.back-swatch:not(:disabled):hover { transform: translateY(-3px); }
+.back-swatch[aria-checked="true"] { opacity: 1; transform: translateY(-3px); box-shadow: 0 0 0 2px var(--text), 0 6px 12px rgba(0, 0, 0, 0.25); }

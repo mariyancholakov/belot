@@ -1,5 +1,5 @@
 import { applyAction, chooseBotAction, newGame, viewFor, type GameAction, type GameEvent, type GameState } from "@belot/engine";
-import type { ErrorCode, RoomState, ServerMessage } from "@belot/protocol";
+import type { CardBack, ErrorCode, RoomState, ServerMessage } from "@belot/protocol";
 
 interface Member {
   token: string;
@@ -26,6 +26,7 @@ export class Room {
   readonly seats: (string | null)[] = [null, null, null, null];
   game: GameState | null = null;
   host: string;
+  cardBack: CardBack = "classic";
   private seq = 0;
   lastActivity = Date.now();
   /** When the player to move runs out of time, as a timestamp; null while no clock runs. */
@@ -133,6 +134,14 @@ export class Room {
     this.touch();
   }
 
+  setCardBack(token: string, back: CardBack): void {
+    this.must(token);
+    if (token !== this.host) throw new RoomError("not_host", "only the host picks the card back");
+    if (this.game && this.game.phase !== "gameOver") throw new RoomError("game_running", "game already started");
+    this.cardBack = back;
+    this.touch();
+  }
+
   /** The computer player whose turn it is, with the move it wants to make. */
   nextBotMove(): { token: string; action: GameAction } | null {
     const game = this.game;
@@ -202,6 +211,7 @@ export class Room {
       started: this.game !== null,
       you: member?.seat ?? null,
       youAreHost: token === this.host,
+      cardBack: this.cardBack,
     };
   }
 

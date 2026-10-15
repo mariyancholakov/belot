@@ -104,6 +104,8 @@ export const bg = {
   lastTrickBonus: "последна ръка +10",
   announcements: "Обявявания",
   belot: "Белот",
+  cardBackTitle: "Гръб на картите",
+  cardBackNames: { classic: "Класика", shevitsa: "Шевица", diamonds: "Ромбове", forest: "Гора", stars: "Нощ" } as Record<string, string>,
   claim: "Свали картите",
   claimSay: "Свалям",
   announceTitle: "Обявяваш ли?",

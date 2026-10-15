@@ -25,6 +25,10 @@ export const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("deal"), lucky: z.boolean() }),
 ]);
 
+/** The designs on the back of the cards; the host picks one before the game starts. */
+export const CARD_BACKS = ["classic", "shevitsa", "diamonds", "forest", "stars"] as const;
+export type CardBack = (typeof CARD_BACKS)[number];
+
 export const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
 
 /** Messages a client may send. */
@@ -42,6 +46,7 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("leaveSeat") }),
   z.object({ type: z.literal("addBots") }),
   z.object({ type: z.literal("removeBots") }),
+  z.object({ type: z.literal("setCardBack"), back: z.enum(CARD_BACKS) }),
   z.object({ type: z.literal("startGame") }),
   z.object({ type: z.literal("action"), action: gameActionSchema }),
 ]);
@@ -66,6 +71,8 @@ export interface RoomState {
   /** The receiving client's own seat, or null when watching. */
   you: number | null;
   youAreHost: boolean;
+  /** Design on the back of the cards. */
+  cardBack: CardBack;
 }
 
 export type ErrorCode =

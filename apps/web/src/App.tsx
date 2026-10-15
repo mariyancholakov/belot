@@ -39,6 +39,11 @@ export function App() {
     send({ type: "joinRoom", code: pathCode });
   }, [session.ready, room, pathCode, nickname, send]);
 
+  // The card back chosen for this table applies to every deck on screen.
+  useEffect(() => {
+    document.documentElement.dataset.back = room?.cardBack ?? "classic";
+  }, [room?.cardBack]);
+
   // Show server errors for a few seconds.
   useEffect(() => {
     if (!session.error) return;
@@ -71,6 +76,7 @@ export function App() {
         onSit={(seat) => send({ type: "takeSeat", seat })}
         onAddBots={() => send({ type: "addBots" })}
         onRemoveBots={() => send({ type: "removeBots" })}
+        onCardBack={(back) => send({ type: "setCardBack", back })}
         onStart={() => send({ type: "startGame" })}
         onLeave={() => send({ type: "leaveRoom" })}
       />

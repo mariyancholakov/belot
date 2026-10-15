@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { RoomState } from "@belot/protocol";
+import { CARD_BACKS, type CardBack, type RoomState } from "@belot/protocol";
 import { bg } from "../i18n/bg";
 import { Avatar } from "./Avatar";
 import { Controls } from "./Controls";
@@ -10,11 +10,12 @@ interface Props {
   onSit: (seat: number) => void;
   onAddBots: () => void;
   onRemoveBots: () => void;
+  onCardBack: (back: CardBack) => void;
   onStart: () => void;
   onLeave: () => void;
 }
 
-export function Lobby({ room, onSit, onAddBots, onRemoveBots, onStart, onLeave }: Props) {
+export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStart, onLeave }: Props) {
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/${room.code}`;
   const hasBots = room.seats.some((s) => s?.bot);
@@ -97,6 +98,23 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onStart, onLeave }
               </button>
             );
           })}
+        </div>
+
+        <div className="back-pick" role="radiogroup" aria-label={bg.cardBackTitle}>
+          {CARD_BACKS.map((b) => (
+            <button
+              key={b}
+              type="button"
+              role="radio"
+              aria-checked={room.cardBack === b}
+              aria-label={bg.cardBackNames[b]}
+              title={bg.cardBackNames[b]}
+              data-back={b}
+              className="back-swatch"
+              disabled={!room.youAreHost}
+              onClick={() => onCardBack(b)}
+            />
+          ))}
         </div>
 
         {room.watchers.length > 0 && (
