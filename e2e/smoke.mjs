@@ -70,6 +70,12 @@ while (Date.now() < deadline) {
       acted = true;
       continue;
     }
+    const declare = p.locator(".felt-pop button", { hasText: /^(Обяви|Белот \+20)$/ });
+    if ((await declare.count()) > 0) {
+      await declare.first().click();
+      acted = true;
+      continue;
+    }
     const playable = p.locator(".hand.active button.card:not(:disabled)");
     if ((await playable.count()) > 0) {
       await playable.first().click({ position: { x: 30, y: 60 } }); // the visible strip of an overlapped, fanned card

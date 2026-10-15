@@ -6,6 +6,7 @@ import { playSound } from "../sound";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { Bidding, bidText } from "./Bidding";
 import { CardBack, CardFace } from "./Card";
+import { AnnouncePrompt, BelotPrompt } from "./Declare";
 import { GameMenu } from "./Controls";
 import { CutPicker, DEAL_FLY, DEAL_GAP, DealPrompt, DeckStage, ShufflePrompt, dealPackets, type Stage } from "./Dealing";
 import { Icon } from "./Icon";
@@ -52,6 +53,11 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   const [held, setHeld] = useState<{ plays: Play[]; winner: number } | null>(null);
   const [sweeping, setSweeping] = useState(false);
   const [callout, setCallout] = useState<{ seat: number; text: string } | null>(null);
+  /** A card waiting for the player to say whether they call belot with it ("claim": while laying the cards down). */
+  const [askBelot, setAskBelot] = useState<Card | "claim" | null>(null);
+  /** The hand a player just laid down, shown face up for a moment. */
+  const [laid, setLaid] = useState<{ seat: number; cards: Card[] } | null>(null);
+  const laidAt = useRef(0);
   const lastUpdate = useRef(0);
   const prevTurn = useRef(-1);
 
@@ -175,6 +181,18 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           timers.push(setTimeout(() => setCallout(null), 2400));
           timers.push(setTimeout(() => playSound("belot"), 120));
           break;
+        case "announced":
+          setCallout({ seat: e.seat, text: e.kinds.map((k) => announcementName[k]).join(", ") });
+          timers.push(setTimeout(() => setCallout(null), 2600));
+          playSound("belot");
+          break;
+        case "claimed":
+          laidAt.current = Date.now();
+          setLaid({ seat: e.seat, cards: e.cards });
+          setCallout({ seat: e.seat, text: bg.claimSay });
+          timers.push(setTimeout(() => setCallout(null), 2600));
+          timers.push(setTimeout(() => setLaid(null), 3300));
+          break;
         case "trickWon":
           setHeld({ plays: e.plays, winner: e.winner });
           setSweeping(false);
@@ -218,7 +236,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       setSummaryReady(false);
       return;
     }
-    const t = setTimeout(() => setSummaryReady(true), HOLD_MS + 200);
+    const t = setTimeout(() => setSummaryReady(true), Date.now() - laidAt.current < 1000 ? 3500 : HOLD_MS + 200);
     return () => clearTimeout(t);
   }, [finished]);
 
@@ -289,6 +307,32 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         {!stage && view.phase === "bidding" && <DeckStage stage={{ kind: "talon" }} />}
         {cutting && <CutPicker onCut={(position) => send({ type: "cut", position })} />}
 
+        {myTurn && view.pendingAnnouncements && !askBelot && (
+          <AnnouncePrompt options={view.pendingAnnouncements} onChoose={(declare) => send({ type: "announce", declare })} />
+        )}
+        {myTurn && askBelot && (
+          <BelotPrompt
+            cards={askBelot === "claim" ? view.hand.filter((c) => c.rank === "K" || c.rank === "Q").filter((c) => view.claimBelots.includes(c.suit)) : view.hand.filter((c) => (c.rank === "K" || c.rank === "Q") && c.suit === askBelot.suit)}
+            onChoose={(call) => {
+              if (askBelot === "claim") send({ type: "claim", belot: call });
+              else send({ type: "play", card: askBelot, belot: call });
+              setAskBelot(null);
+            }}
+          />
+        )}
+        {myTurn && !view.pendingAnnouncements && !askBelot && view.legalActions.some((a) => a.type === "claim") && (
+          <button className="claim-btn" onClick={() => (view.claimBelots.length > 0 ? setAskBelot("claim") : send({ type: "claim" }))}>
+            {bg.claim}
+          </button>
+        )}
+        {laid && (
+          <div className="laid" aria-label={bg.claimSay}>
+            {laid.cards.map((c) => (
+              <CardFace key={c.suit + c.rank} card={c} small />
+            ))}
+          </div>
+        )}
+
         {myBidTurn && <Bidding view={view} names={names} onBid={(bid) => send({ type: "bid", bid })} />}
         {view.phase === "shuffling" && stage?.kind === "wait" && view.turn === me && (
           <ShufflePrompt onChoose={(shuffle) => send({ type: shuffle ? "shuffle" : "skipShuffle" })} />
@@ -303,7 +347,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
           const mid = (hand.length - 1) / 2;
-          return <CardFace key={card.suit + card.rank} card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={myTurn && ok ? () => send({ type: "play", card }) : undefined} />;
+          return <CardFace key={card.suit + card.rank} card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={myTurn && ok ? () => (view.belotCards.some((b) => b.suit === card.suit && b.rank === card.rank) ? setAskBelot(card) : send({ type: "play", card })) : undefined} />;
         })}
       </div>
 

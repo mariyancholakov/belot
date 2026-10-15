@@ -688,3 +688,19 @@ button:disabled { cursor: default; }
   .trump small { font-size: 0.62rem; }
   .trump b { font-size: 1rem; }
 }
+
+/* announcements, belot and laying the cards down */
+.announce-list { display: grid; gap: 10px; margin-bottom: 12px; }
+.announce-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.announce-cards { display: flex; }
+.announce-cards .card.small { --cw: 40px; margin-left: -14px; box-shadow: var(--shadow-1); }
+.announce-cards .card.small:first-child { margin-left: 0; }
+.announce-cards.center { justify-content: center; margin-bottom: 12px; }
+.claim-btn {
+  position: absolute; left: 50%; bottom: calc(var(--lap) + 14px); z-index: 5; transform: translateX(-50%); min-height: 44px; padding: 0 20px; border-radius: 12px;
+  background: var(--surface); color: var(--text); border: 1.5px solid var(--ring); font-weight: 650; box-shadow: var(--shadow-1); animation: pop-center 0.35s var(--ease) both;
+}
+.claim-btn:hover { background: var(--surface-2); }
+.laid { position: absolute; left: 50%; top: 42%; z-index: 5; transform: translate(-50%, -50%); display: flex; animation: pop-center 0.35s var(--ease) both; }
+.laid .card.small { --cw: clamp(36px, 8vw, 52px); margin-left: calc(var(--cw) * -0.35); box-shadow: var(--shadow-2); }
+.laid .card.small:first-child { margin-left: 0; }
