@@ -6,18 +6,19 @@
   --text: #1a1613;
   --muted: #6b625a;
   --line: #e6dfd4;
+  --line-strong: #8c8276;
   --accent: #b8322a;
   --accent-ink: #ffffff;
   --accent-soft: #f6dfdb;
   --danger: #a31d3a;
   --warn: #b7791f;
-  --felt-a: #2d2724;
-  --felt-b: #1a1614;
-  --felt-line: rgba(255, 255, 255, 0.16);
-  --chip-bg: rgba(8, 24, 18, 0.62);
-  --chip-ink: #f4faf7;
-  --ours: #f1ece3;
-  --theirs: #ee7a67;
+  --felt-a: #ece4d7;
+  --felt-b: #d8cdbc;
+  --felt-line: rgba(26, 22, 19, 0.16);
+  --chip-bg: rgba(255, 255, 255, 0.82);
+  --chip-ink: #1a1613;
+  --ours: #3a332e;
+  --theirs: #b8322a;
   --stitch: #b8322a;
   --ours-ink: #2b2622;
   --theirs-ink: #b8322a;
@@ -25,6 +26,13 @@
   --card-ink: #141820;
   --card-red: #d3222f;
   --card-edge: rgba(16, 19, 24, 0.16);
+  --felt-ink: #1a1613;
+  --felt-ink-soft: #4d443c;
+  --felt-red: #a8222c;
+  --ours-on: #ffffff;
+  --theirs-on: #ffffff;
+  --turn-bg: var(--accent);
+  --turn-ink: var(--accent-ink);
   --shadow-1: 0 1px 2px rgba(16, 19, 24, 0.08);
   --shadow-2: 0 10px 30px rgba(16, 19, 24, 0.14);
   --cw: clamp(52px, 16.5vw, 72px);
@@ -48,6 +56,7 @@ color-scheme: light;
     --text: #efebe4;
     --muted: #a39b90;
     --line: #322c29;
+    --line-strong: #7a6f66;
     --accent: #e5594d;
     --accent-ink: #1a0a08;
     --accent-soft: #3a1a17;
@@ -62,6 +71,13 @@ color-scheme: light;
     --card-bg: #f1f3f6;
     --card-red: #d92c39;
     --card-edge: rgba(0, 0, 0, 0.35);
+    --felt-ink: #f1ece3;
+    --felt-ink-soft: rgba(255, 255, 255, 0.8);
+    --felt-red: #ff9aa2;
+    --ours-on: #0b1a14;
+    --theirs-on: #0b1a14;
+    --turn-bg: var(--card-bg);
+    --turn-ink: var(--card-ink);
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.5);
     --back-a: #c4463b;
@@ -76,6 +92,7 @@ color-scheme: light;
   --text: #efebe4;
   --muted: #a39b90;
   --line: #322c29;
+  --line-strong: #7a6f66;
   --accent: #e5594d;
   --accent-ink: #1a0a08;
   --accent-soft: #3a1a17;
@@ -90,6 +107,13 @@ color-scheme: light;
   --card-bg: #f1f3f6;
   --card-red: #d92c39;
   --card-edge: rgba(0, 0, 0, 0.35);
+  --felt-ink: #f1ece3;
+  --felt-ink-soft: rgba(255, 255, 255, 0.8);
+  --felt-red: #ff9aa2;
+  --ours-on: #0b1a14;
+  --theirs-on: #0b1a14;
+  --turn-bg: var(--card-bg);
+  --turn-ink: var(--card-ink);
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.5);
     --back-a: #c4463b;
@@ -132,7 +156,7 @@ button:disabled { cursor: default; }
 .primary:not(:disabled):hover { filter: brightness(1.05); }
 .primary:not(:disabled):active, .secondary:not(:disabled):active, .ghost:not(:disabled):active { transform: scale(0.98); }
 .primary:disabled { background: var(--accent-soft); color: color-mix(in srgb, var(--accent) 45%, var(--muted)); box-shadow: none; }
-.secondary { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
+.secondary { background: var(--surface); border: 1px solid var(--line-strong); box-shadow: var(--shadow-1); }
 .secondary:not(:disabled):hover { border-color: var(--muted); }
 .secondary:disabled { opacity: 0.5; }
 .secondary.small { min-height: 40px; padding: 0 16px; font-size: 0.95rem; }
@@ -150,7 +174,7 @@ button:disabled { cursor: default; }
 .field { display: grid; gap: 6px; width: 100%; }
 .field > span { font-size: 0.85rem; font-weight: 550; color: var(--muted); }
 .field input {
-  min-height: 52px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  min-height: 52px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
   padding: 0 16px; font: inherit; font-size: 1.05rem; box-shadow: var(--shadow-1);
 }
 .field input::placeholder { color: var(--muted); opacity: 0.7; }
@@ -213,7 +237,7 @@ button:disabled { cursor: default; }
   opacity: 0.55;
 }
 .lobby-seat {
-  z-index: 1; place-self: center; width: min(100%, 136px); min-height: 70px; border-radius: 14px; border: 1.5px dashed var(--line);
+  z-index: 1; place-self: center; width: min(100%, 136px); min-height: 70px; border-radius: 14px; border: 1.5px dashed var(--line-strong);
   background: var(--surface); display: grid; place-content: center; text-align: center; padding: 6px 8px; gap: 1px;
   box-shadow: var(--shadow-2); transition: border-color 0.15s, transform 0.12s var(--ease);
 }
@@ -275,11 +299,11 @@ button:disabled { cursor: default; }
 }
 .seat .name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .seat .avatar {
-  width: 24px; height: 24px; border-radius: 99px; display: grid; place-items: center; font-style: normal; font-size: 0.75rem; font-weight: 750; color: #0b1a14;
+  width: 24px; height: 24px; border-radius: 99px; display: grid; place-items: center; font-style: normal; font-size: 0.75rem; font-weight: 750; color: var(--theirs-on);
   background: var(--theirs);
 }
-.seat.ours .avatar { background: var(--ours); }
-.seat .name em { font-style: normal; font-size: 0.68rem; font-weight: 700; background: var(--chip-ink); color: #0b1a14; border-radius: 99px; padding: 0 6px; }
+.seat.ours .avatar { background: var(--ours); color: var(--ours-on); }
+.seat .name em { font-style: normal; font-size: 0.68rem; font-weight: 700; background: var(--chip-ink); color: var(--felt-a); border-radius: 99px; padding: 0 6px; }
 .seat .name small { opacity: 0.7; font-size: 0.78rem; }
 .seat .name small.count { font-variant-numeric: tabular-nums; }
 .seat .name small.off { color: var(--theirs); opacity: 1; }
@@ -305,7 +329,7 @@ button:disabled { cursor: default; }
 
 /* trick */
 .center { --ph: calc(var(--play-cw) * 1.42); position: absolute; inset: 7% 0 0; display: grid; place-items: center; pointer-events: none; }
-.center .hint { position: absolute; margin: 0; font-size: 0.95rem; color: rgba(255, 255, 255, 0.78); }
+.center .hint { position: absolute; margin: 0; font-size: 0.95rem; color: var(--felt-ink-soft); }
 .played { position: absolute; }
 .played .card.small { --cw: var(--play-cw); }
 .played.bottom { top: calc(50% - var(--ph) * 0.08); left: 50%; transform: translateX(-50%); }
@@ -328,10 +352,10 @@ button:disabled { cursor: default; }
 }
 .announced {
   position: absolute; left: 14px; right: 14px; bottom: 12px; margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 2px 12px;
-  justify-content: center; font-size: 0.8rem; color: rgba(255, 255, 255, 0.85);
+  justify-content: center; font-size: 0.8rem; color: var(--felt-ink-soft);
 }
-.announced b { color: #fff; }
-.announced .red { color: #ff9aa2; }
+.announced b { color: var(--felt-ink); }
+.announced .red { color: var(--felt-red); }
 
 /* ---------- cards ---------- */
 .card {
@@ -372,7 +396,7 @@ button:disabled { cursor: default; }
 .bid-log li span { color: var(--muted); }
 .bid-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; }
 .bid {
-  min-height: 52px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface-2); color: var(--text); font-weight: 650; padding: 0 8px;
+  min-height: 52px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--text); font-weight: 650; padding: 0 8px;
   transition: transform 0.12s var(--ease), background-color 0.15s, border-color 0.15s;
 }
 .bid.suit { grid-column: span 3; font-size: 1.7rem; line-height: 1; }
@@ -384,7 +408,8 @@ button:disabled { cursor: default; }
 .bid:not(:disabled):active { transform: scale(0.96); }
 .bid:disabled { opacity: 0.3; }
 .bid.ghost { background: transparent; color: var(--muted); }
-.bid.alert { background: var(--danger); border-color: transparent; color: #fff; }
+.bid.alert { background: var(--surface); border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); color: var(--danger); }
+.bid.alert:not(:disabled):hover { background: color-mix(in srgb, var(--danger) 8%, var(--surface)); border-color: var(--danger); }
 .waiting { margin: 0; }
 
 /* ---------- score ---------- */
@@ -558,7 +583,7 @@ button:disabled { cursor: default; }
 }
 
 /* ---------- shuffle, cut and deal ---------- */
-.felt .hint.low { position: absolute; left: 0; right: 0; bottom: 15%; margin: 0; text-align: center; font-size: 0.95rem; color: rgba(255, 255, 255, 0.8); z-index: 3; pointer-events: none; }
+.felt .hint.low { position: absolute; left: 0; right: 0; bottom: 15%; margin: 0; text-align: center; font-size: 0.95rem; color: var(--felt-ink-soft); z-index: 3; pointer-events: none; }
 .deck-stage { position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 3; pointer-events: none; }
 .pile { position: absolute; left: 0; top: 0; }
 .pile-card, .riffle-card, .fly {
@@ -644,8 +669,8 @@ button:disabled { cursor: default; }
 
 /* the cutter's deck: lying on the felt, a little fanned; a drag along it picks the cut */
 .cut-table { position: absolute; left: 50%; top: 63%; z-index: 5; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 10px; width: max-content; max-width: 100%; }
-.cut-hint { margin: 0; color: rgba(255, 255, 255, 0.85); font-size: 0.92rem; text-align: center; }
-.cut-table .cut-count { margin: 0; color: rgba(255, 255, 255, 0.85); }
+.cut-hint { margin: 0; color: var(--felt-ink-soft); font-size: 0.92rem; text-align: center; }
+.cut-table .cut-count { margin: 0; color: var(--felt-ink-soft); }
 .spread { --cw: clamp(40px, 11.5vw, 58px); --step: 6px; position: relative; width: calc(var(--cw) + 31 * var(--step)); height: calc(var(--cw) * 1.42 + 30px); margin: 0; }
 @media (min-width: 760px) { .spread { --cw: 66px; --step: 9px; } }
 .spread-card {
@@ -657,8 +682,8 @@ button:disabled { cursor: default; }
 .spread-card.edge { box-shadow: 0 0 0 2px var(--accent), 0 6px 12px rgba(0, 0, 0, 0.35); }
 
 /* the red accent is for the interface; on the felt, controls and the active player are paper-coloured */
-.seat.turn .name { background: var(--card-bg); color: var(--card-ink); }
-.cut-table .primary { background: var(--card-bg); color: var(--card-ink); }
+.seat.turn .name { background: var(--turn-bg); color: var(--turn-ink); }
+.cut-table .primary { background: var(--turn-bg); color: var(--turn-ink); }
 
 /* ---------- a bigger table: the player's name and hand sit over the bottom edge of the felt ---------- */
 .table { --lap: calc(var(--hand-cw) * 0.95); }
@@ -674,3 +699,4 @@ button:disabled { cursor: default; }
 .cut-table { top: calc((100% - var(--lap)) * 0.6); }
 .callout { top: 18%; }
 .table > .hand { margin-top: calc((var(--lap) - 30px) * -1); }
+.seat.turn .name small { opacity: 1; }

@@ -246,15 +246,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
   const lucky = view.lucky && !luckyGone && !luckyHidden && (view.phase === "bidding" || view.phase === "playing") ? view.lucky : null;
   const counts = (seat: number) => (dealtSoFar ? dealtSoFar[seat]! : view.handCounts[seat] ?? 0);
   const last = view.history[view.history.length - 1];
-  const phaseLabel =
-    stage?.kind === "shuffle" || view.phase === "shuffling"
-      ? bg.phaseShuffle
-      : view.phase === "cutting"
-        ? bg.phaseCut
-        : view.phase === "dealing" || stage?.kind === "deal"
-          ? bg.phaseDeal
-          : bg.bidTitle;
-
   return (
     <div className="table">
       <header className="topbar">
@@ -267,9 +258,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
               {contractLabel(view.contract.contract)}
               {view.contract.multiplier > 1 && <b> ×{view.contract.multiplier}</b>}
             </span>
-          ) : (
-            <span className="chip">{phaseLabel}</span>
-          )}
+          ) : null}
         </div>
         <button className="score-btn" onClick={() => setSheetOpen(true)} aria-label={`${bg.scoreTitle}: ${bg.teamUs} ${view.scores[myTeam]}, ${bg.teamThem} ${view.scores[otherTeam]}`}>
           <ScoreTeam label={bg.teamUs} value={view.scores[myTeam]} cls="us" />
