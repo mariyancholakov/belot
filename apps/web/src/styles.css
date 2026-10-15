@@ -355,7 +355,7 @@ button:disabled { cursor: default; }
 .card.deal { animation: deal-in 0.5s var(--ease) both; }
 
 .hand { --cw: var(--hand-cw); display: flex; justify-content: center; padding: 22px 12px 30px; position: relative; z-index: 3; min-height: calc(var(--cw) * 1.42 + 34px); }
-.hand .card { margin-left: calc(var(--cw) * -0.5); transform-origin: 50% 140%; rotate: calc(var(--off, 0) * var(--fan-rot, 2.2deg)); translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px)); transition: transform 0.16s var(--ease), box-shadow 0.16s, opacity 0.2s; }
+.hand .card { margin-left: calc(var(--cw) * -0.5); transform-origin: 50% 140%; rotate: calc(var(--off, 0) * var(--fan-rot, 1.7deg)); translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px)); transition: transform 0.16s var(--ease), box-shadow 0.16s, opacity 0.2s; }
 .hand .card:first-child { margin-left: 0; }
 /* overlapped cards show their corner only; a clipped pip would peek out as a smudge */
 .hand .card:not(:last-child) .pip { display: none; }
@@ -659,3 +659,18 @@ button:disabled { cursor: default; }
 /* the red accent is for the interface; on the felt, controls and the active player are paper-coloured */
 .seat.turn .name { background: var(--card-bg); color: var(--card-ink); }
 .cut-table .primary { background: var(--card-bg); color: var(--card-ink); }
+
+/* ---------- a bigger table: the player's name and hand sit over the bottom edge of the felt ---------- */
+.table { --lap: calc(var(--hand-cw) * 0.95); }
+@media (min-width: 760px) { .table { max-width: 1240px; } }
+.table > .seat.bottom { position: relative; z-index: 4; margin-top: calc(var(--lap) * -1); padding: 0; }
+.table > .seat.bottom .name { box-shadow: var(--shadow-2); }
+.center { inset: 6% 0 var(--lap); }
+.deck-stage { top: calc(50% - var(--lap) / 2); }
+.felt .seat.left, .felt .seat.right { top: calc(50% - var(--lap) / 2); }
+.felt .hint.low { bottom: calc(var(--lap) + 10px); }
+.felt-pop { bottom: calc(var(--lap) + 12px); }
+.announced { bottom: calc(var(--lap) + 10px); }
+.cut-table { top: calc((100% - var(--lap)) * 0.6); }
+.callout { top: 18%; }
+.table > .hand { margin-top: calc((var(--lap) - 30px) * -1); }
