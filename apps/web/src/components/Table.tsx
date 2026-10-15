@@ -258,6 +258,32 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   const dealtSoFar = shown ?? (busy ? [0, 0, 0, 0] : null);
   const myTurn = view.phase === "playing" && view.turn === me && !busy;
   const hand = sortHand(dealtSoFar ? view.hand.slice(0, dealtSoFar[me]) : view.hand);
+  // The hand is pointed at as a whole: whichever card's strip the pointer is over comes up. Done on the DOM
+  // directly so moving the pointer never re-renders the table.
+  const handEl = useRef<HTMLDivElement>(null);
+  const chooseRef = useRef<((() => void) | undefined)[]>([]);
+  const hotSlot = useRef<Element | null>(null);
+  const cardAt = (x: number, y: number): number | null => {
+    const root = handEl.current;
+    if (!root) return null;
+    const box = root.getBoundingClientRect();
+    if (y < box.top - 40 || y > box.bottom) return null;
+    const slots = [...root.querySelectorAll(".hand-slot")];
+    if (slots.length === 0) return null;
+    const first = slots[0]!.getBoundingClientRect();
+    const last = slots[slots.length - 1]!.getBoundingClientRect();
+    if (x < first.left - 12 || x > last.right + 12) return null;
+    const i = slots.findIndex((el) => x < el.getBoundingClientRect().right);
+    return i === -1 ? slots.length - 1 : i;
+  };
+  const hoverCard = (x: number | null, y: number | null) => {
+    const i = x === null || y === null ? null : cardAt(x, y);
+    const el = i === null ? null : handEl.current?.querySelectorAll(".hand-slot")[i] ?? null;
+    if (el === hotSlot.current) return;
+    hotSlot.current?.removeAttribute("data-hot");
+    el?.setAttribute("data-hot", "");
+    hotSlot.current = el;
+  };
   const myBidTurn = view.phase === "bidding" && !busy && view.legalActions.some((a) => a.type === "bid");
   const cutting = view.phase === "cutting" && stage?.kind === "wait" && view.turn === me;
   /** The shuffle and deal choices are popups; the status line would repeat them. */
@@ -359,13 +385,24 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       </div>
 
       <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} callout={callout?.seat === me ? callout.text : null} clock={turnLeftMs} clockKey={updateId} name={names[me]!} connected ours />
-      <div className={`hand ${myTurn ? "active" : ""}`}>
+      <div
+        className={`hand ${myTurn ? "active" : ""}`}
+        ref={handEl}
+        onPointerMove={(e) => hoverCard(e.clientX, e.clientY)}
+        onPointerDown={(e) => hoverCard(e.clientX, e.clientY)}
+        onPointerLeave={() => hoverCard(null, null)}
+        onClick={(e) => {
+          const i = cardAt(e.clientX, e.clientY);
+          if (i !== null) chooseRef.current[i]?.();
+        }}
+      >
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
           const mid = (hand.length - 1) / 2;
           const choose = myTurn && ok ? () => (view.belotCards.some((b) => b.suit === card.suit && b.rank === card.rank) ? setAskBelot(card) : send({ type: "play", card })) : undefined;
+          chooseRef.current[i] = choose;
           return (
-            <div key={card.suit + card.rank} className={`hand-slot ${ok ? "" : "off"}`} onClick={choose}>
+            <div key={card.suit + card.rank} className={`hand-slot ${ok ? "" : "off"}`}>
               <CardFace card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={choose} />
             </div>
           );
