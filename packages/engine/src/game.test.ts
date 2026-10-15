@@ -14,11 +14,17 @@ function rng(seed: number) {
 }
 
 /** A new game with the deck already cut, so it is ready for bidding. */
-function startedGame(seed: number, dealer = 0, position = 16): GameState {
-  const s = newGame(seed, dealer);
-  const r = applyAction(s, cutterOf(dealer), { type: "cut", position });
-  if (!r.ok) throw new Error(r.error);
-  return r.state;
+function startedGame(seed: number, dealer = 0, position = 16, lucky = false): GameState {
+  return dealCut(newGame(seed, dealer), position, lucky);
+}
+
+/** Cut the deck and deal, from whatever state is waiting for the cut. */
+function dealCut(s: GameState, position = 16, lucky = false): GameState {
+  const cut = applyAction(s, cutterOf(s.dealer), { type: "cut", position });
+  if (!cut.ok) throw new Error(cut.error);
+  const dealt = applyAction(cut.state, s.dealer, { type: "deal", lucky });
+  if (!dealt.ok) throw new Error(dealt.error);
+  return dealt.state;
 }
 
 function seatToAct(state: GameState): number {
@@ -58,7 +64,7 @@ describe("game", () => {
   it("starts by waiting for the player right of the dealer to cut", () => {
     const s = newGame(1);
     expect(s.phase).toBe("cutting");
-    expect(s.turn).toBe(3);
+    expect(s.turn).toBe(3); // the dealer's left
     expect(s.hands.map((h) => h.length)).toEqual([0, 0, 0, 0]);
     expect(applyAction(s, 1, { type: "cut", position: 10 }).ok).toBe(false);
     expect(applyAction(s, 3, { type: "cut", position: 0 }).ok).toBe(false);
@@ -128,8 +134,93 @@ describe("game", () => {
     expect(s.turn).toBe(0);
     const cut = applyAction(s, 0, { type: "cut", position: 16 });
     if (!cut.ok) throw new Error(cut.error);
-    expect(cut.state.phase).toBe("bidding");
-    expect(cut.state.hands).not.toEqual(before);
+    expect(cut.state.phase).toBe("dealing");
+    const dealt = applyAction(cut.state, 1, { type: "deal", lucky: false });
+    if (!dealt.ok) throw new Error(dealt.error);
+    expect(dealt.state.phase).toBe("bidding");
+    expect(dealt.state.hands).not.toEqual(before);
+  });
+
+  it("keeps the same deck after everybody passes and the previous dealer cuts", () => {
+    let s = startedGame(1);
+    const deckBefore = s.deck.map((c) => c.suit + c.rank);
+    for (const seat of [1, 2, 3, 0]) {
+      const r = applyAction(s, seat, { type: "bid", bid: { type: "pass" } });
+      if (!r.ok) throw new Error(r.error);
+      s = r.state;
+    }
+    expect(s.phase).toBe("cutting");
+    expect(s.deck.map((c) => c.suit + c.rank)).toEqual(deckBefore);
+    expect(s.fresh).toBe(false);
+    expect(s.allPassStreak).toBe(1);
+    expect(applyAction(s, 1, { type: "shuffle" }).ok).toBe(false);
+  });
+
+  it("offers the dealer a shuffle only after three all-pass deals in a row", () => {
+    let s = startedGame(2);
+    const passRound = () => {
+      for (let i = 0; i < 4; i++) {
+        const r = applyAction(s, s.turn, { type: "bid", bid: { type: "pass" } });
+        if (!r.ok) throw new Error(r.error);
+        s = r.state;
+      }
+    };
+    passRound();
+    s = dealCut(s);
+    passRound();
+    s = dealCut(s);
+    expect(s.allPassStreak).toBe(2);
+    passRound();
+    expect(s.allPassStreak).toBe(3);
+    expect(s.phase).toBe("shuffling");
+    expect(s.turn).toBe(s.dealer);
+    const deckBefore = s.deck.map((c) => c.suit + c.rank);
+    expect(applyAction(s, (s.dealer + 1) % 4, { type: "shuffle" }).ok).toBe(false);
+    const r = applyAction(s, s.dealer, { type: "shuffle" });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.phase).toBe("cutting");
+    expect(r.state.fresh).toBe(true);
+    expect(r.state.allPassStreak).toBe(0);
+    expect(r.state.deck.map((c) => c.suit + c.rank)).not.toEqual(deckBefore);
+    expect(r.events).toEqual([{ type: "shuffled", seat: s.dealer }]);
+    // Declining keeps the deck and goes straight to the cut.
+    const skip = applyAction(s, s.dealer, { type: "skipShuffle" });
+    if (!skip.ok) throw new Error(skip.error);
+    expect(skip.state.phase).toBe("cutting");
+    expect(skip.state.deck.map((c) => c.suit + c.rank)).toEqual(deckBefore);
+  });
+
+  it("does not reshuffle between rounds: the next deck is the played cards in order", () => {
+    let s = startedGame(3);
+    const rand = rng(3);
+    while (s.phase !== "roundEnd") {
+      const pick = chooseAction(s, rand);
+      const r = applyAction(s, pick.seat, pick.action);
+      if (!r.ok) throw new Error(r.error);
+      s = r.state;
+      if (s.phase === "cutting") s = dealCut(s); // redeals before a contract is made
+      if (s.phase === "gameOver") break;
+    }
+    if (s.phase !== "roundEnd") return;
+    const played = s.collected.map((c) => c.suit + c.rank);
+    expect(played).toHaveLength(32);
+    const next = applyAction(s, 0, { type: "nextRound" });
+    if (!next.ok) throw new Error(next.error);
+    expect(next.state.deck.map((c) => c.suit + c.rank)).toEqual(played);
+    expect(next.state.collected).toEqual([]);
+    expect(next.state.phase).toBe("cutting");
+    expect(next.state.fresh).toBe(false);
+  });
+
+  it("turns the first dealt card face up when the dealer asks for a lucky card", () => {
+    const plain = startedGame(4, 0, 16, false);
+    expect(plain.lucky).toBeNull();
+    const lucky = startedGame(4, 0, 16, true);
+    expect(lucky.lucky).toEqual({ seat: 1, card: lucky.hands[1]![0] });
+    expect(lucky.hands).toEqual(plain.hands); // same deal, just revealed
+    const cut = applyAction(newGame(4), 3, { type: "cut", position: 16 });
+    if (!cut.ok) throw new Error(cut.error);
+    expect(applyAction(cut.state, 3, { type: "deal", lucky: true }).ok).toBe(false); // only the dealer deals
   });
 
   it("is deterministic for a given seed", () => {

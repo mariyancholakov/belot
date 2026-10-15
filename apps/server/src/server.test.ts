@@ -166,7 +166,12 @@ describe("a running game", () => {
     expect(players.every((p) => p.view!.phase === "cutting" && p.view!.hand.length === 0)).toBe(true);
     expect(players.every((p) => !p.raw.some((r) => r.includes('"deck"')))).toBe(true);
     players[3]!.send({ type: "action", action: { type: "cut", position: 9 } });
+    await Promise.all(players.map((p) => p.until(() => p.view!.phase === "dealing")));
+    players[0]!.send({ type: "action", action: { type: "deal", lucky: true } });
     await Promise.all(players.map((p) => p.until(() => p.view!.phase === "bidding")));
+    // The lucky card is public: everybody sees the same one.
+    expect(new Set(players.map((p) => JSON.stringify(p.view!.lucky))).size).toBe(1);
+    expect(players[0]!.view!.lucky).not.toBeNull();
 
     const key = (c: { suit: string; rank: string }) => c.suit + c.rank;
     const hands = players.map((p) => new Set(p.view!.hand.map(key)));
@@ -183,6 +188,7 @@ describe("a running game", () => {
       for (const [j, other] of players.entries()) {
         if (i === j) continue;
         for (const card of other.view!.hand) {
+          if (JSON.stringify(card) === JSON.stringify(players[0]!.view!.lucky?.card)) continue; // public by design
           expect(p.raw.some((r) => r.includes(JSON.stringify(card)))).toBe(false);
         }
       }
@@ -282,11 +288,14 @@ describe("bots", () => {
     expect(a.room!.seats[0]?.nickname).toBe("Ани");
     expect(a.room!.watchers).toEqual([]);
     a.send({ type: "startGame" });
-    await a.until(() => a.view?.turn === 0 || a.view?.phase === "bidding");
+    // The bot to the dealer's left cuts; then the human dealer deals.
+    await a.until(() => a.view?.phase === "dealing");
+    expect(a.view!.turn).toBe(0);
+    a.send({ type: "action", action: { type: "deal", lucky: false } });
     // Bots bid until it is the human's turn; the human passes and the bots keep going.
-    await a.until(() => a.view?.turn === 0);
+    await a.until(() => a.view?.phase === "bidding" && a.view.turn === 0);
     a.send({ type: "action", action: { type: "bid", bid: { type: "pass" } } });
-    await a.until(() => a.view?.phase !== "bidding" || a.view?.turn === 0);
+    await a.until(() => a.view?.phase !== "bidding" || a.view.bidLog.length > 4 || a.view.phase === "cutting");
     expect(a.lastError()).toBeUndefined();
   });
 });

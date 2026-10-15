@@ -1,7 +1,7 @@
 import type { Announcement } from "./announcements";
 import type { Card } from "./cards";
 import type { BidAction, BidOutcome } from "./bidding";
-import { legalActions, type GameAction, type GameState, type Phase, type RoundSummary } from "./game";
+import { legalActions, type GameAction, type LuckyCard, type GameState, type Phase, type RoundSummary } from "./game";
 import type { Team } from "./scoring";
 import type { Play } from "./tricks";
 
@@ -29,6 +29,12 @@ export interface GameView {
   hanging: number;
   history: RoundSummary[];
   winner: Team | null;
+  /** The face-up first card of a "късметче" deal, known to everyone. */
+  lucky: LuckyCard | null;
+  /** The deck was freshly shuffled for this deal. */
+  fresh: boolean;
+  /** Consecutive all-pass deals so far. */
+  allPassStreak: number;
   /** Actions this seat may take right now. */
   legalActions: GameAction[];
 }
@@ -58,6 +64,9 @@ export function viewFor(state: GameState, seat: number): GameView {
     hanging: state.hanging,
     history: state.history,
     winner: state.winner,
+    lucky: state.lucky,
+    fresh: state.fresh,
+    allPassStreak: state.allPassStreak,
     legalActions: legalActions(state, seat),
   };
 }

@@ -42,7 +42,7 @@ export interface ServerOptions {
 export async function startServer(options: ServerOptions = {}): Promise<GameServer> {
   const botDelayMs = options.botDelayMs ?? 900;
   const botCutDelayMs = options.botCutDelayMs ?? 3200;
-  const botDealDelayMs = options.botDealDelayMs ?? 3300;
+  const botDealDelayMs = options.botDealDelayMs ?? 4000;
   const maxPerSecond = options.maxMessagesPerSecond ?? DEFAULT_MAX_MESSAGES_PER_SECOND;
   const rooms = new Map<string, Room>();
   /** token -> room code, so a returning player lands back at their table. */
@@ -184,7 +184,9 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
     if (!move) return;
     const game = room.game!;
     const botWait = (g: NonNullable<Room["game"]>, trickDone: boolean): number => {
-      if (g.phase === "cutting") return botCutDelayMs; // clients are playing the shuffle
+      if (g.phase === "shuffling") return botDelayMs;
+      if (g.phase === "cutting") return g.fresh ? botCutDelayMs : botDelayMs + botCutDelayMs / 4; // clients play the shuffle
+      if (g.phase === "dealing") return botDelayMs + botCutDelayMs / 2; // clients play the cut
       if (g.phase === "bidding" && g.bidLog.length === 0) return botDelayMs + botDealDelayMs; // the deal
       if (g.phase === "playing" && g.tricksPlayed === 0 && g.trick.length === 0) return botDelayMs + botDealDelayMs / 2;
       return botDelayMs + (trickDone ? 1600 : 0);

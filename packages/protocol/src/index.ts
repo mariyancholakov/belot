@@ -18,6 +18,9 @@ export const gameActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("play"), card }),
   z.object({ type: z.literal("nextRound") }),
   z.object({ type: z.literal("cut"), position: z.number().int().min(1).max(31) }),
+  z.object({ type: z.literal("shuffle") }),
+  z.object({ type: z.literal("skipShuffle") }),
+  z.object({ type: z.literal("deal"), lucky: z.boolean() }),
 ]);
 
 export const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;

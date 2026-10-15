@@ -6,7 +6,9 @@ function toPlaying(): GameState {
   let s = newGame(5);
   const cut = applyAction(s, 3, { type: "cut", position: 12 });
   if (!cut.ok) throw new Error(cut.error);
-  s = cut.state;
+  const deal = applyAction(cut.state, 0, { type: "deal", lucky: false });
+  if (!deal.ok) throw new Error(deal.error);
+  s = deal.state;
   for (const [seat, bid] of [
     [1, { type: "bid", contract: "hearts" }],
     [2, { type: "pass" }],

@@ -16,18 +16,24 @@ import { legalPlays, trickWinner, type Play } from "./tricks";
 export const LAST_TRICK_BONUS = 10;
 export const TRICKS_PER_ROUND = 8;
 
-export type Phase = "cutting" | "bidding" | "playing" | "roundEnd" | "gameOver";
+export type Phase = "shuffling" | "cutting" | "dealing" | "bidding" | "playing" | "roundEnd" | "gameOver";
 
 export type GameAction =
   | { type: "bid"; bid: BidAction }
   | { type: "play"; card: Card }
   | { type: "nextRound" }
   /** The cutter lifts the top `position` cards (1-31) and puts them under the rest. */
-  | { type: "cut"; position: number };
+  | { type: "cut"; position: number }
+  /** Dealer shuffles the deck (only offered after three all-pass deals in a row). */
+  | { type: "shuffle" }
+  | { type: "skipShuffle" }
+  /** Dealer deals; `lucky` turns the first card dealt face up for everybody ("късметче"). */
+  | { type: "deal"; lucky: boolean };
 
 export type GameEvent =
   | { type: "cut"; seat: number; position: number }
-  | { type: "dealt"; round: number; dealer: number }
+  | { type: "shuffled"; seat: number }
+  | { type: "dealt"; round: number; dealer: number; lucky: LuckyCard | null }
   | { type: "bid"; seat: number; bid: BidAction }
   | { type: "redeal" }
   | { type: "contract"; outcome: BidOutcome }
@@ -37,6 +43,12 @@ export type GameEvent =
   | { type: "announcements"; result: AnnouncementResult }
   | { type: "roundScored"; result: RoundResult; summary: RoundSummary }
   | { type: "gameOver"; winner: Team };
+
+/** The face-up first card of a "късметче" deal. */
+export interface LuckyCard {
+  seat: number;
+  card: Card;
+}
 
 export interface RoundSummary {
   round: number;
@@ -60,8 +72,15 @@ export interface GameState {
   /** Seat that must act next (bidding or playing); -1 outside those phases. */
   turn: number;
   hands: Card[][];
-  /** The shuffled deck waiting for the cut; empty outside the cutting phase. */
+  /** The deck in its current order. Players shuffle only after three all-pass deals in a row. */
   deck: Card[];
+  /** Cards played this round in play order; they become the next deck (no shuffle). */
+  collected: Card[];
+  /** Consecutive deals in which everybody passed. */
+  allPassStreak: number;
+  /** True when this deal starts from a freshly shuffled deck (game start, or the dealer shuffled). */
+  fresh: boolean;
+  lucky: LuckyCard | null;
   /** Cards still to be dealt after bidding. */
   talon: Card[];
   bidding: BiddingState;
@@ -89,19 +108,11 @@ export type ActionResult =
   | { ok: true; state: GameState; events: GameEvent[] }
   | { ok: false; error: string };
 
-/** The player to the dealer's right cuts the deck. */
+/** The player to the dealer's left (the previous seat in play order) cuts the deck. */
 export const cutterOf = (dealer: number): number => (dealer + 3) % 4;
 
-/** Shuffle a fresh deck and wait for the cut. */
-function shuffle(seed: number, dealIndex: number, dealer: number): Pick<GameState, "deck" | "hands" | "talon" | "bidding" | "turn"> {
-  return {
-    deck: shuffledDeck(seed + dealIndex),
-    hands: [[], [], [], []],
-    talon: [],
-    bidding: startBidding(dealer),
-    turn: cutterOf(dealer),
-  };
-}
+/** After this many all-pass deals in a row the dealer may shuffle. */
+export const SHUFFLE_AFTER_PASSES = 3;
 
 export function newGame(seed: number, dealer = 0): GameState {
   return {
@@ -110,7 +121,15 @@ export function newGame(seed: number, dealer = 0): GameState {
     phase: "cutting",
     round: 1,
     dealer,
-    ...shuffle(seed, 1, dealer),
+    deck: shuffledDeck(seed + 1),
+    collected: [],
+    allPassStreak: 0,
+    fresh: true,
+    lucky: null,
+    hands: [[], [], [], []],
+    talon: [],
+    bidding: startBidding(dealer),
+    turn: cutterOf(dealer),
     bidLog: [],
     contract: null,
     trick: [],
@@ -129,6 +148,17 @@ export function newGame(seed: number, dealer = 0): GameState {
 
 /** Every action the given seat may take right now. */
 export function legalActions(state: GameState, seat: number): GameAction[] {
+  if (state.phase === "shuffling") {
+    if (seat !== state.turn) return [];
+    return [{ type: "shuffle" }, { type: "skipShuffle" }];
+  }
+  if (state.phase === "dealing") {
+    if (seat !== state.turn) return [];
+    return [
+      { type: "deal", lucky: false },
+      { type: "deal", lucky: true },
+    ];
+  }
   if (state.phase === "cutting") {
     if (seat !== state.turn) return [];
     return Array.from({ length: 31 }, (_, i) => ({ type: "cut" as const, position: i + 1 }));
@@ -162,6 +192,11 @@ export function applyAction(prev: GameState, seat: number, action: GameAction): 
       return applyNextRound(state, events);
     case "cut":
       return applyCut(state, seat, action.position, events);
+    case "shuffle":
+    case "skipShuffle":
+      return applyShuffleChoice(state, seat, action.type === "shuffle", events);
+    case "deal":
+      return applyDeal(state, seat, action.lucky, events);
   }
 }
 
@@ -177,11 +212,12 @@ function applyBidAction(state: GameState, seat: number, bid: BidAction, events: 
   const result = r.state.result;
   if (result === "redeal") {
     events.push({ type: "redeal" });
-    startRound(state, state.round, nextSeat(state.dealer), events);
+    startRound(state, state.round, nextSeat(state.dealer), state.deck, state.allPassStreak + 1);
     return { ok: true, state, events };
   }
   if (result) {
     state.contract = result;
+    state.allPassStreak = 0;
     state.hands = dealRest(state.hands, state.talon, state.dealer);
     state.talon = [];
     state.phase = "playing";
@@ -192,12 +228,23 @@ function applyBidAction(state: GameState, seat: number, bid: BidAction, events: 
   return { ok: true, state, events };
 }
 
-function startRound(state: GameState, round: number, dealer: number, events: GameEvent[]): void {
+/**
+ * Set up the next deal. The deck is not reshuffled: after a redeal it is the same deck, after a
+ * round it is the played cards in the order they were played. The dealer may shuffle only after
+ * `SHUFFLE_AFTER_PASSES` all-pass deals in a row.
+ */
+function startRound(state: GameState, round: number, dealer: number, deck: Card[], allPassStreak: number): void {
   state.round = round;
   state.dealer = dealer;
   state.dealIndex += 1;
-  Object.assign(state, shuffle(state.seed, state.dealIndex, dealer));
-  state.phase = "cutting";
+  state.deck = deck;
+  state.collected = [];
+  state.allPassStreak = allPassStreak;
+  state.fresh = false;
+  state.lucky = null;
+  state.hands = [[], [], [], []];
+  state.talon = [];
+  state.bidding = startBidding(dealer);
   state.bidLog = [];
   state.contract = null;
   state.trick = [];
@@ -207,21 +254,51 @@ function startRound(state: GameState, round: number, dealer: number, events: Gam
   state.announcements = null;
   state.announcementsRevealed = false;
   state.lastTrick = null;
+  if (allPassStreak >= SHUFFLE_AFTER_PASSES) {
+    state.phase = "shuffling";
+    state.turn = dealer;
+  } else {
+    state.phase = "cutting";
+    state.turn = cutterOf(dealer);
+  }
+}
+
+function applyShuffleChoice(state: GameState, seat: number, shuffle: boolean, events: GameEvent[]): ActionResult {
+  if (state.phase !== "shuffling") return { ok: false, error: "not shuffling" };
+  if (seat !== state.turn) return { ok: false, error: "only the dealer decides" };
+  if (shuffle) {
+    state.deck = shuffledDeck(state.seed + state.dealIndex);
+    state.fresh = true;
+    state.allPassStreak = 0;
+    events.push({ type: "shuffled", seat });
+  }
+  state.phase = "cutting";
+  state.turn = cutterOf(state.dealer);
+  return { ok: true, state, events };
 }
 
 function applyCut(state: GameState, seat: number, position: number, events: GameEvent[]): ActionResult {
   if (state.phase !== "cutting") return { ok: false, error: "not cutting" };
   if (seat !== state.turn) return { ok: false, error: "not your cut" };
   if (!Number.isInteger(position) || position < 1 || position > 31) return { ok: false, error: "bad cut" };
-  const deck = [...state.deck.slice(position), ...state.deck.slice(0, position)];
-  const { hands, rest } = dealFirst(deck, state.dealer);
-  state.deck = [];
+  state.deck = [...state.deck.slice(position), ...state.deck.slice(0, position)];
+  state.phase = "dealing";
+  state.turn = state.dealer;
+  events.push({ type: "cut", seat, position });
+  return { ok: true, state, events };
+}
+
+function applyDeal(state: GameState, seat: number, lucky: boolean, events: GameEvent[]): ActionResult {
+  if (state.phase !== "dealing") return { ok: false, error: "not dealing" };
+  if (seat !== state.turn) return { ok: false, error: "only the dealer deals" };
+  const { hands, rest } = dealFirst(state.deck, state.dealer);
   state.hands = hands;
   state.talon = rest;
+  const first = nextSeat(state.dealer);
+  state.lucky = lucky ? { seat: first, card: hands[first]![0]! } : null;
   state.phase = "bidding";
   state.turn = state.bidding.turn;
-  events.push({ type: "cut", seat, position });
-  events.push({ type: "dealt", round: state.round, dealer: state.dealer });
+  events.push({ type: "dealt", round: state.round, dealer: state.dealer, lucky: state.lucky });
   return { ok: true, state, events };
 }
 
@@ -238,6 +315,7 @@ function applyPlay(state: GameState, seat: number, card: Card, events: GameEvent
 
   state.hands[seat] = hand.filter((c) => !cardEquals(c, card));
   state.trick.push({ seat, card });
+  state.collected.push(card);
 
   // Belot is called when the first card of a held K+Q pair is played.
   const partnerRank = card.rank === "K" ? "Q" : card.rank === "Q" ? "K" : null;
@@ -323,6 +401,6 @@ function finishRound(state: GameState, events: GameEvent[]): void {
 
 function applyNextRound(state: GameState, events: GameEvent[]): ActionResult {
   if (state.phase !== "roundEnd") return { ok: false, error: "round is not finished" };
-  startRound(state, state.round + 1, nextSeat(state.dealer), events);
+  startRound(state, state.round + 1, nextSeat(state.dealer), state.collected, 0);
   return { ok: true, state, events };
 }
