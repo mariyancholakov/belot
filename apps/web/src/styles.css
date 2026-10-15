@@ -369,10 +369,12 @@ button:disabled { cursor: default; }
 .center .hint { position: absolute; margin: 0; font-size: 0.95rem; color: var(--felt-ink-soft); }
 .played { position: absolute; }
 .played .card.small { --cw: var(--play-cw); }
-.played.bottom { top: calc(50% - var(--ph) * 0.08); left: 50%; transform: translateX(-50%); }
-.played.top { bottom: calc(50% + var(--ph) * 0.08); left: 50%; transform: translateX(-50%); }
-.played.left { right: calc(50% + 6px); top: 50%; transform: translateY(-50%) rotate(-4deg); }
-.played.right { left: calc(50% + 6px); top: 50%; transform: translateY(-50%) rotate(4deg); }
+/* played cards land in a loose heap in the middle of the table, each leaning a little towards the player who threw it */
+.played { left: 50%; top: 50%; }
+.played.bottom { transform: translate(-50%, calc(-50% + var(--ph) * 0.2)) rotate(3deg); }
+.played.top { transform: translate(-50%, calc(-50% - var(--ph) * 0.2)) rotate(-4deg); }
+.played.left { transform: translate(calc(-50% - var(--play-cw) * 0.42), -50%) rotate(-11deg); }
+.played.right { transform: translate(calc(-50% + var(--play-cw) * 0.42), -50%) rotate(9deg); }
 .played .card { transition: transform 0.38s cubic-bezier(0.55, 0, 0.85, 0.35), opacity 0.38s ease-in; }
 .played.bottom .card { animation: fly-bottom 0.34s var(--ease); }
 .played.top .card { animation: fly-top 0.34s var(--ease); }
