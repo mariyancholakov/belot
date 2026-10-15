@@ -47,7 +47,7 @@ Pure, deterministic, no I/O. Server and client both import it.
 | 1.1 | Cards: suits, ranks, strength, points per contract | `cards.ts` | ✅ |
 | 1.2 | Tricks: winner, legal plays (follow, trump, overtrump, partner rule) | `tricks.ts` | ✅ |
 | 1.3 | Round scoring: rounding, inside, contra ×2/×4, capo, hanging, game winner | `scoring.ts` | ✅ |
-| 1.4 | Seeded shuffle + deal (3+2, then 3 after bidding), dealer rotation, cut | `deal.ts` | |
+| 1.4 | Seeded shuffle + deal (3+2, then 3 after bidding), dealer rotation, cut | `deal.ts` | ✅ |
 | 1.5 | Bidding: bid order ♣<♦<♥<♠<no-trumps<all-trumps, pass, contra, re-contra, end conditions, all-pass redeal | `bidding.ts` | |
 | 1.6 | Announcements: find sequences (terca/fifty/hundred) and carrés in a hand; compare teams (only the strongest team's sequences count, equal strongest cancel); carré cancels sequences; belot detection when K or Q of trump is played | `announcements.ts` | |
 | 1.7 | Game state machine: one `GameState` type, `applyAction(state, seat, action)` returning new state + events or an error; phases `bidding → playing → roundEnd → gameOver` | `game.ts` | |
