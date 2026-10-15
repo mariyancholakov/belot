@@ -166,7 +166,6 @@ export function DealPrompt({ onDeal }: { onDeal: (lucky: boolean) => void }) {
   return (
     <section className="felt-pop prompt" aria-label={bg.dealTitle}>
       <h2>{bg.dealTitle}</h2>
-      <p className="muted">{bg.dealHint}</p>
       <div className="prompt-actions">
         <button className="primary" onClick={() => onDeal(false)}>
           {bg.dealNormal}
