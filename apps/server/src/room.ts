@@ -1,12 +1,23 @@
 import { applyAction, chooseBotAction, newGame, viewFor, type GameAction, type GameEvent, type GameState } from "@belot/engine";
 import type { CardBack, ErrorCode, RoomState, ServerMessage } from "@belot/protocol";
 
-interface Member {
+export interface Member {
   token: string;
   nickname: string;
   seat: number | null;
   connected: boolean;
   bot?: boolean;
+}
+
+/** What is written to disk so a table survives a server restart. */
+export interface SavedRoom {
+  code: string;
+  host: string;
+  cardBack: CardBack;
+  seq: number;
+  members: Member[];
+  seats: (string | null)[];
+  game: GameState | null;
 }
 
 export type Outgoing = { token: string; message: ServerMessage };
@@ -40,6 +51,31 @@ export class Room {
   ) {
     this.host = hostToken;
     this.join(hostToken, hostNickname);
+  }
+
+  toJSON(): SavedRoom {
+    return {
+      code: this.code,
+      host: this.host,
+      cardBack: this.cardBack,
+      seq: this.seq,
+      members: [...this.members.values()],
+      seats: [...this.seats],
+      game: this.game,
+    };
+  }
+
+  /** A table read back from disk: nobody is connected yet, bots stay. */
+  static restore(saved: SavedRoom, makeSeed: () => number): Room {
+    const room = new Room(saved.code, saved.host, "", makeSeed);
+    room.members.clear();
+    for (const m of saved.members) room.members.set(m.token, { ...m, connected: m.bot === true });
+    saved.seats.forEach((t, i) => (room.seats[i] = t));
+    room.cardBack = saved.cardBack;
+    room.seq = saved.seq;
+    room.game = saved.game;
+    room.host = saved.host;
+    return room;
   }
 
   join(token: string, nickname: string): void {

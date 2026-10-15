@@ -4,3 +4,4 @@ dist
 *.log
 
 apps/web/.impeccable/questions
+apps/server/data

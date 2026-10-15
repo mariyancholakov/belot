@@ -1,8 +1,10 @@
 import { randomInt } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { clientMessageSchema, type ErrorCode, type ServerMessage } from "@belot/protocol";
-import { Room, RoomError, type Outgoing } from "./room";
+import { Room, RoomError, type Outgoing, type SavedRoom } from "./room";
 
 // No I, L, O, 0, 1 to avoid confusion when reading codes aloud.
 const CODE_LETTERS = "ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -39,6 +41,8 @@ export interface ServerOptions {
   turnMs?: number;
   /** Extra time on top of the clock for the first move after a deal and after a trick, while clients animate. */
   turnGraceMs?: number;
+  /** Where to keep the tables so a restart does not end the games (omit to keep them in memory only). */
+  dataFile?: string;
   /** Optional handler for non-websocket HTTP requests (static files). */
   onRequest?: Parameters<typeof createServer>[1];
 }
@@ -337,6 +341,44 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
   }, 60_000);
   sweep.unref();
 
+  // Tables survive a restart: they are written to disk when they change and read back at startup.
+  const dataFile = options.dataFile;
+  let lastWritten = "";
+  const save = () => {
+    if (!dataFile) return;
+    const tokens = [...tokenRoom].filter(([, code]) => rooms.has(code));
+    const text = JSON.stringify({ rooms: [...rooms.values()].map((r) => r.toJSON()), tokens });
+    if (text === lastWritten) return;
+    try {
+      mkdirSync(dirname(dataFile), { recursive: true });
+      writeFileSync(`${dataFile}.tmp`, text);
+      renameSync(`${dataFile}.tmp`, dataFile);
+      lastWritten = text;
+    } catch (err) {
+      console.error("could not save tables", err);
+    }
+  };
+  if (dataFile && existsSync(dataFile)) {
+    try {
+      const saved = JSON.parse(readFileSync(dataFile, "utf8")) as { rooms: SavedRoom[]; tokens: [string, string][] };
+      for (const s of saved.rooms) {
+        const room = Room.restore(s, () => randomInt(2 ** 31));
+        rooms.set(room.code, room);
+      }
+      for (const [token, code] of saved.tokens) if (rooms.has(code)) tokenRoom.set(token, code);
+      for (const room of rooms.values()) {
+        armTurnClock(room);
+        scheduleBots(room);
+      }
+      lastWritten = readFileSync(dataFile, "utf8");
+      if (rooms.size > 0) console.log(`restored ${rooms.size} table(s)`);
+    } catch (err) {
+      console.error("could not read saved tables", err);
+    }
+  }
+  const saver = setInterval(save, 1500);
+  saver.unref();
+
   await new Promise<void>((resolve) => http.listen(options.port ?? 0, resolve));
   const address = http.address();
   const port = typeof address === "object" && address ? address.port : 0;
@@ -348,6 +390,8 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
     close: () =>
       new Promise<void>((resolve) => {
         clearInterval(sweep);
+        clearInterval(saver);
+        save();
         for (const t of botTimers) clearTimeout(t);
         for (const t of clocks.values()) clearTimeout(t);
         for (const client of wss.clients) client.terminate();

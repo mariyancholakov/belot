@@ -6,8 +6,11 @@ import { staticHandler } from "./static";
 const port = Number(process.env.PORT ?? 3000);
 const webDist = process.env.WEB_DIST ?? fileURLToPath(new URL("../../web/dist", import.meta.url));
 
+const dataFile = process.env.BELOT_DATA ?? fileURLToPath(new URL("../data/rooms.json", import.meta.url));
+
 const server = await startServer({
   port,
+  dataFile,
   onRequest: existsSync(webDist) ? staticHandler(webDist) : undefined,
 });
 console.log(`belot server listening on :${server.port}${existsSync(webDist) ? ` (serving ${webDist})` : " (no web build found)"}`);

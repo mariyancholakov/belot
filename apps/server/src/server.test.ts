@@ -2,6 +2,9 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import WebSocket from "ws";
 import type { GameAction, GameView } from "@belot/engine";
 import type { ClientMessage, RoomState, ServerMessage } from "@belot/protocol";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { startServer, type GameServer } from "./server";
 
 class TestClient {
@@ -309,6 +312,46 @@ describe("card back", () => {
     expect(a.room!.cardBack).toBe("classic");
     a.send({ type: "setCardBack", back: "stars" });
     await b.until(() => b.room?.cardBack === "stars");
+  });
+});
+
+describe("restart", () => {
+  it("keeps a running game across a server restart", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "belot-"));
+    const dataFile = join(dir, "rooms.json");
+    try {
+      await server.close();
+      const opts = { port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1, botCutDelayMs: 1, botDealDelayMs: 1, turnMs: 0, dataFile };
+      server = await startServer(opts);
+      const a = await client("Ани");
+      a.send({ type: "createRoom" });
+      await a.until(() => a.room !== null);
+      const code = a.room!.code;
+      a.send({ type: "addBots" });
+      await a.until(() => a.room!.seats.every((s) => s !== null));
+      a.send({ type: "setCardBack", back: "forest" });
+      a.send({ type: "startGame" });
+      await a.until(() => a.view?.phase === "dealing");
+      a.send({ type: "action", action: { type: "deal", lucky: false } });
+      await a.until(() => a.view?.phase === "bidding");
+      const token = a.token;
+      clients.splice(0).forEach((c) => c.close());
+      await server.close(); // writes the tables to disk
+
+      server = await startServer(opts);
+      const again = new TestClient(server.port, token, "Ани");
+      clients.push(again);
+      await again.connect();
+      await again.until(() => again.room !== null);
+      expect(again.room!.code).toBe(code);
+      expect(again.room!.cardBack).toBe("forest");
+      expect(again.room!.you).toBe(0);
+      await again.until(() => again.view !== null);
+      expect(again.view!.phase).toBe("bidding");
+      expect(again.view!.hand.length).toBe(5);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 
