@@ -324,7 +324,7 @@ button:disabled { cursor: default; }
 .seat .name { position: relative; z-index: 3; }
 /* the time left to move runs down as a bar under the name */
 .clock {
-  position: absolute; left: 12px; right: 12px; bottom: -15px; height: 4px; border-radius: 2px; background: var(--felt-ink); opacity: 0.7; transform-origin: left center;
+  position: absolute; left: 12px; right: 12px; top: -14px; height: 4px; border-radius: 2px; background: var(--felt-ink); opacity: 0.7; transform-origin: left center;
   animation: clock-run linear forwards;
 }
 @keyframes clock-run { 0% { transform: scaleX(1); } 70% { background: var(--felt-ink); } 100% { transform: scaleX(0); background: var(--danger); } }

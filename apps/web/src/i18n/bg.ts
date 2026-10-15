@@ -139,7 +139,7 @@ export function contractLabel(contract: Contract): string {
   return `${suitSymbol[contract]} ${suitName[contract]}`;
 }
 
-export const rankLabel: Record<Rank, string> = { "7": "7", "8": "8", "9": "9", "10": "10", J: "В", Q: "Д", K: "К", A: "А" };
+export const rankLabel: Record<Rank, string> = { "7": "7", "8": "8", "9": "9", "10": "10", J: "J", Q: "Q", K: "K", A: "A" };
 
 export const announcementName: Record<string, string> = {
   terca: "Терца",
