@@ -638,10 +638,6 @@ button:disabled { cursor: default; }
 .spread input[type="range"] { position: absolute; inset: -6px -4px; width: calc(100% + 8px); height: calc(100% + 12px); margin: 0; opacity: 0; cursor: grab; touch-action: pan-y; }
 .cut-count { margin: 8px 0 12px; text-align: center; color: var(--muted); font-size: 0.9rem; font-variant-numeric: tabular-nums; }
 
-/* who deals, who is under hand */
-.deal-info { margin: 2px 12px 6px; text-align: center; font-size: 0.85rem; color: var(--muted); }
-.deal-info b { color: var(--text); font-weight: 650; }
-.deal-info b.red { color: var(--card-red); }
 
 /* the lucky card, face up for everybody */
 .card.lucky { box-shadow: 0 0 0 2px #e8b931, 0 4px 10px rgba(0, 0, 0, 0.25); animation: lucky-pop 0.5s var(--ease) both; }

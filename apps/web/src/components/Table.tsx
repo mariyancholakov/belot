@@ -242,7 +242,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
   /** The shuffle and deal choices are popups; the status line would repeat them. */
   const deciding = stage?.kind === "wait" && view.turn === me && (view.phase === "shuffling" || view.phase === "dealing");
   const dealerName = names[view.dealer] ?? "";
-  const underHand = names[(view.dealer + 1) % 4] ?? "";
   const lucky = view.lucky && !luckyGone && !luckyHidden && (view.phase === "bidding" || view.phase === "playing") ? view.lucky : null;
   const counts = (seat: number) => (dealtSoFar ? dealtSoFar[seat]! : view.handCounts[seat] ?? 0);
   const last = view.history[view.history.length - 1];
@@ -266,16 +265,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         </button>
         <GameMenu onLeave={onLeave} />
       </header>
-
-      <p className="deal-info">
-        {bg.roundShort} {view.round} · {bg.dealerIs} <b>{dealerName}</b> · {bg.underHand} <b>{underHand}</b>
-        {lucky && (
-          <>
-            {" "}
-            · {bg.luckyLabel} <b className={isRed(lucky.card.suit) ? "red" : ""}>{rankLabel[lucky.card.rank]}{suitSymbol[lucky.card.suit]}</b>
-          </>
-        )}
-      </p>
 
       <div className="felt">
         {POSITIONS.slice(1).map((pos, i) => {
