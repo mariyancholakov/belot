@@ -5,6 +5,8 @@ Web app to play Bulgarian belot with friends. Mobile-first, online rooms with a 
 ## Decisions
 - Platform: web, mobile-first (one link, no install)
 - Multiplayer: online rooms with a join code; bots to fill seats are a later stage
+- Hosting: single Node process on Fly.io or Render; in-memory state now, SQLite later; no accounts (nickname + device token)
+- Full design: `docs/ARCHITECTURE.md`
 - Rules: standard Bulgarian belot (trumps / no-trumps / all-trumps, announcements, contra / re-contra); exact rules in `docs/RULES.md`
 - Target score: 151
 - Language: the app UI is in Bulgarian (code, docs and commits stay in English); user-facing strings live in one place so they are easy to edit
@@ -13,6 +15,7 @@ Web app to play Bulgarian belot with friends. Mobile-first, online rooms with a 
 pnpm monorepo, TypeScript everywhere.
 
 - `packages/engine` — pure, deterministic game rules. No I/O, no randomness inside (deck order is passed in). Fully unit-tested. Shared by server and client.
+- `packages/protocol` — shared message types and validation (see `docs/ARCHITECTURE.md`)
 - `apps/server` — authoritative game server (Node + `ws`). Owns rooms and game state, validates every move with the engine, sends each player only their own hand.
 - `apps/web` — Vite + React client. Renders the view the server sends; only offers legal moves (engine used client-side for highlighting, never trusted).
 
