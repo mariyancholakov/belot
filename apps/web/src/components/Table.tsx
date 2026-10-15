@@ -49,7 +49,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
   // A finished trick stays on screen briefly, then sweeps to whoever took it.
   const [held, setHeld] = useState<{ plays: Play[]; winner: number } | null>(null);
   const [sweeping, setSweeping] = useState(false);
-  const [callout, setCallout] = useState<string | null>(null);
+  const [callout, setCallout] = useState<{ seat: number; text: string } | null>(null);
   const lastUpdate = useRef(0);
   const prevTurn = useRef(-1);
 
@@ -169,7 +169,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
           playSound(e.bid.type === "pass" ? "pass" : e.bid.type === "bid" ? "bid" : "contra");
           break;
         case "belot":
-          setCallout(`${bg.belot} · ${names[e.seat]} ${suitSymbol[e.suit]} +20`);
+          setCallout({ seat: e.seat, text: `${bg.belot} ${suitSymbol[e.suit]} +20` });
           timers.push(setTimeout(() => setCallout(null), 2400));
           timers.push(setTimeout(() => playSound("belot"), 120));
           break;
@@ -272,7 +272,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         )}
         {POSITIONS.slice(1).map((pos, i) => {
           const seat = (me + i + 1) % 4;
-          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
+          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} callout={callout?.seat === seat ? callout.text : null} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
         })}
 
         <div className={`center ${sweepTo ? `sweep-${sweepTo}` : ""}`} aria-live="polite">
@@ -287,8 +287,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         {!stage && view.phase === "bidding" && <DeckStage stage={{ kind: "talon" }} />}
         {cutting && <CutPicker onCut={(position) => send({ type: "cut", position })} />}
 
-        {callout && <div className="callout">{callout}</div>}
-
         {myBidTurn && <Bidding view={view} names={names} onBid={(bid) => send({ type: "bid", bid })} />}
         {view.phase === "shuffling" && stage?.kind === "wait" && view.turn === me && (
           <ShufflePrompt onChoose={(shuffle) => send({ type: shuffle ? "shuffle" : "skipShuffle" })} />
@@ -298,7 +296,7 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         )}
       </div>
 
-      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} name={names[me]!} connected ours />
+      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} callout={callout?.seat === me ? callout.text : null} name={names[me]!} connected ours />
       <div className={`hand ${myTurn ? "active" : ""}`}>
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
@@ -413,11 +411,18 @@ interface SeatProps {
   busy: boolean;
   /** The face-up lucky card this player holds, if any. */
   lucky: Card | null;
+  /** A one-off line this player just said, such as the belot call. */
+  callout: string | null;
 }
 
-function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky }: SeatProps) {
+function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, callout }: SeatProps) {
   const turn = !busy && view.turn === seat && view.phase !== "roundEnd" && view.phase !== "gameOver";
   const lastBid = [...view.bidLog].reverse().find((b) => b.seat === seat);
+  const declared = view.announcements
+    ?.filter((a) => a.seat === seat)
+    .flatMap((a) => a.announcements.map((x) => `${announcementName[x.kind]}${x.suit ? ` ${suitSymbol[x.suit]}` : ""} · ${x.points}`))
+    .join(", ");
+  const say = callout ?? (view.phase === "bidding" && !busy && lastBid ? bidText(lastBid.bid) : null) ?? (declared || null);
   return (
     <div className={`seat ${pos} ${turn ? "turn" : ""} ${ours ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
       <div className="name">
@@ -427,12 +432,12 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky }: Se
         <span>{name}</span>
         {view.dealer === seat && <em title={bg.dealer}>Р</em>}
         {!connected && <small className="off">{bg.offline}</small>}
+        {say && (
+          <span className="balloon" key={say}>
+            {say}
+          </span>
+        )}
       </div>
-      {view.phase === "bidding" && !busy && lastBid && (
-        <span className="bubble" key={view.bidLog.length}>
-          {bidText(lastBid.bid)}
-        </span>
-      )}
       {pos !== "bottom" && (
         <div className="backs" aria-label={`${count}`}>
           {Array.from({ length: Math.min(count, 8) }, (_, i) =>
