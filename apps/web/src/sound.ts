@@ -2,8 +2,8 @@ import { useCallback, useState } from "react";
 
 /**
  * All sounds are synthesized with WebAudio: no files to load, nothing to license.
- * They imitate a real card table: card edges clicking, cards sliding on felt, a riffle
- * shuffle, knuckles knocking on wood. Sound can be switched off; the choice is remembered.
+ * They imitate a card table covered in felt: card edges ticking softly, cards sliding, a riffle
+ * shuffle, fingertips tapping the cloth. Sound can be switched off; the choice is remembered.
  */
 const KEY = "belot.sound";
 const VOLUME = 2;
@@ -32,7 +32,7 @@ function audio(): { ctx: AudioContext; master: GainNode } | null {
     // Gently round off the digital edge and keep stacked sounds (a shuffle) from clipping.
     const soften = ctx.createBiquadFilter();
     soften.type = "lowpass";
-    soften.frequency.value = 9000;
+    soften.frequency.value = 6200;
     const limiter = ctx.createDynamicsCompressor();
     limiter.threshold.value = -10;
     limiter.ratio.value = 6;
@@ -88,10 +88,10 @@ function noiseHit(a: A, o: NoiseOptions): void {
   src.stop(t + o.dur + 0.03);
 }
 
-/** The dry click of a card edge or corner hitting something. */
-function click(a: A, at: number, gain: number, freq = 3200): void {
-  noiseHit(a, { at, dur: jitter(0.014, 0.3), from: jitter(freq), q: 1.1, gain: jitter(gain, 0.15) });
-  noiseHit(a, { at, dur: 0.008, from: jitter(freq * 1.8), q: 0.7, gain: gain * 0.5, type: "highpass" });
+/** The soft tick of a card edge landing on felt: short, a little dull, never sharp. */
+function click(a: A, at: number, gain: number, freq = 2400): void {
+  noiseHit(a, { at, dur: jitter(0.022, 0.3), from: jitter(Math.min(freq, 2800)), q: 0.8, gain: jitter(gain * 0.8, 0.15) });
+  noiseHit(a, { at, dur: 0.012, from: jitter(1300), q: 0.6, gain: gain * 0.5, type: "lowpass" });
 }
 
 /** Cards sliding over felt or paper: soft, airy, no hard edge. */
@@ -99,41 +99,28 @@ function slide(a: A, at: number, dur: number, gain: number, from = 5200, to = 22
   noiseHit(a, { at, attack: dur * 0.35, dur, from: jitter(from), to: jitter(to), q: 0.6, gain: jitter(gain, 0.15) });
 }
 
-/** The body of the table under a card or knuckle. */
+/** The muffled body of the felt under a card: filtered noise only, no pitched thud (that sounds like wood). */
 function thump(a: A, at: number, gain: number, freq = 130): void {
-  noiseHit(a, { at, dur: 0.05, from: jitter(freq * 2.2), q: 0.5, gain: gain * 0.8, type: "lowpass" });
-  const t = a.ctx.currentTime + at;
-  const osc = a.ctx.createOscillator();
-  osc.type = "sine";
-  osc.frequency.setValueAtTime(jitter(freq), t);
-  osc.frequency.exponentialRampToValueAtTime(freq * 0.55, t + 0.07);
-  const g = a.ctx.createGain();
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(Math.max(gain, 0.0002), t + 0.004);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
-  osc.connect(g).connect(a.master);
-  osc.start(t);
-  osc.stop(t + 0.1);
+  noiseHit(a, { at, dur: 0.07, from: jitter(freq * 3), q: 0.4, gain: gain * 0.9, type: "lowpass" });
 }
 
-/** Wood knuckle on the table edge. */
+/** A fingertip tapping the felt: padded and short. */
 function knock(a: A, at: number, gain: number): void {
-  thump(a, at, gain, 190);
-  noiseHit(a, { at, dur: 0.03, from: jitter(1400), q: 2.2, gain: gain * 0.6 });
+  thump(a, at, gain * 0.8, 150);
+  click(a, at, gain * 0.5, 1800);
 }
 
 /** A card thrown down on the table: whoosh, then edge click and table thud. */
 function cardDown(a: A, at: number, gain = 1): void {
-  slide(a, at, 0.08, 0.16 * gain, 6000, 2800);
-  click(a, at + 0.06, 0.5 * gain, 3000);
-  click(a, at + 0.064, 0.3 * gain, 1700);
-  thump(a, at + 0.062, 0.28 * gain);
+  slide(a, at, 0.09, 0.2 * gain, 5200, 2400);
+  click(a, at + 0.07, 0.4 * gain, 2300);
+  thump(a, at + 0.072, 0.3 * gain);
 }
 
 /** One card flicked across the table to a player. */
 function flick(a: A, at: number, gain = 1): void {
   slide(a, at, 0.1, 0.2 * gain, 6500, 3200);
-  click(a, at + 0.085, 0.22 * gain, 2600);
+  click(a, at + 0.085, 0.2 * gain, 2200);
 }
 
 /** A riffle: two halves of the deck released alternately under the thumbs. */
@@ -143,7 +130,7 @@ function riffle(a: A, at: number, clicks = 34): number {
   t += 0.12;
   for (let i = 0; i < clicks; i++) {
     const progress = i / clicks;
-    click(a, t, 0.17 + 0.1 * Math.sin(progress * Math.PI), 3600 + Math.random() * 1600);
+    click(a, t, 0.15 + 0.1 * Math.sin(progress * Math.PI), 2200 + Math.random() * 900);
     t += 0.046 - 0.028 * progress + Math.random() * 0.008;
   }
   return t;
@@ -165,31 +152,31 @@ const recipes = {
   /** A packet of cards slid across to a player. */
   dealPacket(a: A) {
     slide(a, 0, 0.16, 0.3, 6000, 2600);
-    click(a, 0.13, 0.28, 2800);
-    click(a, 0.155, 0.2, 2200);
-    click(a, 0.18, 0.16, 3200);
+    click(a, 0.13, 0.24, 2200);
+    click(a, 0.155, 0.18, 1900);
+    click(a, 0.18, 0.14, 2400);
     thump(a, 0.14, 0.16);
   },
   /** Riffle shuffle, bridge, then squaring up the deck. */
   shuffle(a: A) {
     const end = riffle(a, 0);
     // Bridge: the cards spring down in a quick cascade.
-    for (let i = 0; i < 12; i++) click(a, end + 0.04 + i * 0.022, 0.12 + Math.random() * 0.06, 2800 + Math.random() * 1200);
+    for (let i = 0; i < 12; i++) click(a, end + 0.04 + i * 0.022, 0.12 + Math.random() * 0.06, 2000 + Math.random() * 800);
     // Square the deck against the table.
     const done = end + 0.4;
     thump(a, done, 0.3);
-    click(a, done, 0.3, 2400);
+    click(a, done, 0.25, 2000);
     thump(a, done + 0.12, 0.22);
-    click(a, done + 0.12, 0.22, 2200);
+    click(a, done + 0.12, 0.18, 1900);
   },
   /** Lift the top packet, set it down, put the bottom packet on top. */
   cut(a: A) {
     slide(a, 0, 0.16, 0.12, 3200, 1800);
     thump(a, 0.3, 0.26);
-    click(a, 0.3, 0.3, 2400);
+    click(a, 0.3, 0.25, 2000);
     slide(a, 0.55, 0.16, 0.12, 3200, 1800);
     thump(a, 0.78, 0.3);
-    click(a, 0.78, 0.34, 2300);
+    click(a, 0.78, 0.28, 2000);
     thump(a, 0.9, 0.2);
   },
   /** A trick being gathered up and slid to its winner. */
@@ -199,34 +186,36 @@ const recipes = {
     click(a, 0.1, 0.1, 2000);
     click(a, 0.17, 0.09, 1800);
   },
-  /** It is your turn: a light tap on the table. */
+  /** It is your turn: a card sliding and a light tap on the felt. */
   turn(a: A) {
-    knock(a, 0, 0.22);
-    knock(a, 0.13, 0.17);
+    slide(a, 0, 0.12, 0.08, 4200, 2200);
+    knock(a, 0.09, 0.2);
   },
-  /** A bid: one firm knock. */
+  /** A bid: a card laid down and a soft tap. */
   bid(a: A) {
-    knock(a, 0, 0.55);
+    slide(a, 0, 0.1, 0.12, 4800, 2400);
+    knock(a, 0.08, 0.4);
   },
-  /** A pass: the double tap players give the table. */
+  /** A pass: the double tap players give the felt. */
   pass(a: A) {
-    knock(a, 0, 0.3);
-    knock(a, 0.11, 0.26);
+    knock(a, 0, 0.24);
+    knock(a, 0.12, 0.2);
   },
-  /** Contra: a hard double knock. */
+  /** Contra: a double tap, the second one firmer. */
   contra(a: A) {
-    knock(a, 0, 0.42);
-    knock(a, 0.16, 0.5);
+    slide(a, 0, 0.1, 0.12, 4800, 2400);
+    knock(a, 0.08, 0.4);
+    knock(a, 0.22, 0.46);
   },
   /** Belot: two quick flicks and a bright snap. */
   belot(a: A) {
     flick(a, 0, 0.8);
     flick(a, 0.12, 0.8);
-    click(a, 0.24, 0.42, 4800);
+    click(a, 0.24, 0.3, 2800);
   },
   /** A round or game won: cards cascading in the hand. */
   win(a: A) {
-    for (let i = 0; i < 18; i++) click(a, i * 0.026, 0.16 + 0.12 * (i / 18), 3000 + i * 90);
+    for (let i = 0; i < 18; i++) click(a, i * 0.026, 0.14 + 0.1 * (i / 18), 2000 + i * 40);
     thump(a, 0.52, 0.28);
   },
   /** A round or game lost: one heavy slide and a thud. */
@@ -236,8 +225,8 @@ const recipes = {
   },
   /** A button press. */
   tap(a: A) {
-    click(a, 0, 0.5, 2600);
-    thump(a, 0, 0.2, 160);
+    click(a, 0, 0.35, 2000);
+    thump(a, 0, 0.18, 160);
   },
 };
 
