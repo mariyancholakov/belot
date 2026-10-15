@@ -187,8 +187,11 @@ button:disabled { cursor: default; }
   display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative;
 }
 .home { justify-content: center; gap: 14px; }
-.home-panel { display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; }
-.home-points { display: none; }
+.home-panel {
+  display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 400px;
+  padding: 28px 24px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+}
+.home-invite { margin: 0 0 2px; text-align: center; color: var(--muted); }
 .page-controls { position: absolute; top: 12px; right: 12px; }
 .brand { display: grid; justify-items: center; gap: 6px; margin-bottom: 14px; text-align: center; }
 .brand h1 { font-size: clamp(2.4rem, 12vw, 3.2rem); }
@@ -483,67 +486,18 @@ button:disabled { cursor: default; }
 
 /* ---------- larger screens ---------- */
 /* ---------- home and lobby on large screens: a website layout, separate from the phone one. The table (board) is not touched. ---------- */
-.home-nav, .lobby-head, .lobby-foot, .home-hero, .home-copy, .home-stage { display: contents; }
-.home-logo, .home-badge, .home-steps, .home-foot, .stage-card, .eyebrow, .h-desktop { display: none; }
-.home-points { display: none; }
+.lobby-head, .lobby-foot { display: contents; }
+.eyebrow, .h-desktop { display: none; }
 
 @media (min-width: 900px) {
-  .home, .lobby { max-width: none; padding: 0; align-items: stretch; justify-content: flex-start; gap: 0; display: block; }
-  .home-nav, .page-bar {
+  .lobby { max-width: none; padding: 0; align-items: stretch; justify-content: flex-start; gap: 0; display: block; }
+  .home { padding: 0 40px; }
+  .home .page-controls { top: 22px; right: 40px; }
+  .page-bar {
     display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 1240px; margin: 0 auto; padding: 22px 40px; position: static;
   }
   .page-controls { position: static; }
-  .home-logo { display: inline-flex; align-items: center; gap: 10px; font-size: 1.35rem; font-weight: 750; letter-spacing: -0.02em; }
-  .home-logo-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--accent); color: var(--accent-ink); font-size: 1.1rem; }
   .icon-btn { width: 44px; height: 44px; }
-
-  /* home */
-  .home-hero {
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 64px;
-    max-width: 1240px; margin: 0 auto; padding: 36px 40px 72px; min-height: min(640px, calc(100dvh - 90px));
-  }
-  .home-copy { display: block; }
-  .home .brand { justify-items: start; text-align: left; margin: 0; gap: 0; }
-  .home .mark { display: none; }
-  .home-badge {
-    display: inline-block; padding: 7px 14px; border-radius: 99px; background: var(--accent-soft); color: var(--accent);
-    font-size: 0.9rem; font-weight: 650; margin-bottom: 22px;
-  }
-  .home .brand h1 { font-size: clamp(3rem, 5vw, 4.6rem); line-height: 1.03; letter-spacing: -0.035em; max-width: 12ch; }
-  .h-mobile { display: none; }
-  .h-desktop { display: inline; }
-  .home .brand p { max-width: 34ch; font-size: 1.3rem; line-height: 1.45; margin-top: 22px; }
-  .home-points { display: grid; gap: 14px; margin: 34px 0 0; padding: 0; list-style: none; font-size: 1.05rem; }
-  .home-points li { display: flex; align-items: center; gap: 12px; }
-  .home-points li::before {
-    content: "✓"; display: grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 50%;
-    background: var(--accent); color: var(--accent-ink); font-size: 0.8rem; font-weight: 800;
-  }
-
-  .home-stage {
-    display: grid; place-items: center; position: relative; padding: 72px 48px; border-radius: 36px; overflow: hidden;
-    background: radial-gradient(ellipse at 50% 35%, var(--felt-a), var(--felt-b)); box-shadow: inset 0 0 0 1px var(--felt-line), var(--shadow-2);
-  }
-  .home-stage::before { content: ""; position: absolute; inset: 14px; border-radius: 26px; border: 1.5px solid var(--felt-line); pointer-events: none; }
-  .stage-card {
-    display: grid; place-items: center; position: absolute; width: 84px; height: 118px; border-radius: 12px; background: var(--card-bg); color: var(--card-ink);
-    font-size: 2.6rem; box-shadow: var(--shadow-2); border: 1px solid var(--card-edge); opacity: 0.95;
-  }
-  .stage-card.s1 { left: 26px; top: 30px; transform: rotate(-14deg); }
-  .stage-card.s2 { right: 30px; top: 22px; transform: rotate(12deg); color: var(--card-red); }
-  .stage-card.s3 { right: 54px; bottom: 26px; transform: rotate(-8deg); color: var(--card-red); }
-  .home-panel {
-    position: relative; z-index: 1; width: 100%; max-width: 400px; padding: 30px; border-radius: 24px; background: var(--surface); box-shadow: var(--shadow-2);
-  }
-
-  .home-steps { display: block; max-width: 1240px; margin: 0 auto; padding: 8px 40px 84px; }
-  .home-steps h2 { font-size: 2rem; margin-bottom: 28px; }
-  .home-steps ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 0; padding: 0; list-style: none; }
-  .home-steps li { padding: 28px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1); }
-  .step-n { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); font-weight: 750; font-size: 1.1rem; }
-  .home-steps h3 { margin: 18px 0 6px; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; }
-  .home-steps p { margin: 0; color: var(--muted); line-height: 1.5; }
-  .home-foot { display: block; padding: 28px 40px; border-top: 1px solid var(--line); text-align: center; color: var(--muted); font-size: 0.92rem; }
 
   /* lobby */
   .lobby { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 1fr 1fr; column-gap: 72px; min-height: 100dvh; max-width: 1240px; margin: 0 auto; padding: 0 40px 48px; }
