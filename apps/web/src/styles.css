@@ -317,8 +317,7 @@ button:disabled { cursor: default; }
 .seat .name small { opacity: 0.7; font-size: 0.78rem; }
 .seat .name small.count { font-variant-numeric: tabular-nums; }
 .seat .name small.off { color: var(--theirs); opacity: 1; }
-.seat.turn .name { background: var(--accent); color: var(--accent-ink); animation: ring 1.6s ease-in-out infinite; }
-.seat .name .your-turn { font-size: 0.75rem; font-weight: 700; opacity: 1; white-space: nowrap; }
+.seat.turn .name { box-shadow: 0 0 0 3px var(--ring); animation: ring 1.8s ease-in-out infinite; }
 .table > .seat.bottom .name { max-width: min(92vw, 320px); }
 .seat.offline { opacity: 0.55; }
 .bubble { background: var(--card-bg); color: var(--card-ink); font-size: 0.8rem; font-weight: 700; padding: 2px 10px; border-radius: 10px; box-shadow: var(--shadow-1); animation: pop 0.35s var(--ease); }
@@ -328,7 +327,6 @@ button:disabled { cursor: default; }
 .felt .seat.right { right: 10px; top: 50%; transform: translateY(-50%); }
 .table > .seat.bottom { padding: 8px 0 2px; }
 .table > .seat.bottom .name { background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); backdrop-filter: none; }
-.table > .seat.bottom.turn .name { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
 .backs { display: flex; }
 .seat.top .backs .card.small { --cw: var(--top-cw); margin-left: calc(var(--cw) * -0.62); }
 .seat.left .backs .card.small, .seat.right .backs .card.small { --cw: var(--side-cw); }
@@ -489,7 +487,7 @@ button:disabled { cursor: default; }
 @keyframes pop { from { transform: scale(0.82); opacity: 0; } 60% { transform: scale(1.06); opacity: 1; } to { transform: scale(1); } }
 @keyframes rise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes ring { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--accent) 0%, transparent); } }
+@keyframes ring { 0%, 100% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent); } 50% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 9px color-mix(in srgb, var(--ring) 0%, transparent); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
@@ -647,7 +645,6 @@ button:disabled { cursor: default; }
 .spread-card.edge { box-shadow: 0 0 0 2px var(--accent), 0 6px 12px rgba(0, 0, 0, 0.35); }
 
 /* the red accent is for the interface; on the felt, controls and the active player are paper-coloured */
-.seat.turn .name { background: var(--turn-bg); color: var(--turn-ink); }
 .cut-table .primary { background: var(--turn-bg); color: var(--turn-ink); }
 
 /* ---------- a bigger table: the player's name and hand sit over the bottom edge of the felt ---------- */

@@ -286,16 +286,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
         {stage && !cutting && <DeckStage stage={stage} />}
         {!stage && view.phase === "bidding" && <DeckStage stage={{ kind: "talon" }} />}
         {cutting && <CutPicker onCut={(position) => send({ type: "cut", position })} />}
-        {stage && !cutting && !deciding && (
-          <p className="hint low">
-            {stage.kind === "shuffle" && bg.shuffling(dealerName)}
-            {stage.kind === "wait" && view.phase === "shuffling" && bg.waitingShuffleChoice(dealerName)}
-            {stage.kind === "wait" && view.phase === "cutting" && bg.waitingCut(names[view.turn] ?? "")}
-            {stage.kind === "wait" && view.phase === "dealing" && bg.dealing(dealerName)}
-            {stage.kind === "cut" && bg.waitingCut(names[(view.dealer + 3) % 4] ?? "")}
-            {stage.kind === "deal" && bg.dealing(dealerName)}
-          </p>
-        )}
 
         {callout && <div className="callout">{callout}</div>}
 
@@ -436,7 +426,6 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky }: Se
         </i>
         <span>{name}</span>
         {pos !== "bottom" && <small className="count">{count}</small>}
-        {pos === "bottom" && turn && <small className="your-turn">{bg.yourTurn}</small>}
         {view.dealer === seat && <em title={bg.dealer}>Р</em>}
         {!connected && <small className="off">{bg.offline}</small>}
       </div>
