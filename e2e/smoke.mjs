@@ -45,7 +45,6 @@ await cutter.locator(".cut-picker button.primary").click();
 // The cut is animated, then the dealer deals (with a lucky card this time) and the cards fly out.
 const dealer = await Promise.race(pages.map((p) => p.waitForSelector(".prompt", { timeout: 15_000 }).then(() => p)));
 await dealer.getByRole("button", { name: "Късметче" }).click();
-await pages[0].waitForSelector(".bidding", { timeout: 15_000 });
 // Whoever's turn it is sees the bid buttons; screenshot that player's screen.
 const bidder = await Promise.race(pages.map((p) => p.waitForSelector(".bid-grid").then(() => p)));
 await bidder.waitForTimeout(700);
@@ -73,7 +72,7 @@ while (Date.now() < deadline) {
     }
     const playable = p.locator(".hand.active button.card:not(:disabled)");
     if ((await playable.count()) > 0) {
-      await playable.first().click({ position: { x: 10, y: 24 } }); // the visible corner of an overlapped card
+      await playable.first().click({ position: { x: 30, y: 60 } }); // the visible strip of an overlapped, fanned card
       acted = true;
       moves++;
       if (SHOTS && moves === 5) await pages[1].screenshot({ path: `${SHOTS}/${tag}-4-playing.png` });
