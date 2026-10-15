@@ -343,7 +343,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       </div>
 
       <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} callout={callout?.seat === me ? callout.text : null} clock={turnLeftMs} clockKey={updateId} name={names[me]!} connected ours />
-      <div className={`hand ${myTurn ? "active" : ""}`}>
+      <div className={`hand ${myTurn ? "active" : ""} ${myTurn && view.phase === "playing" && hand.every((c) => playable.has(c.suit + c.rank)) ? "all-ok" : ""}`}>
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
           const mid = (hand.length - 1) / 2;

@@ -40,8 +40,8 @@
   /* your hand is the hero: eight cards fill the width, each showing a half-width strip */
   --hand-cw: clamp(54px, calc((100vw - 24px) / 4.5), 84px);
   --play-cw: clamp(58px, 17.5vw, 82px);
-  --top-cw: clamp(34px, 9.5vw, 46px);
-  --side-cw: clamp(30px, 8.5vw, 40px);
+  --top-cw: clamp(38px, 10.5vw, 52px);
+  --side-cw: clamp(34px, 9.5vw, 46px);
   --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
     --back-a: #7d6d5f;
@@ -320,13 +320,13 @@ button:disabled { cursor: default; }
 .table > .seat.bottom .name { max-width: min(92vw, 320px); }
 .seat.offline { opacity: 0.55; }
 /* what a player says (a bid, the belot, an announcement) comes out of their name like a speech balloon */
-.seat .name { position: relative; }
+.seat .name { position: relative; z-index: 3; }
 /* the time left to move runs down as a bar under the name */
 .clock {
-  position: absolute; left: 10px; right: 10px; bottom: -8px; height: 4px; border-radius: 2px; background: var(--ring); transform-origin: left center;
+  position: absolute; left: 12px; right: 12px; bottom: -15px; height: 4px; border-radius: 2px; background: var(--felt-ink); opacity: 0.7; transform-origin: left center;
   animation: clock-run linear forwards;
 }
-@keyframes clock-run { 0% { transform: scaleX(1); } 70% { background: var(--ring); } 100% { transform: scaleX(0); background: var(--danger); } }
+@keyframes clock-run { 0% { transform: scaleX(1); } 70% { background: var(--felt-ink); } 100% { transform: scaleX(0); background: var(--danger); } }
 .balloon {
   position: absolute; z-index: 6; width: max-content; max-width: 220px; padding: 12px 22px; border-radius: 26px; white-space: normal; text-align: center; line-height: 1.2;
   background: var(--card-bg); color: var(--card-ink); font-size: 1.15rem; font-weight: 700; box-shadow: var(--shadow-2); animation: pop 0.35s var(--ease);
@@ -335,8 +335,8 @@ button:disabled { cursor: default; }
 .balloon::before, .balloon::after { content: ""; position: absolute; border-radius: 50%; background: var(--card-bg); box-shadow: var(--shadow-1); }
 .balloon::before { width: 14px; height: 14px; }
 .balloon::after { width: 8px; height: 8px; }
-.seat.top .balloon { top: calc(100% + 26px); left: 50%; translate: -50% 0; }
-.seat.top .balloon::before { top: -12px; left: calc(50% - 7px); } .seat.top .balloon::after { top: -22px; left: calc(50% - 4px); }
+.seat.top .balloon { left: calc(100% + 30px); top: 50%; translate: 0 -50%; }
+.seat.top .balloon::before { left: -12px; top: calc(50% - 7px); } .seat.top .balloon::after { left: -22px; top: calc(50% - 4px); }
 .seat.left .balloon { left: calc(100% + 30px); top: 50%; translate: 0 -50%; }
 .seat.left .balloon::before { left: -12px; top: calc(50% - 7px); } .seat.left .balloon::after { left: -22px; top: calc(50% - 4px); }
 .seat.right .balloon { right: calc(100% + 30px); top: 50%; translate: 0 -50%; }
@@ -344,12 +344,13 @@ button:disabled { cursor: default; }
 .seat.bottom .balloon { bottom: calc(100% + 26px); left: 50%; translate: -50% 0; }
 .seat.bottom .balloon::before { bottom: -12px; left: calc(50% - 7px); } .seat.bottom .balloon::after { bottom: -22px; left: calc(50% - 4px); }
 .felt .seat { position: absolute; }
-.felt .seat.top { top: 12px; left: 50%; transform: translateX(-50%); }
+.felt .seat.top { top: -22px; left: 50%; transform: translateX(-50%); }
 .felt .seat.left { left: 10px; top: 50%; transform: translateY(-50%); }
 .felt .seat.right { right: 10px; top: 50%; transform: translateY(-50%); }
 .table > .seat.bottom { padding: 8px 0 2px; }
 .table > .seat.bottom .name { background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); backdrop-filter: none; }
 .backs { display: flex; }
+.backs .card.small { border-radius: calc(var(--cw) * 0.2); }
 .seat.top .backs .card.small { --cw: var(--top-cw); margin-left: calc(var(--cw) * -0.62); }
 /* the players to the left and right hold their cards facing themselves, so from here the fan runs top to bottom and each card lies on its side */
 .seat.left .backs, .seat.right .backs { flex-direction: column; padding: 0 calc(var(--side-cw) * 0.21); }
@@ -404,6 +405,7 @@ button:disabled { cursor: default; }
 .hand .card:not(:last-child) .pip { display: none; }
 /* when it is your turn the cards you may play rise out of the fan */
 .hand.active button.card:not(:disabled) { transform: translateY(-12px); box-shadow: 0 0 0 3px var(--ring), 0 10px 18px rgba(0, 0, 0, 0.22); cursor: pointer; }
+.hand.active.all-ok button.card:not(:disabled) { box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22), 0 1px 2px rgba(0, 0, 0, 0.14); }
 .hand.active button.card:not(:disabled):hover, .hand.active button.card:not(:disabled):focus-visible {
   transform: translateY(-18px); z-index: 2; outline: none;
   box-shadow: 0 0 0 3px var(--ring), 0 12px 20px rgba(0, 0, 0, 0.26);
@@ -539,7 +541,7 @@ button:disabled { cursor: default; }
 }
 
 @media (min-width: 760px) {
-  :root { --cw: 80px; --hand-cw: 104px; --play-cw: 92px; --top-cw: 56px; --side-cw: 50px; }
+  :root { --cw: 80px; --hand-cw: 104px; --play-cw: 92px; --top-cw: 64px; --side-cw: 57px; }
   .card.small { --cw: 66px; }
   .table { padding-top: 8px; }
   .felt { margin: 0 16px; }
