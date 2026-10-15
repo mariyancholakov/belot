@@ -315,7 +315,6 @@ button:disabled { cursor: default; }
 .seat.ours .avatar { background: var(--ours); color: var(--ours-on); }
 .seat .name em { font-style: normal; font-size: 0.68rem; font-weight: 700; background: var(--chip-ink); color: var(--felt-a); border-radius: 99px; padding: 0 6px; }
 .seat .name small { opacity: 0.7; font-size: 0.78rem; }
-.seat .name small.count { font-variant-numeric: tabular-nums; }
 .seat .name small.off { color: var(--theirs); opacity: 1; }
 .seat.turn .name { box-shadow: 0 0 0 3px var(--ring); animation: ring 1.8s ease-in-out infinite; }
 .table > .seat.bottom .name { max-width: min(92vw, 320px); }
@@ -329,11 +328,8 @@ button:disabled { cursor: default; }
 .table > .seat.bottom .name { background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); backdrop-filter: none; }
 .backs { display: flex; }
 .seat.top .backs .card.small { --cw: var(--top-cw); margin-left: calc(var(--cw) * -0.62); }
-.seat.left .backs .card.small, .seat.right .backs .card.small { --cw: var(--side-cw); }
+.seat.left .backs .card.small, .seat.right .backs .card.small { --cw: var(--side-cw); margin-left: calc(var(--cw) * -0.7); }
 .backs .card.small:first-child { margin-left: 0; }
-.seat.left .backs, .seat.right .backs { flex-direction: column; }
-.seat.left .backs .card.small, .seat.right .backs .card.small { margin-left: 0; margin-top: calc(var(--cw) * -1.1); }
-.seat.left .backs .card.small:first-child, .seat.right .backs .card.small:first-child { margin-top: 0; }
 
 /* trick */
 .center { --ph: calc(var(--play-cw) * 1.42); position: absolute; inset: 7% 0 0; display: grid; place-items: center; pointer-events: none; }
@@ -545,9 +541,7 @@ button:disabled { cursor: default; }
   :root { --cw: 52px; --hand-cw: 52px; --play-cw: 42px; }
   .card.small { --cw: 36px; }
   .hand { padding: 12px 12px 6px; min-height: auto; }
-  .seat .backs { display: none; }
-  .seat .name small.count { display: inline; }
-}
+  }
 
 /* ---------- shuffle, cut and deal ---------- */
 .felt .hint.low { position: absolute; left: 0; right: 0; bottom: 15%; margin: 0; text-align: center; font-size: 0.95rem; color: var(--felt-ink-soft); z-index: 3; pointer-events: none; }

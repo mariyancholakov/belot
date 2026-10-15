@@ -425,7 +425,6 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky }: Se
           {name.slice(0, 1).toUpperCase()}
         </i>
         <span>{name}</span>
-        {pos !== "bottom" && <small className="count">{count}</small>}
         {view.dealer === seat && <em title={bg.dealer}>Р</em>}
         {!connected && <small className="off">{bg.offline}</small>}
       </div>
