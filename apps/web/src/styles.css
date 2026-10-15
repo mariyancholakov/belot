@@ -9,6 +9,7 @@
   --line-strong: #a09a8c;
   --accent: #3f3b35;
   --accent-ink: #ffffff;
+  --ring: #2f3a36;
   --accent-soft: #e8e3d8;
   --danger: #a4483f;
   --warn: #a8721c;
@@ -59,6 +60,7 @@ color-scheme: light;
     --line-strong: #77705f;
     --accent: #d9d0be;
     --accent-ink: #1a1814;
+    --ring: #d27d55;
     --accent-soft: #2a2722;
     --danger: #e8837b;
     --warn: #e0ad4a;
@@ -97,6 +99,7 @@ color-scheme: light;
   --line-strong: #77705f;
   --accent: #d9d0be;
   --accent-ink: #1a1814;
+  --ring: #d27d55;
   --accent-soft: #2a2722;
   --danger: #e8837b;
   --warn: #e0ad4a;
@@ -391,10 +394,10 @@ button:disabled { cursor: default; }
 /* overlapped cards show their corner only; a clipped pip would peek out as a smudge */
 .hand .card:not(:last-child) .pip { display: none; }
 /* when it is your turn the cards you may play rise out of the fan */
-.hand.active button.card:not(:disabled) { transform: translateY(-12px); box-shadow: 0 0 0 2px var(--accent), 0 10px 18px rgba(0, 0, 0, 0.22); cursor: pointer; }
+.hand.active button.card:not(:disabled) { transform: translateY(-12px); box-shadow: 0 0 0 3px var(--ring), 0 10px 18px rgba(0, 0, 0, 0.22); cursor: pointer; }
 .hand.active button.card:not(:disabled):hover, .hand.active button.card:not(:disabled):focus-visible {
   transform: translateY(-20px); z-index: 2; outline: none;
-  box-shadow: 0 0 0 4px var(--accent), 0 14px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 0 3px var(--ring), 0 0 0 8px color-mix(in srgb, var(--ring) 30%, transparent), 0 14px 24px rgba(0, 0, 0, 0.3);
 }
 .hand.active .card.dim { opacity: 0.45; filter: saturate(0.4); }
 .hand.active button.card:not(:disabled):active { transform: translateY(-10px) scale(0.98); }
