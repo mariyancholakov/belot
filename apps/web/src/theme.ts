@@ -1,22 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 
-export type ThemeChoice = "auto" | "light" | "dark";
+export type ThemeChoice = "light" | "dark";
 const KEY = "belot.theme";
 
 function read(): ThemeChoice {
   try {
     const v = localStorage.getItem(KEY);
-    if (v === "light" || v === "dark" || v === "auto") return v;
+    if (v === "light" || v === "dark") return v;
   } catch {
     /* storage unavailable */
   }
-  return "auto";
+  // First visit: start from the system preference; after that the switch only toggles light and dark.
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function apply(choice: ThemeChoice): void {
-  const root = document.documentElement;
-  if (choice === "auto") delete root.dataset.theme;
-  else root.dataset.theme = choice;
+  document.documentElement.dataset.theme = choice;
 }
 
 /** Applies the saved choice immediately (call before first render to avoid a flash). */
@@ -24,7 +23,7 @@ export function initTheme(): void {
   apply(read());
 }
 
-const ORDER: ThemeChoice[] = ["auto", "light", "dark"];
+const ORDER: ThemeChoice[] = ["light", "dark"];
 
 export function useTheme() {
   const [choice, setChoice] = useState<ThemeChoice>(read);
