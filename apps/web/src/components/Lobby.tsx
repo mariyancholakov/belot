@@ -43,6 +43,8 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
         </button>
         <Controls />
       </div>
+      <div className="lobby-head">
+      <span className="eyebrow">{bg.roomCode}</span>
       <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
         {room.code}
       </h1>
@@ -52,6 +54,7 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
       <p className="muted">{bg.shareHint}</p>
 
       <div className="stitch" aria-hidden="true" />
+      </div>
 
       <div className="lobby-table" role="group" aria-label={bg.lobbyTableLabel} data-odd={room.you !== null && room.you % 2 === 1}>
         <div className="lobby-felt" aria-hidden="true" />
@@ -82,6 +85,7 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
         })}
       </div>
 
+      <div className="lobby-foot">
       {room.watchers.length > 0 && (
         <p className="muted">
           {bg.watching}: {room.watchers.join(", ")}
@@ -100,6 +104,7 @@ export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
       ) : (
         <p className="muted">{bg.waitHost}</p>
       )}
+      </div>
     </main>
   );
 }

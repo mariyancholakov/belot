@@ -67,26 +67,65 @@ export function Home({ nickname: saved, initialCode, ready, codeError, onCreate,
 
   return (
     <main className="home">
-      <div className="page-controls">
-        <Controls />
-      </div>
-      <div className="brand">
-        <div className="mark" aria-hidden="true">
-          <span className="c a">♠</span>
-          <span className="c b">♥</span>
+      <div className="home-nav">
+        <span className="home-logo" aria-hidden="true">
+          <span className="home-logo-mark">♠</span> {bg.appName}
+        </span>
+        <div className="page-controls">
+          <Controls />
         </div>
-        <h1>{bg.appName}</h1>
-        <p className="muted">{fromLink ? bg.invited : bg.tagline}</p>
       </div>
+      <section className="home-hero">
+        <div className="home-copy">
+          <div className="brand">
+            <div className="mark" aria-hidden="true">
+              <span className="c a">♠</span>
+              <span className="c b">♥</span>
+            </div>
+            <span className="home-badge">{bg.homeBadge}</span>
+            <h1>
+              <span className="h-mobile">{bg.appName}</span>
+              <span className="h-desktop">{bg.homeHeadline}</span>
+            </h1>
+            <p className="muted">{fromLink ? bg.invited : bg.tagline}</p>
+          </div>
+          <ul className="home-points">
+            {bg.homePoints.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </div>
 
-      <label className="field">
-        <span>{bg.nickname}</span>
-        <input value={nickname} maxLength={20} placeholder={bg.nicknamePlaceholder} onChange={(e) => setNickname(e.target.value)} autoComplete="nickname" />
-      </label>
+        <div className="home-stage">
+          <span className="stage-card s1" aria-hidden="true">♠</span>
+          <span className="stage-card s2" aria-hidden="true">♥</span>
+          <span className="stage-card s3" aria-hidden="true">♦</span>
+          <div className="home-panel">
+            <label className="field">
+              <span>{bg.nickname}</span>
+              <input value={nickname} maxLength={20} placeholder={bg.nicknamePlaceholder} onChange={(e) => setNickname(e.target.value)} autoComplete="nickname" />
+            </label>
 
-      {fromLink ? join : create}
-      <div className="stitch" aria-hidden="true" />
-      {fromLink ? create : join}
+            {fromLink ? join : create}
+            <div className="stitch" aria-hidden="true" />
+            {fromLink ? create : join}
+          </div>
+        </div>
+      </section>
+
+      <section className="home-steps" aria-label={bg.homeStepsTitle}>
+        <h2>{bg.homeStepsTitle}</h2>
+        <ol>
+          {bg.homeSteps.map((st, i) => (
+            <li key={st.title}>
+              <span className="step-n">{i + 1}</span>
+              <h3>{st.title}</h3>
+              <p>{st.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+      <footer className="home-foot">{bg.homeFoot}</footer>
     </main>
   );
 }
