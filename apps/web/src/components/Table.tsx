@@ -495,7 +495,6 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
           <Avatar name={name} size={44} />
         </i>
         <span>{name}</span>
-        {view.dealer === seat && <em title={bg.dealer}>Р</em>}
         {!connected && <small className="off">{bg.offline}</small>}
         {turn && clock !== null && (view.phase === "bidding" || view.phase === "playing") && (
           <i className="clock" key={clockKey} style={{ animationDuration: `${clock}ms` }} aria-hidden="true" />
