@@ -680,23 +680,21 @@ button:disabled { cursor: default; }
 .table > .hand { margin-top: calc((var(--lap) - 30px) * -1); }
 .seat.turn .name small { opacity: 1; }
 
-/* the suit being played, always in the corner of the felt */
+/* the suit being played, always in the corner of the felt: a small card-like badge */
 .trump {
-  position: absolute; left: 14px; top: 14px; z-index: 3; display: grid; gap: 1px; padding: 8px 14px 9px; border-radius: 14px;
-  background: var(--chip-bg); color: var(--chip-ink); backdrop-filter: blur(6px); box-shadow: var(--shadow-1); animation: pop 0.45s var(--ease);
+  position: absolute; left: 14px; top: 14px; z-index: 3; display: grid; gap: 2px; padding: 8px 14px 9px; border-radius: 12px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); animation: pop 0.45s var(--ease);
 }
-.trump small { font-size: 0.72rem; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.8; }
-.trump b { font-size: 1.3rem; font-weight: 750; line-height: 1.1; }
-.trump b.red { color: var(--felt-red); }
+.trump small { font-size: 0.68rem; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.trump-main { display: flex; align-items: center; gap: 8px; }
+.trump-main i { font-style: normal; font-size: 1.7rem; line-height: 1; color: var(--card-ink); }
+.trump-main i.red { color: var(--card-red); }
+.trump b { font-size: 1.15rem; font-weight: 700; line-height: 1.1; }
 @media (max-width: 759px) {
   .trump { left: 10px; top: 10px; padding: 5px 10px 6px; border-radius: 12px; }
   .trump small { font-size: 0.62rem; }
   .trump b { font-size: 1rem; }
-}
-@media (max-width: 759px) {
-  .trump { left: 10px; top: 10px; padding: 5px 10px 6px; border-radius: 12px; }
-  .trump small { font-size: 0.62rem; }
-  .trump b { font-size: 1rem; }
+  .trump-main i { font-size: 1.35rem; }
 }
 
 /* announcements, belot and laying the cards down */
