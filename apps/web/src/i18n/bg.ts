@@ -91,6 +91,7 @@ export const bg = {
   dealLucky: "Късметче",
   dealerIs: "Раздава",
   underHand: "Под ръка",
+  trumpLabel: "Играем на",
   luckyLabel: "Късметче",
   contract: "Игра",
   tricks: "ръце",

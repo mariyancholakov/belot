@@ -252,12 +252,6 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
           <Icon name="back" />
         </button>
         <div className="chips">
-          {view.contract ? (
-            <span className={`chip contract ${view.contract.contract === "hearts" || view.contract.contract === "diamonds" ? "red" : ""}`} key={view.contract.contract + view.round}>
-              {contractLabel(view.contract.contract)}
-              {view.contract.multiplier > 1 && <b> ×{view.contract.multiplier}</b>}
-            </span>
-          ) : null}
         </div>
         <button className="score-btn" onClick={() => setSheetOpen(true)} aria-label={`${bg.scoreTitle}: ${bg.teamUs} ${view.scores[myTeam]}, ${bg.teamThem} ${view.scores[otherTeam]}`}>
           <ScoreTeam label={bg.teamUs} value={view.scores[myTeam]} cls="us" />
@@ -267,6 +261,15 @@ export function Table({ view, room, events, updateId, send, onNewGame, onLeave }
       </header>
 
       <div className="felt">
+        {view.contract && (
+          <div className="trump" key={view.contract.contract + view.round} aria-live="polite">
+            <small>{bg.trumpLabel}</small>
+            <b className={view.contract.contract === "hearts" || view.contract.contract === "diamonds" ? "red" : ""}>
+              {contractLabel(view.contract.contract)}
+              {view.contract.multiplier > 1 && ` ×${view.contract.multiplier}`}
+            </b>
+          </div>
+        )}
         {POSITIONS.slice(1).map((pos, i) => {
           const seat = (me + i + 1) % 4;
           return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
