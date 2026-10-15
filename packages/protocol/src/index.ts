@@ -34,6 +34,7 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("leaveRoom") }),
   z.object({ type: z.literal("takeSeat"), seat: z.number().int().min(0).max(3) }),
   z.object({ type: z.literal("leaveSeat") }),
+  z.object({ type: z.literal("addBots") }),
   z.object({ type: z.literal("startGame") }),
   z.object({ type: z.literal("action"), action: gameActionSchema }),
 ]);

@@ -35,6 +35,7 @@ export const bg = {
   offline: "няма връзка",
   watching: "Наблюдават",
   start: "Започни играта",
+  addBots: "Добави ботове",
   needFour: "Трябват четирима играчи",
   waitHost: "Чакаме домакина да започне",
   teamUs: "Ние",

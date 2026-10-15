@@ -263,3 +263,25 @@ describe("static files", () => {
     expect(await raw.text()).not.toContain("root:");
   });
 });
+
+describe("bots", () => {
+  it("fills empty seats and plays their turns until the human has to act", async () => {
+    await server.close();
+    server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1 });
+    const a = await client("Ани");
+    a.send({ type: "createRoom" });
+    await a.until(() => a.room !== null);
+    a.send({ type: "takeSeat", seat: 0 });
+    await a.until(() => a.room?.you === 0);
+    a.send({ type: "addBots" });
+    await a.until(() => a.room!.seats.every((s) => s !== null));
+    expect(a.room!.watchers).toEqual([]);
+    a.send({ type: "startGame" });
+    await a.until(() => a.view?.turn === 0 || a.view?.phase === "bidding");
+    // Bots bid until it is the human's turn; the human passes and the bots keep going.
+    await a.until(() => a.view?.turn === 0);
+    a.send({ type: "action", action: { type: "bid", bid: { type: "pass" } } });
+    await a.until(() => a.view?.phase !== "bidding" || a.view?.turn === 0);
+    expect(a.lastError()).toBeUndefined();
+  });
+});

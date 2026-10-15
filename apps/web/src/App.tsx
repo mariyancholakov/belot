@@ -66,6 +66,7 @@ export function App() {
       <Lobby
         room={room}
         onSit={(seat) => send({ type: "takeSeat", seat })}
+        onAddBots={() => send({ type: "addBots" })}
         onStart={() => send({ type: "startGame" })}
         onLeave={() => send({ type: "leaveRoom" })}
       />

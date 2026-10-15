@@ -6,3 +6,4 @@ export * from "./bidding";
 export * from "./announcements";
 export * from "./game";
 export * from "./view";
+export * from "./bot";

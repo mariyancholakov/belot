@@ -7,11 +7,12 @@ import { Icon } from "./Icon";
 interface Props {
   room: RoomState;
   onSit: (seat: number) => void;
+  onAddBots: () => void;
   onStart: () => void;
   onLeave: () => void;
 }
 
-export function Lobby({ room, onSit, onStart, onLeave }: Props) {
+export function Lobby({ room, onSit, onAddBots, onStart, onLeave }: Props) {
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/${room.code}`;
   const full = room.seats.every((s) => s !== null);
@@ -79,6 +80,11 @@ export function Lobby({ room, onSit, onStart, onLeave }: Props) {
         </p>
       )}
 
+      {room.youAreHost && !full && (
+        <button className="secondary" onClick={onAddBots}>
+          {bg.addBots}
+        </button>
+      )}
       {room.youAreHost ? (
         <button className="primary" disabled={!full} onClick={onStart}>
           {full ? bg.start : bg.needFour}

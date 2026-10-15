@@ -29,11 +29,14 @@ export interface ServerOptions {
   port?: number;
   /** Per-connection message rate limit. */
   maxMessagesPerSecond?: number;
+  /** Pause before a computer player moves. */
+  botDelayMs?: number;
   /** Optional handler for non-websocket HTTP requests (static files). */
   onRequest?: Parameters<typeof createServer>[1];
 }
 
 export async function startServer(options: ServerOptions = {}): Promise<GameServer> {
+  const botDelayMs = options.botDelayMs ?? 900;
   const maxPerSecond = options.maxMessagesPerSecond ?? DEFAULT_MAX_MESSAGES_PER_SECOND;
   const rooms = new Map<string, Room>();
   /** token -> room code, so a returning player lands back at their table. */
@@ -144,19 +147,52 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
         deliver(room.broadcast([], false));
         break;
       }
+      case "addBots": {
+        const room = roomOf(conn);
+        room.addBots(token);
+        deliver(room.broadcast([], false));
+        break;
+      }
       case "startGame": {
         const room = roomOf(conn);
         room.start(token);
         deliver(room.broadcast([], true));
+        scheduleBots(room);
         break;
       }
       case "action": {
         const room = roomOf(conn);
         const events = room.act(token, msg.action);
         deliver(room.broadcast(events, true));
+        scheduleBots(room);
         break;
       }
     }
+  }
+
+  const botTimers = new Set<ReturnType<typeof setTimeout>>();
+
+  /** Let computer players move, paced so humans can follow what happens. */
+  function scheduleBots(room: Room): void {
+    const move = room.nextBotMove();
+    if (!move) return;
+    const game = room.game!;
+    const afterTrick = game.trick.length === 0 && game.tricksPlayed > 0;
+    const timer = setTimeout(() => {
+      botTimers.delete(timer);
+      if (!rooms.has(room.code)) return;
+      const current = room.nextBotMove();
+      if (!current) return;
+      try {
+        const events = room.act(current.token, current.action);
+        deliver(room.broadcast(events, true));
+      } catch (err) {
+        console.error("bot move failed", err);
+        return;
+      }
+      scheduleBots(room);
+    }, botDelayMs + (afterTrick ? 1600 : 0));
+    botTimers.add(timer);
   }
 
   function enter(conn: Connection, room: Room): void {
@@ -241,6 +277,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
     close: () =>
       new Promise<void>((resolve) => {
         clearInterval(sweep);
+        for (const t of botTimers) clearTimeout(t);
         for (const client of wss.clients) client.terminate();
         wss.close(() => http.close(() => resolve()));
       }),

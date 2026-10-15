@@ -1,4 +1,4 @@
-import { applyAction, newGame, viewFor, type GameAction, type GameEvent, type GameState } from "@belot/engine";
+import { applyAction, chooseBotAction, newGame, viewFor, type GameAction, type GameEvent, type GameState } from "@belot/engine";
 import type { ErrorCode, RoomState, ServerMessage } from "@belot/protocol";
 
 interface Member {
@@ -6,6 +6,7 @@ interface Member {
   nickname: string;
   seat: number | null;
   connected: boolean;
+  bot?: boolean;
 }
 
 export type Outgoing = { token: string; message: ServerMessage };
@@ -61,7 +62,9 @@ export class Room {
     }
     if (member.seat !== null) this.seats[member.seat] = null;
     this.members.delete(token);
-    if (this.host === token) this.host = this.members.keys().next().value ?? token;
+    if (this.host === token) {
+      this.host = [...this.members.values()].find((m) => !m.bot)?.token ?? token;
+    }
     this.touch();
   }
 
@@ -87,6 +90,32 @@ export class Room {
     if (member.seat !== null) this.seats[member.seat] = null;
     member.seat = null;
     this.touch();
+  }
+
+  /** Host fills every empty seat with computer players. */
+  addBots(token: string): void {
+    this.must(token);
+    if (token !== this.host) throw new RoomError("not_host", "only the host can add bots");
+    if (this.game) throw new RoomError("game_running", "game already started");
+    let n = 0;
+    for (let seat = 0; seat < 4; seat++) {
+      if (this.seats[seat]) continue;
+      const botToken = `bot-${this.code}-${seat}`;
+      this.members.set(botToken, { token: botToken, nickname: `Бот ${++n}`, seat, connected: true, bot: true });
+      this.seats[seat] = botToken;
+    }
+    this.touch();
+  }
+
+  /** The computer player whose turn it is, with the move it wants to make. */
+  nextBotMove(): { token: string; action: GameAction } | null {
+    const game = this.game;
+    if (!game || game.phase === "gameOver" || game.phase === "roundEnd") return null;
+    const token = this.seats[game.turn];
+    const member = token ? this.members.get(token) : undefined;
+    if (!member?.bot) return null;
+    const action = chooseBotAction(game, game.turn);
+    return action ? { token: member.token, action } : null;
   }
 
   start(token: string): void {
@@ -154,7 +183,7 @@ export class Room {
   }
 
   get connectedCount(): number {
-    return [...this.members.values()].filter((m) => m.connected).length;
+    return [...this.members.values()].filter((m) => m.connected && !m.bot).length;
   }
 
   private must(token: string): Member {
