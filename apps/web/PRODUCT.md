@@ -30,10 +30,10 @@ Private and ad-free: no accounts, no strangers, no ranking, no ads. It is a tabl
 - Not built yet: stronger bots, history/stats, turn timer.
 
 ## Brand Commitments
-- The name is **Белот** and the interface stays Bulgarian-only.
+- The name is **Белотче** and the interface stays Bulgarian-only.
 - No analytics, no tracking, no ads, no data beyond a nickname and a device token.
 - Sound is always optional, with a mute control that remembers the choice.
-- Look and feel: the owner wants a standard, modern product look (clean, current, familiar), not a themed or novelty direction. Light and dark mode are both required, following the system setting with a manual override.
+- Look and feel: a clean, modern product look on a green card table: green baize, brass trim and shevitsa red, from the card table of a village kafene. Light and dark mode are both required, following the system setting with a manual override.
 
 ## Evidence on Hand
 - A working implementation in `apps/web/src` (home, lobby, table, bidding, score sheet) with a deliberately dark ink-blue and brass look; it is the incumbent, not an approved direction.

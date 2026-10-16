@@ -2,7 +2,7 @@ import type { Contract, Rank, Suit } from "@belot/engine";
 
 /** All user-facing text lives here. */
 export const bg = {
-  appName: "Белот",
+  appName: "Белотче",
   invited: "Поканен си в игра. Въведи името си и влез.",
   teamOneUnseated: "Отбор 1",
   teamTwoUnseated: "Отбор 2",
