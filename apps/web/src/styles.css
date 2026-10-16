@@ -869,3 +869,38 @@ button:disabled { cursor: default; }
 /* the round sheet is one printed card: no boxes inside it */
 .score-team.big { background: none; border: 0; box-shadow: none; padding: 0; }
 .slot-empty { color: var(--muted); font-weight: 600; }
+
+/* ---------- a trick spread as a cross: every card's corner index stays in view, whoever played first ---------- */
+.played.bottom { transform: translate(-50%, calc(-50% + var(--ph) * 0.42)) rotate(2deg); }
+.played.top { transform: translate(-50%, calc(-50% - var(--ph) * 0.42)) rotate(-3deg); }
+.played.left { transform: translate(calc(-50% - var(--play-cw) * 0.88), calc(-50% + var(--ph) * 0.08)) rotate(-6deg); }
+.played.right { transform: translate(calc(-50% + var(--play-cw) * 0.88), calc(-50% + var(--ph) * 0.08)) rotate(5deg); }
+
+/* ---------- a claim: every hand still held goes face up in front of its player ---------- */
+.laid { --lcw: clamp(32px, 8.4vw, 52px); }
+.laid .card.small { --cw: var(--lcw); }
+.laid.bottom { top: 72%; }
+.laid.top { top: 26%; }
+.laid.left, .laid.right { top: 50%; }
+.laid.left { left: 64px; transform: translateY(-50%); }
+.laid.right { left: auto; right: 64px; transform: translateY(-50%); }
+.laid.left .card.small, .laid.right .card.small { margin-left: calc(var(--cw) * -0.62); }
+.laid.left .card.small:first-child, .laid.right .card.small:first-child { margin-left: 0; }
+.laid.claimer .card.small { box-shadow: 0 0 0 2px var(--text), var(--shadow-2); }
+@media (min-width: 760px) {
+  .laid { --lcw: 52px; }
+  .laid.left { left: 18%; } .laid.right { right: 18%; }
+  .laid.left .card.small, .laid.right .card.small { margin-left: calc(var(--cw) * -0.35); }
+}
+
+/* ---------- touch: the card under the finger comes up at once, with no slide, so a tap lands on what it shows ---------- */
+.hand { touch-action: none; }
+@media (pointer: coarse) {
+  .hand .card { transition: none; }
+  .hand.active .hand-slot[data-hot]:not(.off) .card { translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px) - 14px); }
+}
+/* the laid hands keep their own placement, so they fade in without the centred pop */
+.laid { animation: laid-in 0.35s var(--ease) both; }
+@keyframes laid-in { from { opacity: 0; scale: 0.96; } to { opacity: 1; scale: 1; } }
+/* your own name sits over the top edge of your hand; taps there belong to the cards */
+.table > .seat.bottom { pointer-events: none; }

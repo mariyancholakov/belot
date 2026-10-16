@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Card, GameAction, GameEvent, GameView, Play } from "@belot/engine";
+import { strength, type Card, type Contract, type GameAction, type GameEvent, type GameView, type Play } from "@belot/engine";
 import type { RoomState } from "@belot/protocol";
 import { announcementName, bg, contractLabel, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
 import { playSound } from "../sound";
@@ -15,7 +15,6 @@ import { Icon } from "./Icon";
 import { ScoreSheet } from "./ScoreSheet";
 
 const SUIT_ORDER = ["clubs", "diamonds", "spades", "hearts"] as const;
-const RANK_ORDER = ["7", "8", "9", "10", "J", "Q", "K", "A"] as const;
 /** How long a finished trick stays on the table, and how long the sweep to the winner takes. */
 const HOLD_MS = 1500;
 const SWEEP_MS = 380;
@@ -23,10 +22,18 @@ const SWEEP_MS = 380;
 const SHUFFLE_MS = 2100;
 const CUT_MS = 1250;
 
-function sortHand(hand: Card[]): Card[] {
-  return [...hand].sort(
-    (a, b) => SUIT_ORDER.indexOf(a.suit) - SUIT_ORDER.indexOf(b.suit) || RANK_ORDER.indexOf(a.rank) - RANK_ORDER.indexOf(b.rank),
-  );
+/** The hand as a player arranges it: suits in alternating colours, trumps first, and inside each suit the strongest card on the left. */
+function sortHand(hand: Card[], contract: Contract | null): Card[] {
+  // trumps lead; after them each next suit is the other colour where the hand allows it
+  const present = SUIT_ORDER.filter((suit) => hand.some((c) => c.suit === suit));
+  const suits: Card["suit"][] = present.includes(contract as Card["suit"]) ? [contract as Card["suit"]] : [];
+  while (suits.length < present.length) {
+    const left = present.filter((suit) => !suits.includes(suit));
+    const last = suits[suits.length - 1];
+    suits.push(left.find((suit) => last === undefined || isRed(suit) !== isRed(last)) ?? left[0]!);
+  }
+  const by = contract ?? "no-trumps";
+  return [...hand].sort((a, b) => suits.indexOf(a.suit) - suits.indexOf(b.suit) || strength(b, by) - strength(a, by));
 }
 
 type Pos = "bottom" | "right" | "top" | "left";
@@ -58,7 +65,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   /** A card waiting for the player to say whether they call belot with it ("claim": while laying the cards down). */
   const [askBelot, setAskBelot] = useState<Card | "claim" | null>(null);
   /** The hand a player just laid down, shown face up for a moment. */
-  const [laid, setLaid] = useState<{ seat: number; cards: Card[] } | null>(null);
+  const [laid, setLaid] = useState<{ seat: number; hands: Card[][] } | null>(null);
   const laidAt = useRef(0);
   const lastUpdate = useRef(0);
   const prevTurn = useRef(-1);
@@ -190,10 +197,10 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           break;
         case "claimed":
           laidAt.current = Date.now();
-          setLaid({ seat: e.seat, cards: e.cards });
+          setLaid({ seat: e.seat, hands: e.hands.map((h) => sortHand(h, view.contract?.contract ?? null)) });
           setCallout({ seat: e.seat, text: bg.claimSay });
           timers.push(setTimeout(() => setCallout(null), 2600));
-          timers.push(setTimeout(() => setLaid(null), 3300));
+          timers.push(setTimeout(() => setLaid(null), 4200));
           break;
         case "trickWon":
           setHeld({ plays: e.plays, winner: e.winner });
@@ -258,12 +265,13 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   const animating = stage !== null && stage.kind !== "wait";
   const dealtSoFar = shown ?? (busy ? [0, 0, 0, 0] : null);
   const myTurn = view.phase === "playing" && view.turn === me && !busy;
-  const hand = sortHand(dealtSoFar ? view.hand.slice(0, dealtSoFar[me]) : view.hand);
+  const hand = sortHand(dealtSoFar ? view.hand.slice(0, dealtSoFar[me]) : view.hand, view.contract?.contract ?? null);
   // The hand is pointed at as a whole: whichever card's strip the pointer is over comes up. Done on the DOM
   // directly so moving the pointer never re-renders the table.
   const handEl = useRef<HTMLDivElement>(null);
   const chooseRef = useRef<((() => void) | undefined)[]>([]);
   const hotSlot = useRef<Element | null>(null);
+  const touchUp = useRef(0);
   const cardAt = (x: number, y: number): number | null => {
     const root = handEl.current;
     if (!root) return null;
@@ -365,13 +373,16 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
             {bg.claim}
           </button>
         )}
-        {laid && (
-          <div className="laid" aria-label={bg.claimSay}>
-            {laid.cards.map((c) => (
-              <CardFace key={c.suit + c.rank} card={c} small />
-            ))}
-          </div>
-        )}
+        {laid &&
+          laid.hands.map((cards, seat) =>
+            cards.length === 0 ? null : (
+              <div key={seat} className={`laid ${POSITIONS[(seat - me + 4) % 4]} ${seat === laid.seat ? "claimer" : ""}`} aria-label={seat === laid.seat ? bg.claimSay : names[seat]}>
+                {cards.map((c) => (
+                  <CardFace key={c.suit + c.rank} card={c} small />
+                ))}
+              </div>
+            ),
+          )}
 
         {myBidTurn && <Bidding view={view} names={names} onBid={(bid) => send({ type: "bid", bid })} />}
         {view.phase === "shuffling" && stage?.kind === "wait" && view.turn === me && (
@@ -389,7 +400,16 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         onPointerMove={(e) => hoverCard(e.clientX, e.clientY)}
         onPointerDown={(e) => hoverCard(e.clientX, e.clientY)}
         onPointerLeave={() => hoverCard(null, null)}
+        // A finger plays the card it lifts off, even if it slid a little; waiting for a click loses taps that move.
+        onPointerUp={(e) => {
+          if (e.pointerType === "mouse") return;
+          touchUp.current = Date.now();
+          const i = cardAt(e.clientX, e.clientY);
+          hoverCard(null, null);
+          if (i !== null) chooseRef.current[i]?.();
+        }}
         onClick={(e) => {
+          if (Date.now() - touchUp.current < 800) return;
           const i = cardAt(e.clientX, e.clientY);
           if (i !== null) chooseRef.current[i]?.();
         }}
