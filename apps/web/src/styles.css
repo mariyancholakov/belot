@@ -910,3 +910,6 @@ button:disabled { cursor: default; }
 @media (max-width: 759px) and (orientation: portrait) { .felt .seat .name { max-width: none; } }
 /* where a name sits in running text, a long one breaks instead of overflowing */
 .modal-sub, .bid-log, .waiting, .hint, .cut-hint { overflow-wrap: anywhere; }
+/* no trumps and all trumps carry a sign like a suit: a black A, a red J */
+.bid .bsym { font-weight: 800; margin-right: 6px; }
+.bid .bsym.red { color: var(--card-red); }

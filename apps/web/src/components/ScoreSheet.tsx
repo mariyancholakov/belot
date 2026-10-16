@@ -1,5 +1,6 @@
 import type { GameView, RoundSummary } from "@belot/engine";
-import { bg, contractLabel, isRed } from "../i18n/bg";
+import { bg, contractLabel } from "../i18n/bg";
+import { SuitText } from "./SuitText";
 import { AnimatedNumber } from "./AnimatedNumber";
 
 function badges(r: RoundSummary): string[] {
@@ -26,7 +27,7 @@ export function ScoreSheet({ view, mine }: { view: GameView; mine: 0 | 1 }) {
         {view.history.map((r) => (
           <div className="score-row" key={r.round}>
             <span className="what">
-              <span className={isRed(r.contract as never) ? "red" : ""}>{contractLabel(r.contract)}</span>
+              <span><SuitText text={contractLabel(r.contract)} /></span>
               {badges(r).map((b) => (
                 <em key={b}>{b}</em>
               ))}

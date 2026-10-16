@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { strength, type Card, type Contract, type GameAction, type GameEvent, type GameView, type Play } from "@belot/engine";
 import type { RoomState } from "@belot/protocol";
-import { announcementName, bg, contractLabel, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
+import { announcementName, bg, contractLabel, contractName, contractRed, contractSymbol, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
 import { playSound } from "../sound";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { SuitText } from "./SuitText";
@@ -326,13 +326,11 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           <div className="trump" key={view.contract.contract + view.round} aria-live="polite">
             <small>{bg.trumpLabel}</small>
             <span className="trump-main">
-              {view.contract.contract !== "no-trumps" && view.contract.contract !== "all-trumps" && (
-                <i className={isRed(view.contract.contract) ? "red" : ""} aria-hidden="true">
-                  {suitSymbol[view.contract.contract]}
-                </i>
-              )}
+              <i className={contractRed(view.contract.contract) ? "red" : ""} aria-hidden="true">
+                {contractSymbol(view.contract.contract)}
+              </i>
               <b>
-                {view.contract.contract === "no-trumps" || view.contract.contract === "all-trumps" ? contractLabel(view.contract.contract) : suitName[view.contract.contract]}
+                {contractName(view.contract.contract)}
                 {view.contract.multiplier > 1 && ` ×${view.contract.multiplier}`}
               </b>
             </span>

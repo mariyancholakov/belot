@@ -1,6 +1,7 @@
 import type { BidAction, Contract, GameView } from "@belot/engine";
-import { bg, contractLabel, suitName, suitSymbol } from "../i18n/bg";
+import { bg, contractLabel, contractName, suitName, suitSymbol } from "../i18n/bg";
 import { playSound } from "../sound";
+import { SuitText } from "./SuitText";
 
 const SUITS: Contract[] = ["clubs", "diamonds", "hearts", "spades"];
 
@@ -41,7 +42,7 @@ export function Bidding({ view, names, onBid }: Props) {
           {view.bidLog.length === 0 && <li className="muted">{bg.noBidsYet}</li>}
           {view.bidLog.map((entry, i) => (
             <li key={i}>
-              <span>{names[entry.seat]}</span> <b>{bidText(entry.bid)}</b>
+              <span>{names[entry.seat]}</span> <b><SuitText text={bidText(entry.bid)} /></b>
             </li>
           ))}
         </ol>
@@ -58,10 +59,12 @@ export function Bidding({ view, names, onBid }: Props) {
           </div>
           <div className="bid-col">
             <button className="bid wide" disabled={!canBid("no-trumps")} onClick={() => act({ type: "bid", contract: "no-trumps" })}>
-              {contractLabel("no-trumps")}
+              <span className="bsym" aria-hidden="true">A</span>
+              {contractName("no-trumps")}
             </button>
             <button className="bid wide" disabled={!canBid("all-trumps")} onClick={() => act({ type: "bid", contract: "all-trumps" })}>
-              {contractLabel("all-trumps")}
+              <span className="bsym red" aria-hidden="true">J</span>
+              {contractName("all-trumps")}
             </button>
             <button className="bid alert wide" disabled={!has("contra")} onClick={() => act({ type: "contra" })}>
               {bg.contra}

@@ -133,10 +133,20 @@ export const suitSymbol: Record<Suit, string> = { clubs: "♣", diamonds: "♦",
 export const suitName: Record<Suit, string> = { clubs: "спатия", diamonds: "каро", hearts: "купа", spades: "пика" };
 export const isRed = (suit: Suit) => suit === "hearts" || suit === "diamonds";
 
-export function contractLabel(contract: Contract): string {
+/** Each contract has a sign like a suit's: no trumps is a black ace, all trumps a red jack (the top cards of each). */
+export function contractSymbol(contract: Contract): string {
+  return contract === "no-trumps" ? "A" : contract === "all-trumps" ? "J" : suitSymbol[contract];
+}
+export function contractRed(contract: Contract): boolean {
+  return contract === "all-trumps" || (contract !== "no-trumps" && isRed(contract));
+}
+export function contractName(contract: Contract): string {
   if (contract === "no-trumps") return "Без коз";
   if (contract === "all-trumps") return "Всичко коз";
-  return `${suitSymbol[contract]} ${suitName[contract]}`;
+  return suitName[contract];
+}
+export function contractLabel(contract: Contract): string {
+  return `${contractSymbol(contract)} ${contractName(contract)}`;
 }
 
 export const rankLabel: Record<Rank, string> = { "7": "7", "8": "8", "9": "9", "10": "10", J: "J", Q: "Q", K: "K", A: "A" };
