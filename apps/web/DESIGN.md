@@ -264,7 +264,7 @@ A white card of two columns: the four suits on the left (symbol at 1.7rem over i
 
 ### Cards
 - **Face:** white stock, 1px edge, rank and suit stacked in the top-left corner, a large pip bottom right (hidden on overlapped hand cards so it never peeks out as a smudge). Red suits print in suit red.
-- **Back:** the selected back pattern framed by a 3px white border. The default is navy stripes. The host can pick other backs in the lobby (shevitsa on cream, steel-blue diamonds, forest-green dots, violet stars); these are carried-over player choices that only ever fill a card back, and the default stays navy.
+- **Back:** one quiet ground with a fine pattern and a thin gold (#b8954a) frame inset 8%, inside a 3px white border. Four backs, picked by the host in the lobby: Синьо (navy, white hairline lattice, the default), Черно (black, gold dot grid), Слонова кост (ivory, ink hairline lattice), Графит (graphite, faint pinstripes). Gold appears only on card backs.
 - **States:** illegal cards in your hand darken (brightness 0.55) on your turn; the card under the pointer rises 24px and straightens; the winning trick card gets a 2px ink ring; the lucky card a 2px ink ring with a flip-in.
 - **Motion:** cards deal in from the deck, fly in from the thrower's side, rest in a loose heap leaning toward each thrower, then sweep to the winner.
 

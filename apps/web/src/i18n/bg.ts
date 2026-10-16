@@ -104,7 +104,7 @@ export const bg = {
   announcements: "Обявявания",
   belot: "Белот",
   cardBackTitle: "Гръб на картите",
-  cardBackNames: { classic: "Класика", shevitsa: "Шевица", diamonds: "Ромбове", forest: "Гора", stars: "Нощ" } as Record<string, string>,
+  cardBackNames: { classic: "Синьо", noir: "Черно", ivory: "Слонова кост", graphite: "Графит" } as Record<string, string>,
   claim: "Свали картите",
   claimSay: "Свалям",
   announceTitle: "Обявяваш ли?",

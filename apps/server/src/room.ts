@@ -1,5 +1,5 @@
 import { applyAction, chooseBotAction, newGame, viewFor, type GameAction, type GameEvent, type GameState } from "@belot/engine";
-import type { CardBack, ErrorCode, RoomState, ServerMessage } from "@belot/protocol";
+import { CARD_BACKS, type CardBack, type ErrorCode, type RoomState, type ServerMessage } from "@belot/protocol";
 
 export interface Member {
   token: string;
@@ -72,7 +72,8 @@ export class Room {
     room.members.clear();
     for (const m of saved.members) room.members.set(m.token, { ...m, connected: m.bot === true });
     saved.seats.forEach((t, i) => (room.seats[i] = t));
-    room.cardBack = saved.cardBack;
+    // a table saved before a back was retired falls back to the default one
+    room.cardBack = (CARD_BACKS as readonly string[]).includes(saved.cardBack) ? saved.cardBack : "classic";
     room.seq = saved.seq;
     room.game = saved.game;
     room.host = saved.host;

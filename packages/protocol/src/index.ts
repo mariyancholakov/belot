@@ -26,7 +26,7 @@ export const gameActionSchema = z.discriminatedUnion("type", [
 ]);
 
 /** The designs on the back of the cards; the host picks one before the game starts. */
-export const CARD_BACKS = ["classic", "shevitsa", "diamonds", "forest", "stars"] as const;
+export const CARD_BACKS = ["classic", "noir", "ivory", "graphite"] as const;
 export type CardBack = (typeof CARD_BACKS)[number];
 
 export const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;

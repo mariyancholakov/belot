@@ -307,11 +307,11 @@ describe("card back", () => {
     const b = await client("Бони");
     b.send({ type: "joinRoom", code });
     await b.until(() => b.room !== null);
-    b.send({ type: "setCardBack", back: "stars" });
+    b.send({ type: "setCardBack", back: "noir" });
     await b.until(() => b.lastError() !== undefined);
     expect(a.room!.cardBack).toBe("classic");
-    a.send({ type: "setCardBack", back: "stars" });
-    await b.until(() => b.room?.cardBack === "stars");
+    a.send({ type: "setCardBack", back: "noir" });
+    await b.until(() => b.room?.cardBack === "noir");
   });
 });
 
@@ -329,7 +329,7 @@ describe("restart", () => {
       const code = a.room!.code;
       a.send({ type: "addBots" });
       await a.until(() => a.room!.seats.every((s) => s !== null));
-      a.send({ type: "setCardBack", back: "forest" });
+      a.send({ type: "setCardBack", back: "graphite" });
       a.send({ type: "startGame" });
       await a.until(() => a.view?.phase === "dealing");
       a.send({ type: "action", action: { type: "deal", lucky: false } });
@@ -344,7 +344,7 @@ describe("restart", () => {
       await again.connect();
       await again.until(() => again.room !== null);
       expect(again.room!.code).toBe(code);
-      expect(again.room!.cardBack).toBe("forest");
+      expect(again.room!.cardBack).toBe("graphite");
       expect(again.room!.you).toBe(0);
       await again.until(() => again.view !== null);
       expect(again.view!.phase).toBe("bidding");
