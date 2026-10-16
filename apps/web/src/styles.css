@@ -1,42 +1,41 @@
 /* ---------- tokens ---------- */
+/* the palette of a village kafene card table: green baize, brass trim, and the red of shevitsa embroidery */
 :root {
-  --bg: #f5f1e8;
-  --surface: #ffffff;
-  --surface-2: #fbf9f3;
-  --text: #25221d;
-  --muted: #6e6a60;
-  --line: #e5e0d3;
-  --line-strong: #a09a8c;
-  --accent: #3f3b35;
-  --accent-ink: #ffffff;
-  --ring: #2f3a36;
-  --accent-soft: #e8e3d8;
-  --danger: #a4483f;
-  --warn: #a8721c;
-  --felt-a: #ede8dc;
-  --felt-b: #dbd4c3;
-  --felt-line: rgba(37, 34, 29, 0.14);
-  --felt-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 1l13 13-13 13L1 14z' fill='none' stroke='rgba(37,34,29,0.045)' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 28px 28px;
-  --chip-bg: rgba(255, 255, 255, 0.82);
-  --chip-ink: #25221d;
-  --ours: #38342c;
-  --theirs: #9c6350;
-  --stitch: #b88068;
-  --ours-ink: #38342c;
-  --theirs-ink: #8a523f;
-  --card-bg: #ffffff;
-  --card-ink: #141820;
-  --card-red: #c72f38;
-  --card-edge: rgba(16, 19, 24, 0.16);
-  --felt-ink: #25221d;
-  --felt-ink-soft: #55503f;
-  --felt-red: #9c3a35;
-  --ours-on: #ffffff;
-  --theirs-on: #ffffff;
-  --turn-bg: var(--accent);
-  --turn-ink: var(--accent-ink);
-  --shadow-1: 0 1px 2px rgba(16, 19, 24, 0.08);
-  --shadow-2: 0 10px 30px rgba(16, 19, 24, 0.14);
+  --bg: #e6eae5;
+  --surface: #f8faf6;
+  --surface-2: #eef2ec;
+  --text: #13241b;
+  --muted: #56675d;
+  --line: #d3dcd4;
+  --line-strong: #93a398;
+  --accent: #1d5a3e;
+  --accent-ink: #f4f7f1;
+  --ring: #c99532;
+  --accent-soft: #d5e1d7;
+  --danger: #b3302c;
+  --warn: #93650f;
+  --brass: #c99532;
+  --felt-a: #286a4a;
+  --felt-b: #164630;
+  --felt-line: rgba(6, 24, 15, 0.35);
+  --felt-trim: rgba(226, 182, 92, 0.55);
+  --chip-bg: rgba(250, 251, 246, 0.94);
+  --chip-ink: #13241b;
+  --ours: #1d5a3e;
+  --theirs: #b3302c;
+  --stitch: #b3302c;
+  --ours-ink: #1d5a3e;
+  --theirs-ink: #a52b27;
+  --card-bg: #fcfcf8;
+  --card-ink: #141a17;
+  --card-red: #c42a30;
+  --card-edge: rgba(10, 24, 16, 0.18);
+  --felt-ink: #eef4ec;
+  --felt-ink-soft: rgba(238, 244, 236, 0.8);
+  --turn-bg: var(--brass);
+  --turn-ink: #1a1406;
+  --shadow-1: 0 1px 2px rgba(10, 30, 20, 0.1);
+  --shadow-2: 0 10px 30px rgba(10, 30, 20, 0.18);
   --cw: clamp(52px, 16.5vw, 72px);
   /* your hand is the hero: eight cards fill the width, each showing a half-width strip */
   --hand-cw: clamp(54px, calc((100vw - 24px) / 4.5), 84px);
@@ -45,90 +44,88 @@
   --side-cw: clamp(34px, 9.5vw, 46px);
   --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-    --back-a: #7d6d5f;
-  --back-b: #5b4d42;
-color-scheme: light;
+  --back-a: #b8352f;
+  --back-b: #94271f;
+  color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #151412;
-    --surface: #1e1c19;
-    --surface-2: #272420;
-    --text: #ece8df;
-    --muted: #a09a8e;
-    --line: #302d28;
-    --line-strong: #77705f;
-    --accent: #d9d0be;
-    --accent-ink: #1a1814;
-    --ring: #d27d55;
-    --accent-soft: #2a2722;
-    --danger: #e8837b;
-    --warn: #e0ad4a;
-    --felt-a: #262420;
-    --felt-b: #141311;
-    --felt-line: rgba(255, 255, 255, 0.1);
-    --felt-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 1l13 13-13 13L1 14z' fill='none' stroke='rgba(255,255,255,0.035)' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 28px 28px;
-    --stitch: #c58a73;
-    --ours-ink: #ece8df;
-    --theirs-ink: #d9a590;
-    --card-bg: #f1f3f6;
-    --card-red: #d4333d;
+    --bg: #0b1410;
+    --surface: #13201a;
+    --surface-2: #1a2a22;
+    --text: #e8eee8;
+    --muted: #93a49a;
+    --line: #233429;
+    --line-strong: #4d6457;
+    --accent: #ddb055;
+    --accent-ink: #1a1406;
+    --ring: #e2b65a;
+    --accent-soft: #1f3128;
+    --danger: #ec8a7e;
+    --warn: #e0b456;
+    --brass: #ddb055;
+    --felt-a: #1f5039;
+    --felt-b: #0d281c;
+    --felt-line: rgba(0, 0, 0, 0.45);
+    --felt-trim: rgba(221, 176, 85, 0.42);
+      --chip-bg: rgba(10, 24, 17, 0.78);
+    --chip-ink: #e8eee8;
+    --ours: #7cc39a;
+    --theirs: #e0776b;
+    --stitch: #d0574b;
+    --ours-ink: #8fd0aa;
+    --theirs-ink: #ec8a7e;
+    --card-bg: #eef0ea;
+    --card-red: #cf2f36;
     --card-edge: rgba(0, 0, 0, 0.35);
-    --felt-ink: #ece8df;
-    --felt-ink-soft: rgba(255, 255, 255, 0.8);
-    --felt-red: #f0aaa2;
-    --ours-on: #14201a;
-    --theirs-on: #1d120d;
-    --turn-bg: var(--card-bg);
-    --turn-ink: var(--card-ink);
+    --felt-ink: #e8eee8;
+    --felt-ink-soft: rgba(232, 238, 232, 0.78);
+    --turn-ink: #1a1406;
     --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.5);
-    --back-a: #907f6f;
-    --back-b: #6d5d50;
-    --ours: #ece8df;
-    --theirs: #d19a84;
+    --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.55);
+    --back-a: #a83630;
+    --back-b: #842720;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #151412;
-  --surface: #1e1c19;
-  --surface-2: #272420;
-  --text: #ece8df;
-  --muted: #a09a8e;
-  --line: #302d28;
-  --line-strong: #77705f;
-  --accent: #d9d0be;
-  --accent-ink: #1a1814;
-  --ring: #d27d55;
-  --accent-soft: #2a2722;
-  --danger: #e8837b;
-  --warn: #e0ad4a;
-  --felt-a: #262420;
-  --felt-b: #141311;
-  --felt-line: rgba(255, 255, 255, 0.1);
-  --felt-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M14 1l13 13-13 13L1 14z' fill='none' stroke='rgba(255,255,255,0.035)' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 28px 28px;
-  --stitch: #c58a73;
-  --ours-ink: #ece8df;
-  --theirs-ink: #d9a590;
-  --card-bg: #f1f3f6;
-  --card-red: #d4333d;
+  --bg: #0b1410;
+  --surface: #13201a;
+  --surface-2: #1a2a22;
+  --text: #e8eee8;
+  --muted: #93a49a;
+  --line: #233429;
+  --line-strong: #4d6457;
+  --accent: #ddb055;
+  --accent-ink: #1a1406;
+  --ring: #e2b65a;
+  --accent-soft: #1f3128;
+  --danger: #ec8a7e;
+  --warn: #e0b456;
+  --brass: #ddb055;
+  --felt-a: #1f5039;
+  --felt-b: #0d281c;
+  --felt-line: rgba(0, 0, 0, 0.45);
+  --felt-trim: rgba(221, 176, 85, 0.42);
+  --chip-bg: rgba(10, 24, 17, 0.78);
+  --chip-ink: #e8eee8;
+  --ours: #7cc39a;
+  --theirs: #e0776b;
+  --stitch: #d0574b;
+  --ours-ink: #8fd0aa;
+  --theirs-ink: #ec8a7e;
+  --card-bg: #eef0ea;
+  --card-red: #cf2f36;
   --card-edge: rgba(0, 0, 0, 0.35);
-  --felt-ink: #ece8df;
-  --felt-ink-soft: rgba(255, 255, 255, 0.8);
-  --felt-red: #f0aaa2;
-  --ours-on: #14201a;
-  --theirs-on: #1d120d;
-  --turn-bg: var(--card-bg);
-  --turn-ink: var(--card-ink);
+  --felt-ink: #e8eee8;
+  --felt-ink-soft: rgba(232, 238, 232, 0.78);
+  --turn-ink: #1a1406;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.5);
-    --back-a: #907f6f;
-  --back-b: #6d5d50;
-  --ours: #ece8df;
-  --theirs: #d19a84;
-color-scheme: dark;
+  --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.55);
+  --back-a: #a83630;
+  --back-b: #842720;
+  color-scheme: dark;
 }
 
 /* ---------- base ---------- */
@@ -298,10 +295,16 @@ button:disabled { cursor: default; }
 
 .felt {
   position: relative; margin: 0 10px; border-radius: 26px; min-height: 0;
-  background: var(--felt-pattern), radial-gradient(ellipse at 50% 40%, var(--felt-a), var(--felt-b) 75%);
-  box-shadow: inset 0 0 0 1px var(--felt-line), var(--shadow-2);
+  /* the nap of the cloth is fine noise blended into the green */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='0.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px, radial-gradient(ellipse at 50% 40%, var(--felt-a), var(--felt-b) 78%);
+  background-blend-mode: overlay, normal;
+  box-shadow: inset 0 0 0 1px var(--felt-line), inset 0 0 60px rgba(0, 0, 0, 0.22), var(--shadow-2);
 }
-.felt::before { content: ""; position: absolute; inset: 12px; border-radius: 18px; border: 1.5px solid var(--felt-line); pointer-events: none; }
+/* brass tooling round the edge of the baize, a double line as on an old card table */
+.felt::before {
+  content: ""; position: absolute; inset: 12px; border-radius: 18px; pointer-events: none;
+  border: 1px solid var(--felt-trim); outline: 1px solid color-mix(in srgb, var(--felt-trim) 45%, transparent); outline-offset: 3px;
+}
 
 /* seats */
 .seat { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 2; }
@@ -404,7 +407,7 @@ button:disabled { cursor: default; }
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.22);
 }
 .card.dim { opacity: 0.4; }
-.card.winner { box-shadow: 0 0 0 3px var(--accent), 0 8px 18px rgba(0, 0, 0, 0.3); }
+.card.winner { box-shadow: 0 0 0 3px var(--ring), 0 8px 18px rgba(0, 0, 0, 0.3); }
 .card.deal { animation: deal-in 0.5s var(--ease) both; }
 
 .hand { --cw: var(--hand-cw); display: flex; justify-content: center; padding: 22px 12px 30px; position: relative; z-index: 3; min-height: calc(var(--cw) * 1.42 + 34px); }
@@ -628,7 +631,7 @@ button:disabled { cursor: default; }
 
 
 /* the lucky card, face up for everybody */
-.card.lucky { box-shadow: 0 0 0 2px #e8b931, 0 4px 10px rgba(0, 0, 0, 0.25); animation: lucky-pop 0.5s var(--ease) both; }
+.card.lucky { box-shadow: 0 0 0 2px var(--brass), 0 4px 10px rgba(0, 0, 0, 0.25); animation: lucky-pop 0.5s var(--ease) both; }
 .backs .card.small.lucky { z-index: 1; }
 @keyframes lucky-pop { from { transform: scale(0.6) rotateY(90deg); } to { transform: none; } }
 
@@ -666,7 +669,7 @@ button:disabled { cursor: default; }
 .spread-card.edge { translate: -7px calc(var(--y) - 12px); }
 .spread-card.edge { box-shadow: 0 8px 14px rgba(0, 0, 0, 0.35); }
 
-/* the red accent is for the interface; on the felt, controls and the active player are paper-coloured */
+/* on the felt, controls and the active player are brass, so they stand out from the green */
 .cut-table .primary { background: var(--turn-bg); color: var(--turn-ink); }
 
 /* ---------- a bigger table: the player's name and hand sit over the bottom edge of the felt ---------- */
