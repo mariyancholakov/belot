@@ -903,3 +903,10 @@ button:disabled { cursor: default; }
 .slot { height: 64px; }
 .slot-text b, .slot-text small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .slot-text b { overflow-wrap: normal; }
+/* names are up to 20 letters: on the table they end in "…" inside their pill instead of pushing the layout */
+.seat .name { min-width: 0; }
+.seat .name > span:not(.balloon) { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.felt .seat .name { max-width: min(190px, 30vw); }
+@media (max-width: 759px) and (orientation: portrait) { .felt .seat .name { max-width: none; } }
+/* where a name sits in running text, a long one breaks instead of overflowing */
+.modal-sub, .bid-log, .waiting, .hint, .cut-hint { overflow-wrap: anywhere; }
