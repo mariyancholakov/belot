@@ -31,7 +31,7 @@ const paths: Record<string, ReactNode> = {
   ),
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
-  more: <path d="M5 12h.01M12 12h.01M19 12h.01" strokeWidth="3" />,
+  share: <path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" />,
 };
 
 export function Icon({ name, size = 20 }: { name: keyof typeof paths | string; size?: number }) {

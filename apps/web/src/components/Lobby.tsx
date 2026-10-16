@@ -57,21 +57,20 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
           <Icon name="back" />
         </button>
         <div className="lobby-code">
-          <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
-            {room.code}
-          </h1>
-          <p className="muted">{bg.shareHint}</p>
-        </div>
-
-        <div className="share">
-          <button className="secondary" onClick={copy}>
-            <Icon name={copied ? "check" : "copy"} size={18} /> {copied ? bg.copied : bg.copyLink}
-          </button>
-          {canShare && (
-            <button className="secondary" onClick={nativeShare}>
-              {bg.share}
+          <div className="code-box">
+            <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
+              {room.code}
+            </h1>
+            <button className="icon-btn" onClick={copy} aria-label={copied ? bg.copied : bg.copyLink} title={copied ? bg.copied : bg.copyLink}>
+              <Icon name={copied ? "check" : "copy"} />
             </button>
-          )}
+            {canShare && (
+              <button className="icon-btn" onClick={nativeShare} aria-label={bg.share} title={bg.share}>
+                <Icon name="share" />
+              </button>
+            )}
+          </div>
+          <p className="muted">{bg.shareHint}</p>
         </div>
 
 
@@ -81,9 +80,8 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
             const mine = room.you === seat;
             const partner = room.you !== null && !mine && (seat + 2) % 4 === room.you;
             const ours = seat % 2 === mineParity;
-            const note = s
-              ? [mine ? bg.you : partner ? bg.partnerOf : "", s.bot ? bg.bot : "", !s.connected && !s.bot ? bg.offline : "", room.host === s.nickname ? bg.host : ""].filter(Boolean).join(" · ")
-              : "";
+            // one short word under the name, so every box keeps the same height
+            const note = s ? (mine ? bg.you : !s.connected && !s.bot ? bg.offline : partner ? bg.partnerOf : s.bot ? bg.bot : teamLabel(seat)) : "";
             return (
               <button key={seat} className={`slot ${ours ? "ours" : "theirs"} ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} aria-label={s ? undefined : `${teamLabel(seat)}: ${bg.takeSeat}`} onClick={() => onSit(seat)}>
                 <span className="slot-avatar" aria-hidden="true">
@@ -91,7 +89,7 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
                 </span>
                 <span className="slot-text">
                   {s ? <b>{s.nickname}</b> : <b className="slot-empty">{teamLabel(seat)}</b>}
-                  {s && <small>{[teamLabel(seat), note].filter(Boolean).join(" · ")}</small>}
+                  {s && <small>{note}</small>}
                 </span>
               </button>
             );
