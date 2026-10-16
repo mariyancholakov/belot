@@ -1,5 +1,6 @@
-import { chooseBid, DEFAULT_BID_TUNING } from "./bidder";
-import { chooseCard, DEFAULT_PLAY_TUNING } from "./player";
+import { chooseBid, DEFAULT_BID_TUNING, type BidTuning } from "./bidder";
+import { chooseCard, DEFAULT_PLAY_TUNING, type PlayTuning } from "./player";
+import { POLICIES } from "./rollout";
 import { cardEquals, isTrump, points, strength, SUITS, type Card, type Contract, type Suit } from "./cards";
 import { mulberry32 } from "./deal";
 import type { GameAction, GameState } from "./game";
@@ -96,13 +97,31 @@ export const randomBot: BotPolicy = (view, seed) => {
 /** Numbers that tune a bot, by name (each bot documents its own). */
 export type BotParams = Record<string, number>;
 
+/** Numbers named `<prefix>.<key>`, without the prefix. */
+function scoped(p: BotParams, prefix: string): BotParams {
+  const out: BotParams = {};
+  for (const [key, value] of Object.entries(p)) if (key.startsWith(prefix + ".")) out[key.slice(prefix.length + 1)] = value;
+  return out;
+}
+
+/** Bid tuning from `bid.*` numbers; `bid.rollout` picks the playing policy of the simulated rounds. */
+function bidTuning(p: BotParams): BidTuning {
+  const { rollout, ...rest } = scoped(p, "bid");
+  return { ...DEFAULT_BID_TUNING, ...rest, ...(rollout !== undefined ? { policy: POLICIES[rollout]! } : {}) };
+}
+
+function playTuning(p: BotParams): PlayTuning {
+  const { rollout, ...rest } = scoped(p, "play");
+  return { ...DEFAULT_PLAY_TUNING, ...rest, ...(rollout !== undefined ? { policy: POLICIES[rollout]! } : {}) };
+}
+
 /** Every bot the arena knows, built from optional tuning numbers. */
 export const BOTS: Record<string, (params: BotParams) => BotPolicy> = {
   basic: () => basicBot,
   /** Bids by simulating the round (no trumps, all trumps, contra, reading the other bids); plays like the basic bot. */
-  bidder: (p) => makeBot((view, seed) => chooseBid(view, seed, { ...DEFAULT_BID_TUNING, ...p }), basicPlay),
+  bidder: (p) => makeBot((view, seed) => chooseBid(view, seed, bidTuning(p)), basicPlay),
   /** Bids like `bidder` and plays each card by sampling the unseen hands. */
-  mc: (p) => makeBot((view, seed) => chooseBid(view, seed, { ...DEFAULT_BID_TUNING, ...p }), (view, seed) => chooseCard(view, seed, { ...DEFAULT_PLAY_TUNING, ...p })),
+  mc: (p) => makeBot((view, seed) => chooseBid(view, seed, bidTuning(p)), (view, seed) => chooseCard(view, seed, playTuning(p))),
   random: () => randomBot,
 };
 

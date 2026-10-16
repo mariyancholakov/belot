@@ -13,3 +13,4 @@ export * from "./handModel";
 export * from "./bidder";
 export * from "./knowledge";
 export * from "./player";
+export * from "./rollout";

@@ -41,7 +41,7 @@ describe("card play by sampling", () => {
   });
 
   it("plays whole games", () => {
-    const mc = BOTS.mc!({ samples: 10 });
+    const mc = BOTS.mc!({ "bid.samples": 30, "play.samples": 10 });
     let state = newGame(4);
     for (let steps = 0; state.phase !== "gameOver"; steps++) {
       state = advance(state, mc);
