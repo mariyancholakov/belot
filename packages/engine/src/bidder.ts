@@ -36,6 +36,11 @@ export interface BidTuning {
   contraPoint: number;
   /** Spread of the bid-or-not curve, in points. */
   spread: number;
+  /** Extra hand value another player wants before overcalling a partner, or re-contra. */
+  overcallExtra: number;
+  recontraExtra: number;
+  /** 1: play the rest of the auction out with the hand model; 0: take every bid to stand as it is. */
+  lookahead: number;
   /** How the simulated rounds are played. */
   policy: SimPolicy;
 }
@@ -48,6 +53,9 @@ export const DEFAULT_BID_TUNING: BidTuning = {
   bidPoint: 0,
   contraPoint: 4,
   spread: 4,
+  overcallExtra: 6,
+  recontraExtra: 4,
+  lookahead: 1,
   policy: greedyPolicy,
 };
 
@@ -56,20 +64,71 @@ const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));
 interface Auction {
   highest: { seat: number; contract: number } | null;
   multiplier: Multiplier;
+  /** Passes since the last bid, contra or re-contra. */
+  passes: number;
+  /** True once a re-contra has ended the bidding. */
+  closed: boolean;
 }
+
+/** The auction after `seat` makes `bid`. */
+function after(a: Auction, seat: number, bid: BidAction | { type: "bid"; contract: number }): Auction {
+  if (bid.type === "bid") return { highest: { seat, contract: typeof bid.contract === "number" ? bid.contract : contractId(bid.contract) }, multiplier: 1, passes: 0, closed: false };
+  if (bid.type === "contra") return { ...a, multiplier: 2, passes: 0 };
+  if (bid.type === "recontra") return { ...a, multiplier: 4, passes: 0, closed: true };
+  return { ...a, passes: a.passes + 1 };
+}
+
+const over = (a: Auction) => a.closed || (a.highest === null ? a.passes === 4 : a.passes === 3);
 
 /** Replays the bid log, calling `visit` with the state each bid was made in. */
 function replay(log: GameView["bidLog"], visit: (seat: number, bid: BidAction, before: Auction) => void): Auction {
-  const auction: Auction = { highest: null, multiplier: 1 };
+  let auction: Auction = { highest: null, multiplier: 1, passes: 0, closed: false };
   for (const { seat, bid } of log) {
-    visit(seat, bid, { highest: auction.highest && { ...auction.highest }, multiplier: auction.multiplier });
-    if (bid.type === "bid") {
-      auction.highest = { seat, contract: contractId(bid.contract) };
-      auction.multiplier = 1;
-    } else if (bid.type === "contra") auction.multiplier = 2;
-    else if (bid.type === "recontra") auction.multiplier = 4;
+    visit(seat, bid, auction);
+    auction = after(auction, seat, bid);
   }
   return auction;
+}
+
+type ModelBid = { type: "pass" } | { type: "bid"; contract: number } | { type: "contra" } | { type: "recontra" };
+
+/** What another player with `hand` (five cards) is taken to bid: the quick hand model against fixed points. */
+function modelBid(hand: number, seat: number, a: Auction, dealer: number, t: BidTuning): ModelBid {
+  const p = positionOf(seat, dealer);
+  const h = a.highest;
+  if (a.multiplier === 2) {
+    return h && teamOf(h.seat) === teamOf(seat) && handValue(hand, h.contract, p) > t.contraPoint + t.recontraExtra ? { type: "recontra" } : { type: "pass" };
+  }
+  if (a.multiplier === 4) return { type: "pass" };
+  const partnerHolds = h !== null && teamOf(h.seat) === teamOf(seat);
+  let choice: ModelBid = { type: "pass" };
+  let best = 0;
+  if (h && !partnerHolds) {
+    const v = handValue(hand, h.contract, p) - t.contraPoint;
+    if (v > best) {
+      best = v;
+      choice = { type: "contra" };
+    }
+  }
+  const point = t.bidPoint + (partnerHolds ? t.overcallExtra : 0);
+  for (let c = h ? h.contract + 1 : 0; c < 6; c++) {
+    const v = handValue(hand, c, p) - point;
+    if (v > best) {
+      best = v;
+      choice = { type: "bid", contract: c };
+    }
+  }
+  return choice;
+}
+
+/** Plays the auction to its end from `a` with the model for every other seat; this seat passes from now on. */
+function finish(a: Auction, next: number, me: number, first: readonly number[], dealer: number, t: BidTuning): Auction {
+  let seat = next;
+  while (!over(a)) {
+    a = after(a, seat, seat === me ? { type: "pass" } : modelBid(first[seat]!, seat, a, dealer, t));
+    seat = (seat + 1) % 4;
+  }
+  return a;
 }
 
 /** How likely a seat holding `hand` (its first five cards) was to make the bids it made. */
@@ -95,6 +154,8 @@ function likelihood(view: GameView, seat: number, hand: number, t: BidTuning): n
 
 interface Option {
   action: GameAction;
+  /** The auction right after this action. */
+  auction: Auction;
   contract: number;
   multiplier: Multiplier;
   /** Seat whose team plays the contract. */
@@ -112,13 +173,13 @@ export function bidOptions(view: GameView, seed: number, t: BidTuning = DEFAULT_
     if (action.type !== "bid") continue;
     const bid = action.bid;
     const h = auction.highest;
-    if (bid.type === "bid") options.push({ action, contract: contractId(bid.contract), multiplier: 1, bidder: me, margin: t.bidMargin });
-    else if (bid.type === "contra") options.push({ action, contract: h!.contract, multiplier: 2, bidder: h!.seat, margin: t.contraMargin });
-    else if (bid.type === "recontra") options.push({ action, contract: h!.contract, multiplier: 4, bidder: h!.seat, margin: 0 });
-    else if (h) options.push({ action, contract: h.contract, multiplier: auction.multiplier, bidder: h.seat, margin: 0 });
+    const next = after(auction, me, bid);
+    if (bid.type === "bid") options.push({ action, auction: next, contract: contractId(bid.contract), multiplier: 1, bidder: me, margin: t.bidMargin });
+    else if (bid.type === "contra") options.push({ action, auction: next, contract: h!.contract, multiplier: 2, bidder: h!.seat, margin: t.contraMargin });
+    else if (bid.type === "recontra") options.push({ action, auction: next, contract: h!.contract, multiplier: 4, bidder: h!.seat, margin: 0 });
+    else options.push({ action, auction: next, contract: h ? h.contract : -1, multiplier: auction.multiplier, bidder: h ? h.seat : me, margin: 0 });
   }
 
-  const contracts = [...new Set(options.map((o) => o.contract))];
   const totals = options.map(() => 0);
   let weightSum = 0;
 
@@ -159,27 +220,28 @@ export function bidOptions(view: GameView, seed: number, t: BidTuning = DEFAULT_
     weightSum += w;
 
     const bonus = announcementPoints(hands);
-    for (const c of contracts) {
-      const r: SimRound = playOut(startRound(hands, c, me, view.dealer, 1, [bonus[0], bonus[1]]), t.policy);
-      options.forEach((o, i) => {
-        if (o.contract !== c) return;
-        r.bidder = o.bidder;
-        r.multiplier = o.multiplier;
-        const rec = roundResult(r).recorded;
-        totals[i]! += w * (rec[myTeam]! - rec[1 - myTeam]!);
-      });
-    }
+    const played: (SimRound | undefined)[] = [];
+    options.forEach((o, i) => {
+      const end = t.lookahead > 0 ? finish(o.auction, (me + 1) % 4, me, first, view.dealer, t) : o.contract < 0 ? null : { highest: { seat: o.bidder, contract: o.contract }, multiplier: o.multiplier };
+      if (!end?.highest) return; // everybody passed: a redeal is worth nothing to either side
+      const c = end.highest.contract;
+      const r = (played[c] ??= playOut(startRound(hands, c, me, view.dealer, 1, [bonus[0], bonus[1]]), t.policy));
+      r.bidder = end.highest.seat;
+      r.multiplier = end.multiplier;
+      const rec = roundResult(r).recorded;
+      totals[i]! += w * (rec[myTeam]! - rec[1 - myTeam]!);
+    });
   }
 
   return options.map((o, i) => ({ ...o, value: weightSum > 0 ? totals[i]! / weightSum : 0 }));
 }
 
-/** The bid with the best value after its margin; passing with no bid yet on the table is worth 0. */
+/** The bid with the best value after its margin. */
 export function chooseBid(view: GameView, seed: number, t: BidTuning = DEFAULT_BID_TUNING): GameAction {
   const options = bidOptions(view, seed, t);
   const pass = view.legalActions.find((a) => a.type === "bid" && a.bid.type === "pass")!;
   let best: GameAction = pass;
-  let bestScore = options.find((o) => o.action === pass)?.value ?? 0;
+  let bestScore = options.find((o) => o.action === pass)!.value;
   for (const o of options) {
     if (o.action === pass) continue;
     const score = o.value - o.margin;
