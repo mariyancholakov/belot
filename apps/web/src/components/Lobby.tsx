@@ -4,6 +4,7 @@ import { bg } from "../i18n/bg";
 import { Avatar } from "./Avatar";
 import { Controls } from "./Controls";
 import { Icon } from "./Icon";
+import { LogoMark } from "./Logo";
 
 interface Props {
   room: RoomState;
@@ -45,7 +46,7 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
     <main className="lobby">
       <div className="page-bar">
         <button className="home-logo" onClick={onLeave}>
-          <span className="home-logo-mark" aria-hidden="true">♠</span>
+          <LogoMark />
           {bg.appName}
         </button>
         <Controls />

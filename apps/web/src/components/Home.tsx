@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { bg } from "../i18n/bg";
 import { Controls } from "./Controls";
+import { LogoMark } from "./Logo";
 
 interface Props {
   nickname: string;
@@ -68,7 +69,7 @@ export function Home({ nickname: saved, initialCode, ready, codeError, onCreate,
   return (
     <main className="home">
       <a className="home-logo" href="/">
-        <span className="home-logo-mark" aria-hidden="true">♠</span>
+        <LogoMark />
         {bg.appName}
       </a>
       <div className="page-controls">
