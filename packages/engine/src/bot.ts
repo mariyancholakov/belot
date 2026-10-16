@@ -1,4 +1,5 @@
 import { chooseBid, DEFAULT_BID_TUNING } from "./bidder";
+import { chooseCard, DEFAULT_PLAY_TUNING } from "./player";
 import { cardEquals, isTrump, points, strength, SUITS, type Card, type Contract, type Suit } from "./cards";
 import { mulberry32 } from "./deal";
 import type { GameAction, GameState } from "./game";
@@ -100,6 +101,8 @@ export const BOTS: Record<string, (params: BotParams) => BotPolicy> = {
   basic: () => basicBot,
   /** Bids by simulating the round (no trumps, all trumps, contra, reading the other bids); plays like the basic bot. */
   bidder: (p) => makeBot((view, seed) => chooseBid(view, seed, { ...DEFAULT_BID_TUNING, ...p }), basicPlay),
+  /** Bids like `bidder` and plays each card by sampling the unseen hands. */
+  mc: (p) => makeBot((view, seed) => chooseBid(view, seed, { ...DEFAULT_BID_TUNING, ...p }), (view, seed) => chooseCard(view, seed, { ...DEFAULT_PLAY_TUNING, ...p })),
   random: () => randomBot,
 };
 

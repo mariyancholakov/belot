@@ -11,3 +11,5 @@ export * from "./arena";
 export * from "./sim";
 export * from "./handModel";
 export * from "./bidder";
+export * from "./knowledge";
+export * from "./player";
