@@ -75,7 +75,6 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
           )}
         </div>
 
-        <div className="stitch" aria-hidden="true" />
 
         <div className="seats" role="group" aria-label={bg.lobbyTableLabel}>
           {order.map((seat) => {

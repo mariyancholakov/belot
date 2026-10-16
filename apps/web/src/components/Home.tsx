@@ -83,7 +83,6 @@ export function Home({ nickname: saved, initialCode, ready, codeError, onCreate,
         </label>
 
         {fromLink ? join : create}
-        <div className="stitch" aria-hidden="true" />
         {fromLink ? create : join}
       </div>
     </main>
