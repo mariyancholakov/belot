@@ -326,21 +326,28 @@ button:disabled { cursor: default; }
 }
 @keyframes clock-run { 0% { transform: scaleX(1); } 70% { background: var(--felt-ink); } 100% { transform: scaleX(0); background: var(--danger); } }
 .balloon {
-  position: absolute; z-index: 6; width: max-content; max-width: 220px; padding: 12px 22px; border-radius: 26px; white-space: normal; text-align: center; line-height: 1.2;
-  background: var(--card-bg); color: var(--card-ink); font-size: 1.15rem; font-weight: 700; box-shadow: var(--shadow-2); animation: pop 0.35s var(--ease);
+  position: absolute; z-index: 6; width: max-content; max-width: 220px; padding: 12px 24px; white-space: normal; text-align: center; line-height: 1.2;
+  border-radius: 46% 54% 50% 50% / 62% 58% 42% 38%; left: 50%; bottom: calc(100% + 24px); translate: -50% 0; transform-origin: 50% 100%;
+  background: var(--card-bg); color: var(--card-ink); font-size: 1.15rem; font-weight: 700; box-shadow: var(--shadow-2);
+  animation: pop 0.35s var(--ease), balloon-out 0.45s ease-in 3s forwards;
 }
-/* two little circles lead from the name to the cloud, as in a thought bubble */
-.balloon::before, .balloon::after { content: ""; position: absolute; border-radius: 50%; background: var(--card-bg); box-shadow: var(--shadow-1); }
-.balloon::before { width: 14px; height: 14px; }
-.balloon::after { width: 8px; height: 8px; }
-.seat.top .balloon { left: calc(100% + 30px); top: 50%; translate: 0 -50%; }
-.seat.top .balloon::before { left: -12px; top: calc(50% - 7px); } .seat.top .balloon::after { left: -22px; top: calc(50% - 4px); }
-.seat.left .balloon { left: calc(100% + 30px); top: 50%; translate: 0 -50%; }
-.seat.left .balloon::before { left: -12px; top: calc(50% - 7px); } .seat.left .balloon::after { left: -22px; top: calc(50% - 4px); }
-.seat.right .balloon { right: calc(100% + 30px); top: 50%; translate: 0 -50%; }
-.seat.right .balloon::before { right: -12px; top: calc(50% - 7px); } .seat.right .balloon::after { right: -22px; top: calc(50% - 4px); }
-.seat.bottom .balloon { bottom: calc(100% + 26px); left: 50%; translate: -50% 0; }
-.seat.bottom .balloon::before { bottom: -12px; left: calc(50% - 7px); } .seat.bottom .balloon::after { bottom: -22px; left: calc(50% - 4px); }
+@keyframes balloon-out { to { opacity: 0; transform: translateY(-6px) scale(0.92); visibility: hidden; } }
+/* two little circles lead from the player down to the cloud, as in a thought bubble */
+.balloon::before, .balloon::after { content: ""; position: absolute; left: 50%; border-radius: 50%; background: var(--card-bg); box-shadow: var(--shadow-1); }
+.seat .name .balloon { overflow: visible; }
+.balloon::before { width: 13px; height: 13px; bottom: -14px; margin-left: -6px; }
+.balloon::after { width: 7px; height: 7px; bottom: -23px; margin-left: -3px; }
+/* a bubble comes out above the profile; at the side edges it grows inward so it stays on screen */
+.felt .seat.left .balloon { left: -2px; translate: none; transform-origin: 20px 100%; }
+.felt .seat.right .balloon { left: auto; right: -2px; translate: none; transform-origin: calc(100% - 20px) 100%; }
+.felt .seat.left .balloon::before, .felt .seat.left .balloon::after { left: 31px; }
+.felt .seat.right .balloon::before, .felt .seat.right .balloon::after { left: auto; right: 31px; }
+/* the top player sits on the edge of the felt with no room above, so their bubble comes out to the side */
+@media (min-width: 760px), (orientation: landscape) {
+  .felt .seat.top .balloon { left: calc(100% + 24px); bottom: auto; top: 50%; translate: 0 -50%; transform-origin: 0 50%; }
+  .felt .seat.top .balloon::before { left: -12px; bottom: auto; top: calc(50% - 6px); margin: 0; }
+  .felt .seat.top .balloon::after { left: -22px; bottom: auto; top: calc(50% - 3px); margin: 0; }
+}
 .felt .seat { position: absolute; }
 .felt .seat.top { top: -22px; left: 50%; transform: translateX(-50%); }
 .felt .seat.left { left: 10px; top: 50%; transform: translateY(-50%); }
@@ -777,15 +784,9 @@ button:disabled { cursor: default; }
   .felt-pop .bidding-head { margin-bottom: 8px; gap: 2px; }
 }
 @media (max-width: 759px) {
-  /* a bubble hangs just under its player's name, over their own cards, so two bubbles never meet and the middle of the table stays clear */
-  .balloon { max-width: 128px; padding: 7px 13px; border-radius: 18px; font-size: 0.92rem; }
-  .felt .seat.top .balloon { left: 50%; top: calc(100% + 8px); bottom: auto; right: auto; translate: -50% 0; }
-  .felt .seat.left .balloon { left: 0; top: calc(100% + 8px); right: auto; translate: none; }
-  .felt .seat.right .balloon { right: 0; top: calc(100% + 8px); left: auto; translate: none; }
-  .felt .seat.top .balloon::before, .felt .seat.left .balloon::before, .felt .seat.right .balloon::before { left: 22px; right: auto; top: -9px; bottom: auto; width: 9px; height: 9px; }
-  .felt .seat.top .balloon::before { left: calc(50% - 5px); }
-  .felt .seat.top .balloon::after, .felt .seat.left .balloon::after, .felt .seat.right .balloon::after { display: none; }
-  .felt .seat.right .balloon::before { left: auto; right: 22px; }
+  .balloon { max-width: 128px; padding: 7px 16px; font-size: 0.92rem; bottom: calc(100% + 18px); }
+  .balloon::before { width: 10px; height: 10px; bottom: -11px; margin-left: -5px; }
+  .balloon::after { width: 5px; height: 5px; bottom: -18px; margin-left: -2px; }
 }
 
 /* phones: choices sit side by side so the panel stays short, the trump badge reads in dark mode, the heap of played cards is smaller */
@@ -820,7 +821,7 @@ button:disabled { cursor: default; }
 /* ---------- portrait phones: the table laid out like a phone card game ----------
    opponents are an avatar over a name label with their cards fanned behind; the side players sit below the middle, which is left to the bid board and the played cards */
 @media (max-width: 759px) and (orientation: portrait) {
-  .felt-pop.bidding { width: min(calc(100% - 128px), 280px); padding: 10px; top: 20%; bottom: auto; }
+  .felt-pop.bidding { width: min(calc(100% - 128px), 280px); padding: 10px; top: 29%; bottom: auto; }
   .felt-pop.bidding .bidding-head { display: none; }
   .felt-pop.bidding .bid-grid, .felt-pop.bidding .bid-col { gap: 6px; }
   .felt-pop.bidding .bid-col .bid { min-height: 42px; }
@@ -840,9 +841,30 @@ button:disabled { cursor: default; }
   }
   .felt .seat.turn .name > span:not(.balloon) { background: var(--brass); color: #1a1406; }
   .felt .seat .clock { left: 2px; right: 2px; top: -10px; }
-  .felt .seat.top { top: 2px; }
-  .felt .seat.top .backs { margin-top: -16px; }
-  .felt .seat.left, .felt .seat.right { top: 58%; transform: none; }
+  /* every opponent sits centred on its side of the table; the avatar lies over the top of their cards, a little see-through */
+  .felt .seat.top { top: 46px; }
+  .felt .seat .backs { margin-top: -26px; opacity: 0.92; }
+  .felt .seat .avatar, .felt .seat .name > span:not(.balloon) { opacity: 0.88; }
+  .felt .seat.left, .felt .seat.right { top: 50%; transform: translateY(-50%); }
+  .felt .seat { z-index: 7; }
   .felt .seat.left { left: 8px; }
   .felt .seat.right { right: 8px; }
+}
+
+@media (max-width: 759px) and (orientation: portrait) and (max-height: 699px) {
+  .felt .seat.top { top: 4px; }
+  .felt-pop.bidding { top: 24%; }
+  .felt .seat.top .balloon { left: auto; right: calc(100% + 16px); bottom: auto; top: 6px; translate: none; transform-origin: 100% 50%; }
+  .felt .seat.top .balloon::before { left: auto; right: -11px; bottom: 6px; margin: 0; }
+  .felt .seat.top .balloon::after { display: none; }
+}
+
+/* a phone on its side: the bid board gets shorter rows so it fits under the top bar */
+@media (max-height: 560px) and (orientation: landscape) {
+  .felt-pop.bidding { top: 46%; bottom: auto; translate: 0 -50%; padding: 8px; }
+  .felt-pop.bidding .bidding-head { display: none; }
+  .felt-pop.bidding .bid-grid, .felt-pop.bidding .bid-col { gap: 5px; }
+  .felt-pop.bidding .bid-col .bid { min-height: 34px; }
+  .felt-pop.bidding .bid.suit { flex-direction: row; gap: 6px; }
+  .felt-pop.bidding .bid.pass { min-height: 38px; }
 }
