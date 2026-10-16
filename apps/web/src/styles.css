@@ -131,7 +131,7 @@
 
 /* ---------- base ---------- */
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; }
+html, body { min-height: 100%; }
 body {
   margin: 0;
   background: var(--bg);
@@ -142,8 +142,9 @@ body {
   font-variant-numeric: tabular-nums;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
-  overscroll-behavior: none;
 }
+/* the table is a fixed screen, so it should not bounce or pull to refresh; the other pages scroll normally */
+body:has(.table) { overscroll-behavior: none; }
 h1, h2 { margin: 0; font-weight: 700; letter-spacing: -0.02em; text-wrap: balance; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:disabled { cursor: default; }
@@ -195,7 +196,7 @@ button:disabled { cursor: default; }
   min-height: 100dvh; max-width: 440px; margin: 0 auto; padding: 24px 20px calc(32px + env(safe-area-inset-bottom));
   display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative;
 }
-.home, .lobby { justify-content: center; gap: 14px; max-width: none; }
+.home, .lobby { justify-content: center; gap: 14px; max-width: none; touch-action: pan-y; }
 .home-panel, .lobby-panel {
   display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%; max-width: 400px;
   padding: 28px 24px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
@@ -777,7 +778,7 @@ button:disabled { cursor: default; }
 }
 
 /* small phones: the page's own bar needs room above the card, and the cut hint stays clear of the side players */
-@media (max-width: 759px) {
+@media (max-width: 759px), (max-height: 560px) {
   .home, .lobby { padding-top: 72px; }
 }
 @media (max-width: 759px) and (orientation: portrait) {

@@ -87,13 +87,13 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
               ? [mine ? bg.you : partner ? bg.partnerOf : "", s.bot ? bg.bot : "", !s.connected && !s.bot ? bg.offline : "", room.host === s.nickname ? bg.host : ""].filter(Boolean).join(" · ")
               : "";
             return (
-              <button key={seat} className={`slot ${ours ? "ours" : "theirs"} ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} onClick={() => onSit(seat)}>
+              <button key={seat} className={`slot ${ours ? "ours" : "theirs"} ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} aria-label={s ? undefined : `${teamLabel(seat)}: ${bg.takeSeat}`} onClick={() => onSit(seat)}>
                 <span className="slot-avatar" aria-hidden="true">
                   {s ? <Avatar name={s.nickname} size={52} /> : "+"}
                 </span>
                 <span className="slot-text">
                   <em>{teamLabel(seat)}</em>
-                  <b>{s ? s.nickname : bg.takeSeat}</b>
+                  {s && <b>{s.nickname}</b>}
                   {note && <small>{note}</small>}
                 </span>
               </button>
