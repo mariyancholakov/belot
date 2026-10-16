@@ -15,16 +15,16 @@
   --accent-soft: #ecece8;
   --danger: #c8202e;
   --warn: #8a5a00;
-  --brass: #22305e;
+  --brass: #141414;
   --felt-a: #ffffff;
   --felt-b: #ffffff;
   --felt-line: transparent;
   --felt-trim: transparent;
   --chip-bg: #ffffff;
   --chip-ink: #141414;
-  --ours: #22305e;
+  --ours: #141414;
   --theirs: #a3a39c;
-  --ours-ink: #22305e;
+  --ours-ink: #141414;
   --theirs-ink: #5f5f58;
   --card-bg: #ffffff;
   --card-ink: #141414;
@@ -67,12 +67,12 @@
     --accent-soft: #2a2a2a;
     --danger: #f0676c;
     --warn: #e0b456;
-    --brass: #93a5ec;
+    --brass: #f2f2ef;
     --chip-bg: #1b1b1b;
     --chip-ink: #f2f2ef;
-    --ours: #93a5ec;
+    --ours: #f2f2ef;
     --theirs: #6e6e68;
-    --ours-ink: #a9b8f0;
+    --ours-ink: #f2f2ef;
     --theirs-ink: #a5a59e;
     --card-bg: #f6f6f3;
     --card-ink: #141414;
@@ -104,12 +104,12 @@
   --accent-soft: #2a2a2a;
   --danger: #f0676c;
   --warn: #e0b456;
-  --brass: #93a5ec;
+  --brass: #f2f2ef;
   --chip-bg: #1b1b1b;
   --chip-ink: #f2f2ef;
-  --ours: #93a5ec;
+  --ours: #f2f2ef;
   --theirs: #6e6e68;
-  --ours-ink: #a9b8f0;
+  --ours-ink: #f2f2ef;
   --theirs-ink: #a5a59e;
   --card-bg: #f6f6f3;
   --card-ink: #141414;
@@ -183,7 +183,7 @@ button:disabled { cursor: default; }
   min-height: 52px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--text);
   padding: 0 16px; font: inherit; font-size: 1.05rem; box-shadow: var(--shadow-1);
 }
-.field input::placeholder { color: var(--muted); opacity: 0.7; }
+.field input::placeholder { color: var(--muted); opacity: 1; }
 .field input:focus { border-color: var(--accent); outline: 3px solid var(--accent-soft); outline-offset: 0; }
 .field input.code::placeholder { letter-spacing: normal; font-weight: 500; }
 .field input.code { text-transform: uppercase; letter-spacing: 0.4em; text-align: center; font-weight: 700; }
@@ -232,7 +232,6 @@ button:disabled { cursor: default; }
 .slot:not(:disabled):hover { border-color: var(--accent); }
 .slot:not(:disabled):active { transform: scale(0.98); }
 .slot.mine { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.slot-text em { font-style: normal; font-size: 0.7rem; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; color: var(--team-ink); }
 .slot-avatar { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--surface-2); font-weight: 750; }
 .slot-avatar { overflow: hidden; }
 .slot.taken .slot-avatar { background: none; box-shadow: 0 0 0 3px var(--team); }
@@ -276,8 +275,8 @@ button:disabled { cursor: default; }
 
 .felt {
   position: relative; margin: 0 10px; border-radius: 26px; min-height: 0;
-  /* the table is a sheet of card stock: white, one hairline edge, a soft lift off the page */
-  background: var(--surface); box-shadow: 0 0 0 1px var(--line), var(--shadow-2);
+  /* the table is the page itself, edge to edge: no frame, nothing between the cards and the stock */
+  background: none;
 }
 
 /* seats */
@@ -388,7 +387,7 @@ button:disabled { cursor: default; }
   box-shadow: 0 1px 2px rgba(20, 20, 20, 0.16), 0 3px 8px rgba(20, 20, 20, 0.1);
 }
 .card.dim { opacity: 0.4; }
-.card.winner { box-shadow: 0 0 0 2px var(--ring), 0 8px 18px rgba(20, 20, 20, 0.14); }
+.card.winner { box-shadow: 0 0 0 2px var(--text), 0 8px 18px rgba(20, 20, 20, 0.14); }
 .card.deal { animation: deal-in 0.5s var(--ease) both; }
 
 .hand { --cw: var(--hand-cw); display: flex; justify-content: center; padding: 22px 12px 30px; position: relative; z-index: 3; min-height: calc(var(--cw) * 1.42 + 34px); }
@@ -468,7 +467,7 @@ button:disabled { cursor: default; }
 .modal h2.win { color: var(--accent); } .modal h2.lose { color: var(--danger); }
 .modal .primary { width: 100%; }
 .modal-actions { display: grid; gap: 4px; justify-items: stretch; text-align: center; }
-.details { display: grid; grid-template-columns: 1fr auto; gap: 6px 0; margin: 0; padding: 12px 14px; border-radius: 14px; background: var(--surface-2); font-size: 0.95rem; }
+.details { display: grid; grid-template-columns: 1fr auto; gap: 6px 0; margin: 0; padding: 12px 0 0; border-top: 1px solid var(--line); font-size: 0.95rem; }
 .details dt { color: var(--muted); padding-right: 20px; } .details dd { margin: 0; font-weight: 650; text-align: right; }
 .details dt.flag { grid-column: 1 / -1; color: var(--warn); font-weight: 650; }
 
@@ -861,3 +860,12 @@ button:disabled { cursor: default; }
 .table > .seat.bottom .name { border-color: var(--line); }
 .balloon { border: 1px solid var(--line); box-shadow: var(--shadow-2); }
 .balloon::before, .balloon::after { border: 1px solid var(--line); box-shadow: none; }
+
+/* the score sits top left like the index in a card's corner: team name over points, nothing else in the tile */
+.score-btn { order: -1; }
+.chips { order: 0; }
+.score-btn .score-team .to-win { display: none; }
+.score-btn .score-team { justify-items: center; min-width: 50px; padding: 4px 8px 5px; }
+/* the round sheet is one printed card: no boxes inside it */
+.score-team.big { background: none; border: 0; box-shadow: none; padding: 0; }
+.slot-empty { color: var(--muted); font-weight: 600; }

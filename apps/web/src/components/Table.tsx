@@ -4,6 +4,7 @@ import type { RoomState } from "@belot/protocol";
 import { announcementName, bg, contractLabel, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
 import { playSound } from "../sound";
 import { AnimatedNumber } from "./AnimatedNumber";
+import { SuitText } from "./SuitText";
 import { Avatar } from "./Avatar";
 import { Bidding, bidText } from "./Bidding";
 import { CardBack, CardFace } from "./Card";
@@ -426,7 +427,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
               <h2>{bg.roundTitle(last.bidder % 2 === myTeam, last.result.outcome)}</h2>
             )}
             <p className="modal-sub">
-              {bg.roundShort} {last.round} · <b>{names[last.bidder]}</b> · {contractLabel(last.contract)}
+              {bg.roundShort} {last.round} · <b>{names[last.bidder]}</b> · <SuitText text={contractLabel(last.contract)} />
               {last.multiplier > 1 && ` ×${last.multiplier}`}
             </p>
             <RoundDetails summary={last} myTeam={myTeam} />
@@ -550,7 +551,7 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
         )}
         {say && (
           <span className="balloon" key={say}>
-            {say}
+            <SuitText text={say} />
           </span>
         )}
       </div>

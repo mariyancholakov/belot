@@ -57,7 +57,6 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
           <Icon name="back" />
         </button>
         <div className="lobby-code">
-          <span className="eyebrow">{bg.roomCode}</span>
           <h1 className="room-code" aria-label={`${bg.roomCode} ${room.code}`}>
             {room.code}
           </h1>
@@ -91,9 +90,8 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
                   {s ? <Avatar name={s.nickname} size={52} /> : "+"}
                 </span>
                 <span className="slot-text">
-                  <em>{teamLabel(seat)}</em>
-                  {s && <b>{s.nickname}</b>}
-                  {note && <small>{note}</small>}
+                  {s ? <b>{s.nickname}</b> : <b className="slot-empty">{teamLabel(seat)}</b>}
+                  {s && <small>{[teamLabel(seat), note].filter(Boolean).join(" · ")}</small>}
                 </span>
               </button>
             );
