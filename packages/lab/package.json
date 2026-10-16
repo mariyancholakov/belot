@@ -6,7 +6,8 @@
   "scripts": {
     "arena": "tsx src/arena.ts",
     "test": "vitest run",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "fit-hands": "tsx src/fit-hands.ts"
   },
   "dependencies": {
     "@belot/engine": "workspace:*"

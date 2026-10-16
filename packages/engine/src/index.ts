@@ -9,3 +9,5 @@ export * from "./view";
 export * from "./bot";
 export * from "./arena";
 export * from "./sim";
+export * from "./handModel";
+export * from "./bidder";

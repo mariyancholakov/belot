@@ -1,3 +1,4 @@
+import { chooseBid, DEFAULT_BID_TUNING } from "./bidder";
 import { cardEquals, isTrump, points, strength, SUITS, type Card, type Contract, type Suit } from "./cards";
 import { mulberry32 } from "./deal";
 import type { GameAction, GameState } from "./game";
@@ -19,7 +20,7 @@ function suitScore(hand: readonly Card[], suit: Suit): number {
   return cards.reduce((sum, c) => sum + BID_VALUE[c.rank]!, 0) + cards.length * 2;
 }
 
-function chooseBid(hand: readonly Card[], options: GameAction[]): GameAction {
+function chooseSuitBid(hand: readonly Card[], options: GameAction[]): GameAction {
   const pass = options.find((a) => a.type === "bid" && a.bid.type === "pass")!;
   let best: GameAction | null = null;
   let bestScore = BID_THRESHOLD;
@@ -57,22 +58,32 @@ function choosePlay(view: GameView, options: GameAction[]): GameAction {
   return play([...cards].sort(byValue)[0]!);
 }
 
+type Choose = (view: GameView, seed: number) => GameAction;
+
+/** A bot from a way to bid and a way to play; the other decisions are the same for every bot. */
+export function makeBot(bid: Choose, play: Choose): BotPolicy {
+  return (view, seed) => {
+    const options = view.legalActions;
+    if (options.length === 0) return null;
+    if (view.phase === "shuffling") return { type: "shuffle" };
+    if (view.phase === "dealing") return { type: "deal", lucky: false };
+    if (view.phase === "cutting") return { type: "cut", position: 8 + (Math.abs(seed) % 17) };
+    if (view.phase === "bidding") return bid(view, seed);
+    if (view.phase === "playing") {
+      if (options.some((a) => a.type === "announce")) return { type: "announce", declare: true };
+      if (options.some((a) => a.type === "claim")) return { type: "claim", belot: true };
+      const action = play(view, seed);
+      return action.type === "play" && view.belotCards.some((c) => cardEquals(c, action.card)) ? { ...action, belot: true } : action;
+    }
+    return options[0]!;
+  };
+}
+
+const basicBid: Choose = (view) => chooseSuitBid(view.hand, view.legalActions);
+const basicPlay: Choose = (view) => choosePlay(view, view.legalActions);
+
 /** The first bot: bids a suit on a strong five-card start, then plays the current trick greedily. */
-export const basicBot: BotPolicy = (view, seed) => {
-  const options = view.legalActions;
-  if (options.length === 0) return null;
-  if (view.phase === "shuffling") return { type: "shuffle" };
-  if (view.phase === "dealing") return { type: "deal", lucky: false };
-  if (view.phase === "cutting") return { type: "cut", position: 8 + (Math.abs(seed) % 17) };
-  if (view.phase === "bidding") return chooseBid(view.hand, options);
-  if (view.phase === "playing") {
-    if (options.some((a) => a.type === "announce")) return { type: "announce", declare: true };
-    if (options.some((a) => a.type === "claim")) return { type: "claim", belot: true };
-    const play = choosePlay(view, options);
-    return play.type === "play" && view.belotCards.some((c) => cardEquals(c, play.card)) ? { ...play, belot: true } : play;
-  }
-  return options[0]!;
-};
+export const basicBot: BotPolicy = makeBot(basicBid, basicPlay);
 
 /** Any legal move, picked at random: the floor every other bot must clear. */
 export const randomBot: BotPolicy = (view, seed) => {
@@ -81,7 +92,16 @@ export const randomBot: BotPolicy = (view, seed) => {
   return options[Math.floor(mulberry32(seed)() * options.length)]!;
 };
 
-export const BOTS: Record<string, BotPolicy> = { basic: basicBot, random: randomBot };
+/** Numbers that tune a bot, by name (each bot documents its own). */
+export type BotParams = Record<string, number>;
+
+/** Every bot the arena knows, built from optional tuning numbers. */
+export const BOTS: Record<string, (params: BotParams) => BotPolicy> = {
+  basic: () => basicBot,
+  /** Bids by simulating the round (no trumps, all trumps, contra, reading the other bids); plays like the basic bot. */
+  bidder: (p) => makeBot((view, seed) => chooseBid(view, seed, { ...DEFAULT_BID_TUNING, ...p }), basicPlay),
+  random: () => randomBot,
+};
 
 /** The move the server plays for a bot seat, or for a player whose clock ran out. */
 export function chooseBotAction(state: GameState, seat: number): GameAction | null {

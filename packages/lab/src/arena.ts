@@ -2,10 +2,16 @@
  * Bot against bot on duplicate deals: every seed is played twice, once with each bot on each team,
  * so the luck of the cards cancels out and what is left is the difference in play.
  *
- *   pnpm arena --a basic --b random --deals 1000 [--games 200] [--seed 1]
+ *   pnpm arena --a basic --b random --deals 1000 [--games 200] [--seed 1] [--threads 10]
+ *
+ * A bot may carry tuning numbers: --a bidder:samples=100,bidMargin=3
  */
+import { availableParallelism } from "node:os";
 import { parseArgs } from "node:util";
-import { BOTS, playGame, playRound, teamOf, type BotPolicy, type Lineup, type RoundSummary } from "@belot/engine";
+import { Worker } from "node:worker_threads";
+import { teamOf, type RoundSummary } from "@belot/engine";
+import { parseBot } from "./bots";
+import { runJob, type Job, type JobResult } from "./match";
 import { meanEstimate, rateEstimate, type Estimate } from "./stats";
 
 const { values } = parseArgs({
@@ -15,26 +21,35 @@ const { values } = parseArgs({
     deals: { type: "string", default: "1000" },
     games: { type: "string", default: "0" },
     seed: { type: "string", default: "1" },
+    threads: { type: "string", default: String(availableParallelism()) },
   },
 });
 
-function bot(name: string): BotPolicy {
-  const policy = BOTS[name];
-  if (!policy) throw new Error(`unknown bot "${name}"; known: ${Object.keys(BOTS).join(", ")}`);
-  return policy;
-}
-
-/** Wraps a bot to count its moves and the time it spends on them. */
-function timed(policy: BotPolicy) {
-  const clock = { ms: 0, moves: 0 };
-  const wrapped: BotPolicy = (view, seed) => {
-    const t = performance.now();
-    const action = policy(view, seed);
-    clock.ms += performance.now() - t;
-    clock.moves += 1;
-    return action;
-  };
-  return { wrapped, clock };
+/** Splits the seeds over worker threads and gathers the results in seed order. */
+async function run(kind: Job["kind"], count: number): Promise<JobResult[]> {
+  const threads = Math.max(1, Math.min(Number(values.threads), count));
+  const jobs: Job[] = Array.from({ length: threads }, (_, i) => ({
+    a: nameA,
+    b: nameB,
+    from: first + Math.floor((count * i) / threads),
+    to: first + Math.floor((count * (i + 1)) / threads),
+    kind,
+  }));
+  if (threads === 1) return [runJob(jobs[0]!)];
+  return Promise.all(
+    jobs.map(
+      (job) =>
+        new Promise<JobResult>((resolve, reject) => {
+          const worker = new Worker(new URL("./worker.ts", import.meta.url));
+          worker.once("message", (r: JobResult) => {
+            resolve(r);
+            void worker.terminate();
+          });
+          worker.once("error", reject);
+          worker.postMessage(job);
+        }),
+    ),
+  );
 }
 
 interface Side {
@@ -63,10 +78,8 @@ const nameB = values.b!;
 const deals = Number(values.deals);
 const games = Number(values.games);
 const first = Number(values.seed);
-const A = timed(bot(nameA));
-const B = timed(bot(nameB));
-const AB: Lineup = [A.wrapped, B.wrapped];
-const BA: Lineup = [B.wrapped, A.wrapped];
+parseBot(nameA);
+parseBot(nameB);
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 const pm = (e: Estimate, f: (x: number) => string, g = f) => `${f(e.mean)} (95% ±${g(e.half)})`;
@@ -79,9 +92,16 @@ if (deals > 0) {
   const sideA = newSide();
   const sideB = newSide();
   const margins: number[] = [];
-  for (let seed = first; seed < first + deals; seed++) {
-    const r1 = playRound(AB, seed);
-    const r2 = playRound(BA, seed);
+  const results = await run("deals", deals);
+  const clockA = { ms: 0, moves: 0 };
+  const clockB = { ms: 0, moves: 0 };
+  for (const r of results) {
+    clockA.ms += r.clocks[0].ms;
+    clockA.moves += r.clocks[0].moves;
+    clockB.ms += r.clocks[1].ms;
+    clockB.moves += r.clocks[1].moves;
+  }
+  for (const [r1, r2] of results.flatMap((r) => r.deals)) {
     record(sideA, r1, 0);
     record(sideB, r1, 1);
     record(sideB, r2, 0);
@@ -100,16 +120,12 @@ if (deals > 0) {
   row("  doubled", share(sideA.doubled, sideA.taken), share(sideB.doubled, sideB.taken));
   const mix = (s: Side) => `${s.kinds.suit}/${s.kinds.nt}/${s.kinds.at}`;
   row("  suit / NT / AT", mix(sideA), mix(sideB));
-  row("ms per move", (A.clock.ms / A.clock.moves).toFixed(3), (B.clock.ms / B.clock.moves).toFixed(3));
+  row("ms per move", (clockA.ms / clockA.moves).toFixed(3), (clockB.ms / clockB.moves).toFixed(3));
   console.log(`\n${nameA} − ${nameB}: ${pm(meanEstimate(margins), signed, (x) => x.toFixed(2))} recorded points per deal`);
 }
 
 if (games > 0) {
-  let winsA = 0;
-  for (let seed = first; seed < first + games; seed++) {
-    if (playGame(AB, seed).winner === 0) winsA += 1;
-    if (playGame(BA, seed).winner === 1) winsA += 1;
-  }
+  const winsA = (await run("games", games)).reduce((sum, r) => sum + r.wins, 0);
   console.log(`${nameA} won ${pm(rateEstimate(winsA, games * 2), pct)} of ${games * 2} games against ${nameB}`);
 }
 
