@@ -726,7 +726,7 @@ button:disabled { cursor: default; }
 
 /* small phones: the page's own bar needs room above the card, and the cut hint stays clear of the side players */
 @media (max-width: 759px), (max-height: 560px) {
-  .home, .lobby { padding-top: 72px; }
+  .home, .lobby { padding-top: calc(72px + env(safe-area-inset-top)); }
 }
 @media (max-width: 759px) and (orientation: portrait) {
   .cut-table { top: calc((100% - var(--lap)) * 0.6 + 64px); }
@@ -913,3 +913,11 @@ button:disabled { cursor: default; }
 /* no trumps and all trumps carry a sign like a suit: a black A, a red J */
 .bid .bsym { font-weight: 800; margin-right: 6px; }
 .bid .bsym.red { color: var(--card-red); }
+/* installed on a phone the page runs under the status bar and the camera cut-out, so the header starts below them */
+.home-logo { top: calc(14px + env(safe-area-inset-top)); left: calc(16px + env(safe-area-inset-left)); }
+.page-controls { top: calc(12px + env(safe-area-inset-top)); right: calc(12px + env(safe-area-inset-right)); }
+.page-bar { top: calc(12px + env(safe-area-inset-top)); left: calc(12px + env(safe-area-inset-left)); right: calc(12px + env(safe-area-inset-right)); }
+.home, .lobby { padding-top: max(24px, calc(16px + env(safe-area-inset-top))); }
+@media (max-width: 759px), (max-height: 560px) {
+  .home, .lobby { padding-top: calc(72px + env(safe-area-inset-top)); }
+}
