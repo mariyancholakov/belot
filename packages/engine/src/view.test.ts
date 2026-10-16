@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyAction, newGame, type GameState } from "./game";
+import { applyAction, legalActions, newGame, type GameState } from "./game";
+import type { Play } from "./tricks";
 import { viewFor } from "./view";
 
 function toPlaying(): GameState {
@@ -46,5 +47,21 @@ describe("viewFor", () => {
     const s = toPlaying();
     expect(viewFor(s, 0).bidLog).toHaveLength(4);
     expect(viewFor(s, 0).contract?.contract).toBe("hearts");
+  });
+
+  it("lists every card played this round with who played it", () => {
+    let s = toPlaying();
+    expect(viewFor(s, 0).plays).toEqual([]);
+    const seen: Play[] = [];
+    while (seen.length < 22) {
+      const seat = s.turn;
+      const options = legalActions(s, seat);
+      const action = options.find((a) => a.type === "announce") ?? options.find((a) => a.type === "play")!;
+      const r = applyAction(s, seat, action);
+      if (!r.ok) throw new Error(r.error);
+      for (const e of r.events) if (e.type === "played") seen.push({ seat: e.seat, card: e.card });
+      s = r.state;
+      expect(viewFor(s, (seat + 1) % 4).plays).toEqual(seen);
+    }
   });
 });

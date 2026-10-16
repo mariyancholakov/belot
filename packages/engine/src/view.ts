@@ -1,9 +1,10 @@
 import { belotCallable, findAnnouncements, findBelots, type Announcement } from "./announcements";
 import type { Card } from "./cards";
+import { nextSeat } from "./deal";
 import type { BidAction, BidOutcome } from "./bidding";
 import { legalActions, mustDecideAnnouncements, type GameAction, type LuckyCard, type GameState, type Phase, type RoundSummary } from "./game";
 import type { Team } from "./scoring";
-import type { Play } from "./tricks";
+import { trickWinner, type Play } from "./tricks";
 
 /** What one player is allowed to know about the game. */
 export interface GameView {
@@ -18,6 +19,8 @@ export interface GameView {
   handCounts: number[];
   trick: Play[];
   lastTrick: Play[] | null;
+  /** Every card played so far this round, in order, with who played it (empty outside play). */
+  plays: Play[];
   bidLog: { seat: number; bid: BidAction }[];
   /** Highest bid so far while bidding. */
   highestBid: { seat: number; contract: string } | null;
@@ -57,6 +60,7 @@ export function viewFor(state: GameState, seat: number): GameView {
     handCounts: state.hands.map((h) => h.length),
     trick: state.trick,
     lastTrick: state.lastTrick,
+    plays: roundPlays(state),
     bidLog: state.bidLog,
     highestBid: state.bidding.highest,
     contract: state.contract,
@@ -78,4 +82,17 @@ export function viewFor(state: GameState, seat: number): GameView {
     allPassStreak: state.allPassStreak,
     legalActions: legalActions(state, seat),
   };
+}
+
+/** The round's cards in play order with their seats, rebuilt from the played cards and the trick winners. */
+function roundPlays(state: GameState): Play[] {
+  if (state.phase !== "playing" || !state.contract) return [];
+  const plays: Play[] = [];
+  let leader = nextSeat(state.dealer);
+  for (let t = 0; t < state.tricksPlayed; t++) {
+    const trick = state.collected.slice(t * 4, t * 4 + 4).map((card, i) => ({ seat: (leader + i) % 4, card }));
+    plays.push(...trick);
+    leader = trickWinner(trick, state.contract.contract);
+  }
+  return [...plays, ...state.trick];
 }
