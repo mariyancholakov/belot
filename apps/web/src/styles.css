@@ -433,20 +433,14 @@ button:disabled { cursor: default; }
 .bidding h2 { font-size: 1rem; }
 .bid-log { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 0.85rem; max-height: 3.9em; overflow: auto; }
 .bid-log li span { color: var(--muted); }
-.bid-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; }
 .bid {
   min-height: 52px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--text); font-weight: 650; padding: 0 8px;
   transition: transform 0.12s var(--ease), background-color 0.15s, border-color 0.15s;
 }
-.bid.suit { grid-column: span 3; font-size: 1.7rem; line-height: 1; }
 .bid.suit.red { color: var(--card-red); }
-.bid.wide { grid-column: span 4; font-size: 0.98rem; }
-.bid.wide.pass { grid-column: 1 / -1; }
-.bid.alert { grid-column: span 4; }
 .bid:not(:disabled):hover { border-color: var(--text); }
 .bid:not(:disabled):active { transform: scale(0.96); }
 .bid:disabled { opacity: 0.3; }
-.bid.pass { min-height: 54px; font-size: 1.05rem; }
 .bid.alert { background: var(--surface); border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); color: var(--danger); }
 .bid.alert:not(:disabled):hover { background: color-mix(in srgb, var(--danger) 8%, var(--surface)); border-color: var(--danger); }
 .waiting { margin: 0; }
@@ -560,9 +554,6 @@ button:disabled { cursor: default; }
   .table { padding-top: 8px; }
   .felt { margin: 0 16px; }
   .sheet-panel { margin: 12px 16px 0; }
-  .bid.suit { grid-column: span 1; }
-  .bid.wide { grid-column: span 3; }
-  .bid.wide.pass { grid-column: 1 / -1; }
   .hand { --step: 0.58; --fan-rot: 3deg; --fan-drop: 0.9px; }
   .drawer { left: auto; right: 0; top: 0; bottom: 0; width: 380px; border-radius: 0; max-height: none; transform: translateX(105%); }
   .drawer.open { transform: none; }
@@ -648,11 +639,6 @@ button:disabled { cursor: default; }
   background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); transform: translateX(-50%); animation: pop-center 0.35s var(--ease) both;
 }
 @keyframes pop-center { from { opacity: 0; transform: translate(-50%, 12px) scale(0.97); } to { opacity: 1; transform: translateX(-50%); } }
-.felt-pop .bid.suit { grid-column: span 3; }
-.felt-pop .bid.wide { grid-column: span 4; }
-.felt-pop .bid.wide.pass { grid-column: 1 / -1; }
-.felt-pop .bid.alert { grid-column: span 4; }
-.felt-pop .bid { min-height: 46px; }
 
 /* the cutter's deck: lying on the felt, a little fanned; a drag along it picks the cut */
 .cut-table { position: absolute; left: 50%; top: 63%; z-index: 5; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 10px; width: max-content; max-width: 100%; }
@@ -764,7 +750,6 @@ button:disabled { cursor: default; }
   .topbar .icon-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--felt-ink); }
   /* the top player sits inside the felt, clear of the score */
   .felt .seat.top { top: 8px; }
-  .felt-pop .bid.wide, .felt-pop .bid.alert { white-space: nowrap; font-size: 0.92rem; padding: 0 4px; }
 }
 
 /* a phone on its side: the side players start below the top bar, and the trump badge sits beside the top player instead of over a side player */
@@ -784,4 +769,88 @@ button:disabled { cursor: default; }
 @media (max-width: 759px) and (orientation: portrait) {
   .cut-table { top: calc((100% - var(--lap)) * 0.6 + 64px); }
   .cut-hint { max-width: 86vw; }
+}
+
+/* ---------- playing on a phone: smaller opponents, balloons that stay out of each other's way ---------- */
+@media (max-width: 759px), (max-height: 560px) and (orientation: landscape) {
+  :root { --top-cw: clamp(30px, 8.6vw, 40px); --side-cw: clamp(26px, 7.4vw, 36px); }
+  .felt .seat .name { gap: 6px; padding: 3px 12px 3px 3px; font-size: 0.84rem; max-width: 124px; }
+  .felt .seat .avatar { width: 28px; height: 28px; box-shadow: 0 0 0 2px var(--theirs); }
+  .felt .seat.ours .avatar { box-shadow: 0 0 0 2px var(--ours); }
+  .felt .seat.turn .name { box-shadow: 0 0 0 2px var(--ring); }
+  .felt .seat { gap: 4px; }
+  .felt .seat .name em { font-size: 0.6rem; }
+  /* the bid panel is three short rows, so it leaves the other players' names visible */
+  .felt-pop { padding: 10px 12px 12px; border-radius: 18px; }
+  .felt-pop .bidding-head { margin-bottom: 8px; gap: 2px; }
+}
+@media (max-width: 759px) {
+  /* a bubble hangs just under its player's name, over their own cards, so two bubbles never meet and the middle of the table stays clear */
+  .balloon { max-width: 128px; padding: 7px 13px; border-radius: 18px; font-size: 0.92rem; }
+  .felt .seat.top .balloon { left: 50%; top: calc(100% + 8px); bottom: auto; right: auto; translate: -50% 0; }
+  .felt .seat.left .balloon { left: 0; top: calc(100% + 8px); right: auto; translate: none; }
+  .felt .seat.right .balloon { right: 0; top: calc(100% + 8px); left: auto; translate: none; }
+  .felt .seat.top .balloon::before, .felt .seat.left .balloon::before, .felt .seat.right .balloon::before { left: 22px; right: auto; top: -9px; bottom: auto; width: 9px; height: 9px; }
+  .felt .seat.top .balloon::before { left: calc(50% - 5px); }
+  .felt .seat.top .balloon::after, .felt .seat.left .balloon::after, .felt .seat.right .balloon::after { display: none; }
+  .felt .seat.right .balloon::before { left: auto; right: 22px; }
+}
+
+/* phones: choices sit side by side so the panel stays short, the trump badge reads in dark mode, the heap of played cards is smaller */
+@media (max-width: 759px), (max-height: 560px) and (orientation: landscape) {
+  .felt-pop .prompt-actions { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .felt-pop .prompt-actions .primary, .felt-pop .prompt-actions .secondary { min-height: 46px; padding: 0 12px; }
+  .felt-pop .announce-list { margin-bottom: 10px; }
+  :root { --play-cw: clamp(52px, 15.5vw, 76px); }
+}
+.trump-main i { color: var(--text); }
+.trump-main i.red { color: var(--card-red); }
+
+/* portrait phones: eight cards must fit the width even at 320px, with room for the fan's tilt */
+@media (max-width: 759px) and (orientation: portrait) {
+  :root { --hand-cw: clamp(54px, calc((100vw - 28px) / 4.9), 84px); }
+}
+
+/* ---------- bidding board: suits on the left, the other contracts on the right, a wide pass underneath ---------- */
+.bid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.bid-col { display: grid; gap: 8px; grid-auto-rows: 1fr; }
+.bid { font-size: 0.98rem; line-height: 1.1; }
+.bid.suit { display: grid; place-items: center; align-content: center; gap: 1px; padding: 4px; }
+.bid.suit .sym { font-size: 1.7rem; line-height: 1; }
+.bid.suit .lbl { font-size: 0.72rem; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.bid.suit.red .sym { color: var(--card-red); }
+.bid.wide { padding: 0 6px; }
+.bid.pass { grid-column: 1 / -1; min-height: 52px; font-size: 1.15rem; font-weight: 750; background: var(--turn-bg); color: var(--turn-ink); border-color: transparent; }
+.bid.pass:not(:disabled):hover { border-color: transparent; filter: brightness(1.06); }
+.felt-pop .bid { min-height: 46px; }
+.felt-pop .bid-col .bid { min-height: 0; }
+
+/* ---------- portrait phones: the table laid out like a phone card game ----------
+   opponents are an avatar over a name label with their cards fanned behind; the side players sit below the middle, which is left to the bid board and the played cards */
+@media (max-width: 759px) and (orientation: portrait) {
+  .felt-pop.bidding { width: min(calc(100% - 128px), 280px); padding: 10px; top: 20%; bottom: auto; }
+  .felt-pop.bidding .bidding-head { display: none; }
+  .felt-pop.bidding .bid-grid, .felt-pop.bidding .bid-col { gap: 6px; }
+  .felt-pop.bidding .bid-col .bid { min-height: 42px; }
+  .felt-pop.bidding .bid.pass { min-height: 46px; }
+  .bid.suit .sym { font-size: 1.4rem; }
+  .bid.suit .lbl { font-size: 0.62rem; }
+  .bid.wide { font-size: 0.84rem; }
+
+  .felt .seat .name { flex-direction: column; gap: 0; padding: 0; background: none; backdrop-filter: none; box-shadow: none; animation: none; max-width: none; overflow: visible; }
+  .felt .seat.turn .name { box-shadow: none; animation: none; }
+  .felt .seat .avatar { width: 46px; height: 46px; box-shadow: 0 0 0 2.5px var(--theirs), 0 2px 6px rgba(0, 0, 0, 0.3); }
+  .felt .seat.ours .avatar { box-shadow: 0 0 0 2.5px var(--ours), 0 2px 6px rgba(0, 0, 0, 0.3); }
+  .felt .seat.turn .avatar { box-shadow: 0 0 0 3px var(--ring), 0 0 0 7px color-mix(in srgb, var(--ring) 30%, transparent); }
+  .felt .seat .name > span:not(.balloon) {
+    position: relative; z-index: 2; display: block; max-width: 84px; margin-top: -9px; padding: 1px 9px 2px; border-radius: 7px;
+    background: rgba(8, 24, 15, 0.82); color: #eef4ec; font-size: 0.74rem; font-weight: 650; line-height: 1.25;
+  }
+  .felt .seat.turn .name > span:not(.balloon) { background: var(--brass); color: #1a1406; }
+  .felt .seat .clock { left: 2px; right: 2px; top: -10px; }
+  .felt .seat.top { top: 2px; }
+  .felt .seat.top .backs { margin-top: -16px; }
+  .felt .seat.left, .felt .seat.right { top: 58%; transform: none; }
+  .felt .seat.left { left: 8px; }
+  .felt .seat.right { right: 8px; }
 }

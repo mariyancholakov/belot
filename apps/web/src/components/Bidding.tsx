@@ -1,5 +1,5 @@
 import type { BidAction, Contract, GameView } from "@belot/engine";
-import { bg, contractLabel, suitSymbol } from "../i18n/bg";
+import { bg, contractLabel, suitName, suitSymbol } from "../i18n/bg";
 import { playSound } from "../sound";
 
 const SUITS: Contract[] = ["clubs", "diamonds", "hearts", "spades"];
@@ -48,28 +48,29 @@ export function Bidding({ view, names, onBid }: Props) {
       </div>
       {myTurn ? (
         <div className="bid-grid">
-          {SUITS.map((c) => (
-            <button key={c} className={`bid suit ${c === "hearts" || c === "diamonds" ? "red" : ""}`} disabled={!canBid(c)} onClick={() => act({ type: "bid", contract: c })} aria-label={contractLabel(c)}>
-              <span aria-hidden="true">{suitSymbol[c as keyof typeof suitSymbol]}</span>
+          <div className="bid-col">
+            {SUITS.map((c) => (
+              <button key={c} className={`bid suit ${c === "hearts" || c === "diamonds" ? "red" : ""}`} disabled={!canBid(c)} onClick={() => act({ type: "bid", contract: c })} aria-label={contractLabel(c)}>
+                <span className="sym" aria-hidden="true">{suitSymbol[c as keyof typeof suitSymbol]}</span>
+                <span className="lbl" aria-hidden="true">{suitName[c as keyof typeof suitName]}</span>
+              </button>
+            ))}
+          </div>
+          <div className="bid-col">
+            <button className="bid wide" disabled={!canBid("no-trumps")} onClick={() => act({ type: "bid", contract: "no-trumps" })}>
+              {contractLabel("no-trumps")}
             </button>
-          ))}
-          <button className="bid wide" disabled={!canBid("no-trumps")} onClick={() => act({ type: "bid", contract: "no-trumps" })}>
-            {contractLabel("no-trumps")}
-          </button>
-          <button className="bid wide" disabled={!canBid("all-trumps")} onClick={() => act({ type: "bid", contract: "all-trumps" })}>
-            {contractLabel("all-trumps")}
-          </button>
-          {has("contra") && (
-            <button className="bid alert wide" onClick={() => act({ type: "contra" })}>
+            <button className="bid wide" disabled={!canBid("all-trumps")} onClick={() => act({ type: "bid", contract: "all-trumps" })}>
+              {contractLabel("all-trumps")}
+            </button>
+            <button className="bid alert wide" disabled={!has("contra")} onClick={() => act({ type: "contra" })}>
               {bg.contra}
             </button>
-          )}
-          {has("recontra") && (
-            <button className="bid alert wide" onClick={() => act({ type: "recontra" })}>
+            <button className="bid alert wide" disabled={!has("recontra")} onClick={() => act({ type: "recontra" })}>
               {bg.recontra}
             </button>
-          )}
-          <button className="bid wide pass" disabled={!has("pass")} onClick={() => act({ type: "pass" })}>
+          </div>
+          <button className="bid pass" disabled={!has("pass")} onClick={() => act({ type: "pass" })}>
             {bg.pass}
           </button>
         </div>
