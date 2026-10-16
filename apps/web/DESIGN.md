@@ -287,7 +287,7 @@ The score sheet is a drawer: from the bottom on phones (22px top radius, up to 8
 A white panel with the room code as the display line, share buttons, four seat slots in a 2x2 grid (partners sit on the diagonal and share a team tint), and a row of card-back swatches (38x54px, 6px radius, white border) the host picks from; the chosen swatch lifts 3px with an ink ring.
 
 ### Logo
-A navy card behind a white card bearing a red cross-stitch shevitsa rhombus with a single black centre stitch. The favicon sets the same mark on an ink square (14px radius at 64px).
+A white card with a black hairline edge, its corner index a black "Б" over a small red heart and a larger heart pip below, tilted in front of a navy card back with the thin gold frame of the card backs. The favicon sets the same mark on an ink square (14px radius at 64px); the install icons inset it to 80%.
 
 ## Do's and Don'ts
 
@@ -303,7 +303,7 @@ A navy card behind a white card bearing a red cross-stitch shevitsa rhombus with
 ### Don't:
 - **Don't** bring back a felt or table-cloth colour behind the cards; the table is the page.
 - **Don't** use navy for buttons, links, headings or emphasis.
-- **Don't** use red for anything decorative; the logo's shevitsa rhombus is the diamond suit, not an exception.
+- **Don't** use red for anything decorative; the logo's hearts are the heart suit, not an exception.
 - **Don't** add casino gold, metallic trim or glows.
 - **Don't** use hard offset shadows; depth is soft and short.
 - **Don't** put small uppercase tracked labels above headings or values; the corner index is the label pattern.

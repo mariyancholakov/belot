@@ -924,3 +924,16 @@ button:disabled { cursor: default; }
 @media (max-width: 759px), (max-height: 560px) {
   .home, .lobby { padding-top: calc(72px + env(safe-area-inset-top)); }
 }
+
+/* a little more air at the top of every screen, below the status bar */
+.home-logo { top: calc(22px + env(safe-area-inset-top)); }
+.page-controls { top: calc(20px + env(safe-area-inset-top)); }
+.page-bar { top: calc(20px + env(safe-area-inset-top)); }
+@media (max-width: 759px), (max-height: 560px) {
+  .home, .lobby { padding-top: calc(84px + env(safe-area-inset-top)); }
+}
+@media (max-width: 759px) and (orientation: portrait) {
+  .table > .topbar { padding-top: 14px; }
+}
+/* the code field's hint is quieter than a typed code */
+.field input.code::placeholder { opacity: 0.6; }

@@ -24,7 +24,7 @@ export const bg = {
   close: "Затвори",
   roundShort: "Ръка",
   nickname: "Твоето име",
-  nicknamePlaceholder: "напр. Иван",
+  nicknamePlaceholder: "Иван",
   newRoom: "Създай игра",
   joinRoom: "Влез с код",
   codePlaceholder: "Въведи код",

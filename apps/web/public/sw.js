@@ -1,6 +1,6 @@
 // Белотче service worker: lets the app install to the home screen and open without a connection.
 // The game itself needs the server, so only the app shell is kept offline; play always goes over the socket.
-const CACHE = "belotche-v1";
+const CACHE = "belotche-v2";
 const SHELL = ["/", "/manifest.webmanifest", "/favicon.svg", "/icon-192.png", "/icon-512.png", "/icon-maskable-512.png"];
 
 self.addEventListener("install", (event) => {
