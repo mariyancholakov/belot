@@ -171,14 +171,14 @@ export function ShufflePrompt({ onChoose }: ChoiceProps) {
 /** The dealer deals normally or with a "късметче" (first card turned face up). */
 export function DealPrompt({ onDeal }: { onDeal: (lucky: boolean) => void }) {
   return (
-    <section className="felt-pop prompt" aria-label={bg.dealTitle}>
-      <h2>{bg.dealTitle}</h2>
+    <section className="felt-pop prompt" aria-label={bg.luckyAsk}>
+      <h2>{bg.luckyAsk}</h2>
       <div className="prompt-actions">
-        <button className="primary" onClick={() => onDeal(false)}>
-          {bg.dealNormal}
+        <button className="primary" onClick={() => onDeal(true)}>
+          {bg.yes}
         </button>
-        <button className="secondary" onClick={() => onDeal(true)}>
-          {bg.dealLucky}
+        <button className="secondary" onClick={() => onDeal(false)}>
+          {bg.no}
         </button>
       </div>
     </section>

@@ -44,7 +44,7 @@ const spread = await cutter.locator(".cut-picker .spread").boundingBox();
 await cutter.mouse.click(spread.x + (spread.width * 10.5) / 32, spread.y + spread.height / 2);
 // The cut is animated, then the dealer deals (with a lucky card this time) and the cards fly out.
 const dealer = await Promise.race(pages.map((p) => p.waitForSelector(".prompt", { timeout: 15_000 }).then(() => p)));
-await dealer.getByRole("button", { name: "Дай късмет" }).click();
+await dealer.getByRole("button", { name: "Да" }).click();
 // Whoever's turn it is sees the bid buttons; screenshot that player's screen.
 const bidder = await Promise.race(pages.map((p) => p.waitForSelector(".bid-grid").then(() => p)));
 await bidder.waitForTimeout(700);
