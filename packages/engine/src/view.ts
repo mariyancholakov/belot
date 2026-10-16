@@ -1,5 +1,5 @@
-import { belotCallable, findAnnouncements, findBelots, type Announcement } from "./announcements";
-import type { Card } from "./cards";
+import { belotCallable, findAnnouncements, findBelots, type Announcement, type AnnouncementKind } from "./announcements";
+import type { Card, Suit } from "./cards";
 import { nextSeat } from "./deal";
 import type { BidAction, BidOutcome } from "./bidding";
 import { legalActions, mustDecideAnnouncements, type GameAction, type LuckyCard, type GameState, type Phase, type RoundSummary } from "./game";
@@ -32,6 +32,10 @@ export interface GameView {
   belotCards: Card[];
   /** Belot suits this seat could still call when laying its cards down. */
   claimBelots: string[];
+  /** What each seat said when declaring before its first card (the kinds only; the cards show after the first trick). */
+  declared: AnnouncementKind[][];
+  /** Belots each seat has called this round. */
+  belots: Suit[][];
   /** Announcements that count, shown to everyone after the first trick. */
   announcements: { seat: number; announcements: Announcement[] }[] | null;
   scores: [number, number];
@@ -68,6 +72,8 @@ export function viewFor(state: GameState, seat: number): GameView {
     pendingAnnouncements: mustDecideAnnouncements(state, seat) ? findAnnouncements(state.hands[seat]!) : null,
     belotCards: state.contract && state.phase === "playing" ? (state.hands[seat] ?? []).filter((c) => belotCallable(state.hands[seat]!, c, state.contract!.contract) && !state.belots[seat]!.includes(c.suit)) : [],
     claimBelots: state.contract && state.phase === "playing" ? findBelots(state.hands[seat] ?? [], state.contract.contract).filter((s) => !state.belots[seat]!.includes(s)) : [],
+    declared: state.declared.map((list) => list.map((a) => a.kind)),
+    belots: state.belots.map((suits) => [...suits]),
     announcements: revealed
       ? state.announcements!.counted
           .map((announcements, s) => ({ seat: s, announcements }))

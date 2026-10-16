@@ -65,3 +65,16 @@ describe("viewFor", () => {
     }
   });
 });
+
+describe("viewFor public calls", () => {
+  it("shows the kinds each seat declared and the belots called, to every seat", () => {
+    const s = toPlaying();
+    s.declared[1] = [{ kind: "terca", points: 20, suit: "clubs", high: "9", cards: [] }];
+    s.belots[3] = ["hearts"];
+    for (const seat of [0, 1, 2, 3]) {
+      const v = viewFor(s, seat);
+      expect(v.declared).toEqual([[], ["terca"], [], []]);
+      expect(v.belots).toEqual([[], [], [], ["hearts"]]);
+    }
+  });
+});
