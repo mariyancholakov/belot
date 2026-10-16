@@ -218,8 +218,6 @@ button:disabled { cursor: default; }
 .eyebrow { font-size: 0.8rem; font-weight: 650; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 .room-code { font-size: 2.6rem; line-height: 1.1; letter-spacing: 0.14em; margin-right: -0.14em; color: var(--text); font-weight: 750; }
 .lobby-code p { margin: 0; font-size: 0.92rem; }
-.share { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.share .secondary { min-height: 44px; padding: 0 18px; width: auto; }
 /* a team is a diagonal: partners sit across from each other and share a colour */
 .seats { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .slot.ours { --team: var(--ours); --team-ink: var(--ours-ink); } .slot.theirs { --team: var(--theirs); --team-ink: var(--theirs-ink); }
@@ -264,14 +262,6 @@ button:disabled { cursor: default; }
 .score-team .to-win { grid-column: 1 / -1; height: 3px; margin-top: 3px; border-radius: 3px; background: var(--line); position: relative; overflow: hidden; }
 .score-team .to-win::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--p); background: var(--team); border-radius: 3px; transition: width 0.6s var(--ease); }
 .score-team.us { --team: var(--ours-ink); } .score-team.them { --team: var(--theirs-ink); }
-.game-menu { position: relative; }
-.menu-pop {
-  position: absolute; right: 0; top: calc(100% + 6px); z-index: 25; min-width: 220px; padding: 6px; border-radius: 14px; background: var(--surface);
-  border: 1px solid var(--line); box-shadow: var(--shadow-2); animation: rise 0.2s var(--ease);
-}
-.menu-pop button { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; text-align: left; font-weight: 550; }
-.menu-pop button:hover { background: var(--surface-2); }
-.menu-pop svg { color: var(--muted); }
 
 .felt {
   position: relative; margin: 0 10px; border-radius: 26px; min-height: 0;
@@ -586,10 +576,10 @@ button:disabled { cursor: default; }
 .fly.top { animation-name: fly-to-top; }
 .fly.left { animation-name: fly-to-left; }
 .fly.right { animation-name: fly-to-right; }
-@keyframes fly-to-bottom { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(0, 150px) rotate(6deg) scale(1.15); } }
-@keyframes fly-to-top { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(0, -135px) rotate(-5deg) scale(0.85); } }
-@keyframes fly-to-left { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-120px, 0) rotate(-8deg) scale(0.85); } }
-@keyframes fly-to-right { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(120px, 0) rotate(8deg) scale(0.85); } }
+@keyframes fly-to-bottom { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(0, min(30vh, 300px)) rotate(6deg) scale(1.15); } }
+@keyframes fly-to-top { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(0, max(-27vh, -260px)) rotate(-5deg) scale(0.85); } }
+@keyframes fly-to-left { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(max(-50vw + 64px, -420px), 0) rotate(-8deg) scale(0.85); } }
+@keyframes fly-to-right { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(min(50vw - 64px, 420px), 0) rotate(8deg) scale(0.85); } }
 .card.land { animation: land 0.22s var(--ease) both; }
 @keyframes land { from { opacity: 0; transform: translateY(-10px) scale(1.06); } to { opacity: 1; transform: none; } }
 
@@ -644,7 +634,7 @@ button:disabled { cursor: default; }
 .table > .seat.bottom { position: relative; z-index: 4; margin-top: calc(var(--lap) * -1); padding: 0; }
 .table > .seat.bottom .name { box-shadow: var(--shadow-2); }
 .center { inset: 6% 0 var(--lap); }
-.deck-stage { top: calc(50% - var(--lap) / 2); }
+.deck-stage { top: 50%; }
 .felt .seat.left, .felt .seat.right { top: calc(50% - var(--lap) / 2); }
 .felt .hint.low { bottom: calc(var(--lap) + 10px); }
 .felt-pop { bottom: calc(var(--lap) + 12px); }
@@ -686,11 +676,11 @@ button:disabled { cursor: default; }
 .laid .card.small:first-child { margin-left: 0; }
 
 /* on wide screens the settings are plain buttons in the bar; the three-dot menu is for phones */
-.topbar-controls { display: none; }
-.topbar-menu { display: contents; }
-@media (min-width: 900px) {
-  .topbar-controls { display: contents; }
-  .topbar-menu { display: none; }
+.topbar-controls { display: contents; }
+.leave-icon { display: none; }
+@media (max-width: 899px) {
+  .leave-btn { display: none; }
+  .leave-icon { display: grid; }
 }
 .leave-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; color: var(--text); font-weight: 600; }
 .leave-btn:hover { background: var(--surface-2); }
@@ -904,3 +894,12 @@ button:disabled { cursor: default; }
 @keyframes laid-in { from { opacity: 0; scale: 0.96; } to { opacity: 1; scale: 1; } }
 /* your own name sits over the top edge of your hand; taps there belong to the cards */
 .table > .seat.bottom { pointer-events: none; }
+
+/* the room code in one box, with copy and share beside it */
+.code-box { display: flex; align-items: center; gap: 2px; padding: 6px 6px 6px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+.code-box .room-code { font-size: 2.2rem; margin-right: 6px; }
+.code-box .icon-btn { width: 44px; height: 44px; color: var(--text); }
+/* every seat box is the same height: one line for the name, one short word under it */
+.slot { height: 64px; }
+.slot-text b, .slot-text small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slot-text b { overflow-wrap: normal; }

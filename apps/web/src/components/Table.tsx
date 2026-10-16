@@ -9,7 +9,7 @@ import { Avatar } from "./Avatar";
 import { Bidding, bidText } from "./Bidding";
 import { CardBack, CardFace } from "./Card";
 import { AnnouncePrompt, BelotPrompt } from "./Declare";
-import { Controls, GameMenu } from "./Controls";
+import { Controls } from "./Controls";
 import { CutPicker, DEAL_FLY, DEAL_GAP, DealPrompt, DeckStage, ShufflePrompt, dealPackets, type Stage } from "./Dealing";
 import { Icon } from "./Icon";
 import { ScoreSheet } from "./ScoreSheet";
@@ -22,18 +22,18 @@ const SWEEP_MS = 380;
 const SHUFFLE_MS = 2100;
 const CUT_MS = 1250;
 
-/** The hand as a player arranges it: suits in alternating colours, trumps first, and inside each suit the strongest card on the left. */
+/** The hand as a player arranges it: suits in alternating colours, trumps last, and inside each suit from the weakest card on the left to the strongest on the right. */
 function sortHand(hand: Card[], contract: Contract | null): Card[] {
-  // trumps lead; after them each next suit is the other colour where the hand allows it
+  // trumps sit on the right; working back from them each suit is the other colour where the hand allows it
   const present = SUIT_ORDER.filter((suit) => hand.some((c) => c.suit === suit));
   const suits: Card["suit"][] = present.includes(contract as Card["suit"]) ? [contract as Card["suit"]] : [];
   while (suits.length < present.length) {
     const left = present.filter((suit) => !suits.includes(suit));
-    const last = suits[suits.length - 1];
-    suits.push(left.find((suit) => last === undefined || isRed(suit) !== isRed(last)) ?? left[0]!);
+    const first = suits[0];
+    suits.unshift(left.find((suit) => first === undefined || isRed(suit) !== isRed(first)) ?? left[0]!);
   }
   const by = contract ?? "no-trumps";
-  return [...hand].sort((a, b) => suits.indexOf(a.suit) - suits.indexOf(b.suit) || strength(b, by) - strength(a, by));
+  return [...hand].sort((a, b) => suits.indexOf(a.suit) - suits.indexOf(b.suit) || strength(a, by) - strength(b, by));
 }
 
 type Pos = "bottom" | "right" | "top" | "left";
@@ -271,7 +271,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   const handEl = useRef<HTMLDivElement>(null);
   const chooseRef = useRef<((() => void) | undefined)[]>([]);
   const hotSlot = useRef<Element | null>(null);
-  const touchUp = useRef(0);
+  const touchAt = useRef(0);
   const cardAt = (x: number, y: number): number | null => {
     const root = handEl.current;
     if (!root) return null;
@@ -315,9 +315,9 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           <button className="leave-btn" onClick={onLeave}>
             <Icon name="exit" size={18} /> {bg.leave}
           </button>
-        </span>
-        <span className="topbar-menu">
-          <GameMenu onLeave={onLeave} />
+          <button className="icon-btn leave-icon" onClick={onLeave} aria-label={bg.leaveGame} title={bg.leaveGame}>
+            <Icon name="exit" />
+          </button>
         </span>
       </header>
 
@@ -397,19 +397,17 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       <div
         className={`hand ${myTurn ? "active" : ""}`}
         ref={handEl}
-        onPointerMove={(e) => hoverCard(e.clientX, e.clientY)}
-        onPointerDown={(e) => hoverCard(e.clientX, e.clientY)}
+        onPointerMove={(e) => e.pointerType === "mouse" && hoverCard(e.clientX, e.clientY)}
         onPointerLeave={() => hoverCard(null, null)}
-        // A finger plays the card it lifts off, even if it slid a little; waiting for a click loses taps that move.
-        onPointerUp={(e) => {
+        // A finger plays the card it touches, at once: one tap, no holding, sliding or waiting for a click.
+        onPointerDown={(e) => {
           if (e.pointerType === "mouse") return;
-          touchUp.current = Date.now();
+          touchAt.current = Date.now();
           const i = cardAt(e.clientX, e.clientY);
-          hoverCard(null, null);
           if (i !== null) chooseRef.current[i]?.();
         }}
         onClick={(e) => {
-          if (Date.now() - touchUp.current < 800) return;
+          if (Date.now() - touchAt.current < 800) return;
           const i = cardAt(e.clientX, e.clientY);
           if (i !== null) chooseRef.current[i]?.();
         }}
