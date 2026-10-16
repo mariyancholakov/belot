@@ -33,10 +33,10 @@ Private and ad-free: no accounts, no strangers, no ranking, no ads. It is a tabl
 - The name is **Белотче** and the interface stays Bulgarian-only.
 - No analytics, no tracking, no ads, no data beyond a nickname and a device token.
 - Sound is always optional, with a mute control that remembers the choice.
-- Look and feel: a clean, modern product look on a green card table: green baize, brass trim and shevitsa red, from the card table of a village kafene. Light and dark mode are both required, following the system setting with a manual override.
+- Look and feel: modern and minimalist, mainly white and black, printed like a playing card: white table, black ink, red only for hearts and diamonds, and card-back navy as the one accent. Light and dark mode are both required, following the system setting with a manual override.
 
 ## Evidence on Hand
-- A working implementation in `apps/web/src` (home, lobby, table, bidding, score sheet) with a deliberately dark ink-blue and brass look; it is the incumbent, not an approved direction.
+- A working implementation in `apps/web/src` (home, lobby, table, bidding, score sheet) in the approved "Картата" look (see DESIGN.md).
 - Rules spec: `docs/RULES.md`; architecture: `docs/ARCHITECTURE.md`.
 - No logo, user testimonials, usage data or photography exist. None should be invented.
 
