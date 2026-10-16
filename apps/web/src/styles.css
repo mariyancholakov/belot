@@ -44,6 +44,7 @@
   --side-cw: clamp(34px, 9.5vw, 46px);
   --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --felt-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='0.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px, radial-gradient(ellipse at 50% 40%, var(--felt-a), var(--felt-b) 78%);
   --back-a: #b8352f;
   --back-b: #94271f;
   color-scheme: light;
@@ -296,8 +297,7 @@ button:disabled { cursor: default; }
 .felt {
   position: relative; margin: 0 10px; border-radius: 26px; min-height: 0;
   /* the nap of the cloth is fine noise blended into the green */
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='0.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px, radial-gradient(ellipse at 50% 40%, var(--felt-a), var(--felt-b) 78%);
-  background-blend-mode: overlay, normal;
+  background: var(--felt-bg); background-blend-mode: overlay, normal;
   box-shadow: inset 0 0 0 1px var(--felt-line), inset 0 0 60px rgba(0, 0, 0, 0.22), var(--shadow-2);
 }
 /* brass tooling round the edge of the baize, a double line as on an old card table */
@@ -747,3 +747,40 @@ button:disabled { cursor: default; }
 .back-swatch:disabled { cursor: default; opacity: 0.55; }
 .back-swatch:not(:disabled):hover { transform: translateY(-3px); }
 .back-swatch[aria-checked="true"] { opacity: 1; transform: translateY(-3px); box-shadow: 0 0 0 2px var(--text), 0 6px 12px rgba(0, 0, 0, 0.25); }
+
+/* ---------- on a phone the felt is the whole screen ---------- */
+@media (max-width: 759px), (max-height: 560px) and (orientation: landscape) {
+  .table { max-width: none; background: var(--felt-bg); background-blend-mode: overlay, normal; }
+  .felt { margin: 0; border-radius: 0; background: none; box-shadow: none; }
+  .felt::before { display: none; }
+  /* the brass tooling runs round the screen instead of round the felt */
+  .table::before {
+    content: ""; position: absolute; z-index: 1; pointer-events: none; border-radius: 22px; border: 1px solid var(--felt-trim);
+    inset: calc(env(safe-area-inset-top) + 6px) 6px calc(env(safe-area-inset-bottom) + 6px);
+  }
+  .topbar { position: relative; z-index: 5; padding: 6px 10px; }
+  .topbar .icon-btn { width: 44px; height: 44px; color: var(--felt-ink-soft); }
+  .topbar .icon-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--felt-ink); }
+  /* the top player sits inside the felt, clear of the score */
+  .felt .seat.top { top: 8px; }
+  .felt-pop .bid.wide, .felt-pop .bid.alert { white-space: nowrap; font-size: 0.92rem; padding: 0 4px; }
+}
+
+/* a phone on its side: the side players start below the top bar, and the trump badge sits beside the top player instead of over a side player */
+@media (max-height: 560px) and (orientation: landscape) {
+  .felt .seat.left, .felt .seat.right { top: 64px; transform: none; }
+  .trump { left: auto; right: calc(50% + 140px); top: 8px; }
+  /* the player's name sits above the cards here, not over them */
+  :root { --hand-cw: 46px; }
+  .table > .hand { margin-top: 2px; padding: 8px 12px 12px; }
+  .topbar { padding-top: max(6px, env(safe-area-inset-top)); padding-left: max(10px, env(safe-area-inset-left)); padding-right: max(10px, env(safe-area-inset-right)); }
+}
+
+/* small phones: the page's own bar needs room above the card, and the cut hint stays clear of the side players */
+@media (max-width: 759px) {
+  .home, .lobby { padding-top: 72px; }
+}
+@media (max-width: 759px) and (orientation: portrait) {
+  .cut-table { top: calc((100% - var(--lap)) * 0.6 + 64px); }
+  .cut-hint { max-width: 86vw; }
+}
