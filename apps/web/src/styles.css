@@ -45,6 +45,7 @@
   --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --felt-bg: var(--bg);
+  --gold: #b8954a;
   --back-a: #22305e;
   --back-b: #1a2549;
   color-scheme: light;
@@ -377,7 +378,7 @@ button:disabled { cursor: default; }
   box-shadow: 0 1px 2px rgba(20, 20, 20, 0.16), 0 3px 8px rgba(20, 20, 20, 0.1);
 }
 .card.dim { opacity: 0.4; }
-.card.winner { box-shadow: 0 0 0 2px var(--text), 0 8px 18px rgba(20, 20, 20, 0.14); }
+.card.winner { box-shadow: 0 0 0 2.5px var(--gold), 0 8px 18px rgba(20, 20, 20, 0.14); }
 .card.deal { animation: deal-in 0.5s var(--ease) both; }
 
 .hand { --cw: var(--hand-cw); display: flex; justify-content: center; padding: 22px 12px 30px; position: relative; z-index: 3; min-height: calc(var(--cw) * 1.42 + 34px); }
@@ -688,15 +689,12 @@ button:disabled { cursor: default; }
 @media (min-width: 760px) { .seat .avatar { width: 44px; height: 44px; } .seat .name { font-size: 1.05rem; } }
 
 /* the designs on the back of the cards, picked by the host and applied to every deck through data-back */
-/* the backs of the cards: one quiet ground each, a fine pattern and a thin gold frame, nothing loud */
-:root, [data-back="classic"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Cpath d='M0 10L10 0M-1 1L1 -1M9 11L11 9M0 0L10 10M-1 9L1 11M9 -1L11 1' stroke='%23ffffff' stroke-opacity='0.16' stroke-width='0.7'/%3E%3C/svg%3E") #22305e; --back-line: #b8954a; }
-[data-back="noir"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='7' height='7'%3E%3Ccircle cx='3.5' cy='3.5' r='0.8' fill='%23b8954a' fill-opacity='0.7'/%3E%3C/svg%3E") #141414; --back-line: #b8954a; }
-[data-back="ivory"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10'%3E%3Cpath d='M0 10L10 0M-1 1L1 -1M9 11L11 9M0 0L10 10M-1 9L1 11M9 -1L11 1' stroke='%23141414' stroke-opacity='0.16' stroke-width='0.7'/%3E%3C/svg%3E") #f4f2ec; --back-line: #b8954a; }
-[data-back="graphite"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath d='M1 0V4' stroke='%23ffffff' stroke-opacity='0.11' stroke-width='1'/%3E%3C/svg%3E") #2b2b2b; --back-line: #b8954a; }
-.card.back::after, .back-swatch::after {
-  content: ""; position: absolute; inset: 8%; border: 1px solid var(--back-line); border-radius: 4px; opacity: 0.8; pointer-events: none;
-}
-.back-swatch { position: relative; }
+/* the backs of the cards, after real decks drawn quietly: a casino diamond lattice, interlaced circles,
+   a framed medallion and an art-deco run of frames; each fills the card inside its white border */
+:root, [data-back="classic"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 142'%3E%3Cdefs%3E%3Cpattern id='l' width='9' height='9' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Cpath d='M0 0H9M0 0V9' stroke='%23fff' stroke-opacity='0.42' stroke-width='1.1'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100' height='142' fill='%231f2b55'/%3E%3Crect x='5' y='5' width='90' height='132' rx='4' fill='url(%23l)'/%3E%3Crect x='5' y='5' width='90' height='132' rx='4' fill='none' stroke='%23fff' stroke-opacity='0.7' stroke-width='1'/%3E%3C/svg%3E") center / 100% 100% no-repeat, #1f2b55; }
+[data-back="noir"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 142'%3E%3Cdefs%3E%3Cpattern id='c' width='12' height='12' patternUnits='userSpaceOnUse'%3E%3Ccircle cx='6' cy='6' r='6' fill='none' stroke='%23b8954a' stroke-opacity='0.42' stroke-width='0.6'/%3E%3Ccircle cx='0' cy='0' r='6' fill='none' stroke='%23b8954a' stroke-opacity='0.42' stroke-width='0.6'/%3E%3Ccircle cx='12' cy='0' r='6' fill='none' stroke='%23b8954a' stroke-opacity='0.42' stroke-width='0.6'/%3E%3Ccircle cx='0' cy='12' r='6' fill='none' stroke='%23b8954a' stroke-opacity='0.42' stroke-width='0.6'/%3E%3Ccircle cx='12' cy='12' r='6' fill='none' stroke='%23b8954a' stroke-opacity='0.42' stroke-width='0.6'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100' height='142' fill='%23141414'/%3E%3Crect x='5' y='5' width='90' height='132' rx='4' fill='url(%23c)'/%3E%3Crect x='5' y='5' width='90' height='132' rx='4' fill='none' stroke='%23b8954a' stroke-width='1'/%3E%3Ccircle cx='50' cy='71' r='17' fill='%23141414' stroke='%23b8954a' stroke-width='1'/%3E%3Ccircle cx='50' cy='71' r='13.5' fill='none' stroke='%23b8954a' stroke-width='0.6'/%3E%3Cpath d='M50 62L57 71L50 80L43 71Z' fill='%23b8954a'/%3E%3C/svg%3E") center / 100% 100% no-repeat, #141414; }
+[data-back="ivory"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 142'%3E%3Crect width='100' height='142' fill='%23f3f1ea'/%3E%3Crect x='5' y='5' width='90' height='132' rx='4' fill='none' stroke='%23141414' stroke-width='1'/%3E%3Crect x='8.5' y='8.5' width='83' height='125' rx='2.5' fill='none' stroke='%23141414' stroke-opacity='0.55' stroke-width='0.5'/%3E%3Cellipse cx='50' cy='71' rx='21' ry='30' fill='none' stroke='%23141414' stroke-width='1'/%3E%3Cellipse cx='50' cy='71' rx='17.5' ry='26.5' fill='none' stroke='%23141414' stroke-opacity='0.55' stroke-width='0.5'/%3E%3Cpath d='M50 58L58 71L50 84L42 71Z' fill='none' stroke='%23b8954a' stroke-width='1.2'/%3E%3Cpath d='M50 66L53 71L50 76L47 71Z' fill='%23b8954a'/%3E%3Cpath d='M14 14l3 4-3 4-3-4zM86 14l3 4-3 4-3-4zM14 120l3 4-3 4-3-4zM86 120l3 4-3 4-3-4z' fill='%23141414'/%3E%3C/svg%3E") center / 100% 100% no-repeat, #f3f1ea; }
+[data-back="graphite"] { --back-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 142'%3E%3Crect width='100' height='142' fill='%23262626'/%3E%3Crect x='5' y='5' width='90' height='132' rx='4.0' fill='none' stroke='%23fff' stroke-opacity='0.5' stroke-width='1'/%3E%3Crect x='10' y='10' width='80' height='122' rx='3.6' fill='none' stroke='%23fff' stroke-opacity='0.16' stroke-width='0.7'/%3E%3Crect x='15' y='15' width='70' height='112' rx='3.2' fill='none' stroke='%23fff' stroke-opacity='0.16' stroke-width='0.7'/%3E%3Crect x='20' y='20' width='60' height='102' rx='2.8' fill='none' stroke='%23fff' stroke-opacity='0.16' stroke-width='0.7'/%3E%3Crect x='25' y='25' width='50' height='92' rx='2.4' fill='none' stroke='%23fff' stroke-opacity='0.16' stroke-width='0.7'/%3E%3Crect x='30' y='30' width='40' height='82' rx='2.0' fill='none' stroke='%23fff' stroke-opacity='0.16' stroke-width='0.7'/%3E%3Crect x='35' y='35' width='30' height='72' rx='1.5999999999999996' fill='none' stroke='%23fff' stroke-opacity='0.16' stroke-width='0.7'/%3E%3Crect x='40' y='40' width='20' height='62' rx='1.1999999999999997' fill='none' stroke='%23fff' stroke-opacity='0.16' stroke-width='0.7'/%3E%3Cpath d='M50 61L58 71L50 81L42 71Z' fill='%23262626' stroke='%23b8954a' stroke-width='1.2'/%3E%3Cpath d='M50 67L53.2 71L50 75L46.8 71Z' fill='%23b8954a'/%3E%3C/svg%3E") center / 100% 100% no-repeat, #262626; }
 .back-pick { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
 .back-swatch {
   width: 38px; height: 54px; padding: 0; border-radius: 6px; border: 3px solid var(--card-bg); background: var(--back-bg); cursor: pointer;
@@ -704,7 +702,7 @@ button:disabled { cursor: default; }
 }
 .back-swatch:disabled { cursor: default; opacity: 0.55; }
 .back-swatch:not(:disabled):hover { transform: translateY(-3px); }
-.back-swatch[aria-checked="true"] { opacity: 1; transform: translateY(-3px); box-shadow: 0 0 0 2px var(--text), 0 6px 12px rgba(0, 0, 0, 0.25); }
+.back-swatch[aria-checked="true"] { opacity: 1; transform: translateY(-3px); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4.5px var(--gold), 0 6px 12px rgba(0, 0, 0, 0.25); }
 
 /* ---------- on a phone the felt is the whole screen ---------- */
 @media (max-width: 759px), (max-height: 560px) and (orientation: landscape) {
