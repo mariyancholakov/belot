@@ -367,3 +367,49 @@ function weakestPlain(mask: number, c: number): number {
   }
   return best;
 }
+
+const CARRE_POINTS = [0, 0, 150, 100, 200, 100, 100, 100];
+
+/**
+ * Announcement points per team when every seat declares everything it holds, as
+ * `resolveAnnouncements` counts them (belots are left out: the simulation adds them as played).
+ */
+export function announcementPoints(hands: readonly number[]): [number, number] {
+  const best = [-1, -1];
+  const total: [number, number] = [0, 0];
+  for (let seat = 0; seat < 4; seat++) {
+    const hand = hands[seat]!;
+    const team = seat & 1;
+    let carres = 0;
+    for (let r = 2; r < 8; r++) {
+      const rank = 0x01010101 << r;
+      if ((hand & rank) === rank) {
+        carres |= rank;
+        total[team]! += CARRE_POINTS[r]!;
+        best[team] = Math.max(best[team]!, CARRE_POINTS[r]! * 10 + r);
+      }
+    }
+    for (let s = 0; s < 4; s++) {
+      const bits = (hand >>> (s * 8)) & 0xff;
+      let r = 0;
+      while (r < 8) {
+        if (!(bits & (1 << r))) {
+          r++;
+          continue;
+        }
+        let end = r;
+        while (end + 1 < 8 && bits & (1 << (end + 1))) end++;
+        const length = end - r + 1;
+        const run = ((1 << length) - 1) << (r + s * 8);
+        if (length >= 3 && (run & carres) === 0) {
+          const pts = length >= 5 ? 100 : length === 4 ? 50 : 20;
+          total[team]! += pts;
+          best[team] = Math.max(best[team]!, pts * 10 + end);
+        }
+        r = end + 1;
+      }
+    }
+  }
+  if (best[0] === best[1]) return [0, 0];
+  return best[0]! > best[1]! ? [total[0], 0] : [0, total[1]];
+}

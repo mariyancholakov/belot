@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { findAnnouncements, resolveDeclared } from "./announcements";
+import { fullDeck } from "./cards";
 import { mulberry32, shuffledDeck } from "./deal";
 import { applyAction, mustDecideAnnouncements, newGame, type GameAction, type GameState } from "./game";
 import {
+  announcementPoints,
   cardIndex,
   cardOf,
   cardsOf,
@@ -81,6 +83,19 @@ describe("greedy playout", () => {
         expect(r.points[0] + r.points[1]).toBe([162, 162, 162, 162, 130, 258][c]);
         expect(r.hands.every((h) => h === 0)).toBe(true);
       }
+    }
+  });
+});
+
+describe("announcement points", () => {
+  it("match the engine when everybody declares", () => {
+    const rand = mulberry32(5);
+    for (let n = 0; n < 3000; n++) {
+      // Hands biased towards runs and carrés: deal from a deck that keeps a few suits whole.
+      const deck = n % 2 ? shuffledDeck(n) : fullDeck().sort(() => rand() - 0.5).sort((a, b) => (rand() < 0.7 ? 0 : a.suit.localeCompare(b.suit)));
+      const hands = [0, 1, 2, 3].map((s) => deck.slice(s * 8, s * 8 + 8));
+      const expected = resolveDeclared(hands.map((h) => findAnnouncements(h)), [[], [], [], []]).points;
+      expect(announcementPoints(hands.map(maskOf))).toEqual(expected);
     }
   });
 });
