@@ -251,7 +251,23 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
 
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const trick: Play[] = view.trick.length > 0 ? view.trick : held?.plays ?? [];
+  // The card you play leaves your hand and lands on the table at once; the server's update then confirms it.
+  const [pending, setPending] = useState<Card | null>(null);
+  const isPending = (c: Card) => pending !== null && c.suit === pending.suit && c.rank === pending.rank;
+  useEffect(() => {
+    if (pending && !view.hand.some(isPending)) setPending(null);
+    // a refused play (or a lost message) puts the card back in the hand
+    const t = pending ? setTimeout(() => setPending(null), 2500) : undefined;
+    return () => clearTimeout(t);
+  }, [view, pending]);
+  const playCard = (card: Card, belot?: boolean) => {
+    setPending(card);
+    send(belot === undefined ? { type: "play", card } : { type: "play", card, belot });
+  };
+
+  const shownTrick: Play[] = view.trick.length > 0 ? view.trick : held?.plays ?? [];
+  const trick: Play[] =
+    pending && !shownTrick.some((p) => p.seat === me) ? [...(view.trick.length > 0 ? view.trick : []), { seat: me, card: pending }] : shownTrick;
   const winnerSeat = view.trick.length === 0 ? held?.winner : undefined;
   const sweepTo = winnerSeat !== undefined && sweeping ? POSITIONS[rel(winnerSeat)] : null;
 
@@ -264,8 +280,8 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   /** An animation is moving cards; "wait" is just the deck lying on the felt. */
   const animating = stage !== null && stage.kind !== "wait";
   const dealtSoFar = shown ?? (busy ? [0, 0, 0, 0] : null);
-  const myTurn = view.phase === "playing" && view.turn === me && !busy;
-  const hand = sortHand(dealtSoFar ? view.hand.slice(0, dealtSoFar[me]) : view.hand, view.contract?.contract ?? null);
+  const myTurn = view.phase === "playing" && view.turn === me && !busy && !pending;
+  const hand = sortHand(dealtSoFar ? view.hand.slice(0, dealtSoFar[me]) : view.hand, view.contract?.contract ?? null).filter((c) => !isPending(c));
   // The hand is pointed at as a whole: whichever card's strip the pointer is over comes up. Done on the DOM
   // directly so moving the pointer never re-renders the table.
   const handEl = useRef<HTMLDivElement>(null);
@@ -361,7 +377,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
             cards={askBelot === "claim" ? view.hand.filter((c) => c.rank === "K" || c.rank === "Q").filter((c) => view.claimBelots.includes(c.suit)) : view.hand.filter((c) => (c.rank === "K" || c.rank === "Q") && c.suit === askBelot.suit)}
             onChoose={(call) => {
               if (askBelot === "claim") send({ type: "claim", belot: call });
-              else send({ type: "play", card: askBelot, belot: call });
+              else playCard(askBelot, call);
               setAskBelot(null);
             }}
           />
@@ -413,7 +429,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         {hand.map((card, i) => {
           const ok = view.phase !== "playing" || !myTurn || playable.has(card.suit + card.rank);
           const mid = (hand.length - 1) / 2;
-          const choose = myTurn && ok ? () => (view.belotCards.some((b) => b.suit === card.suit && b.rank === card.rank) ? setAskBelot(card) : send({ type: "play", card })) : undefined;
+          const choose = myTurn && ok ? () => (view.belotCards.some((b) => b.suit === card.suit && b.rank === card.rank) ? setAskBelot(card) : playCard(card)) : undefined;
           chooseRef.current[i] = choose;
           return (
             <div key={card.suit + card.rank} className={`hand-slot ${ok ? "" : "off"}`}>
