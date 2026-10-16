@@ -55,7 +55,8 @@ export type GameEvent =
   | { type: "played"; seat: number; card: Card }
   | { type: "trickWon"; winner: number; plays: Play[] }
   | { type: "announced"; seat: number; kinds: AnnouncementKind[] }
-  | { type: "claimed"; seat: number; cards: Card[] }
+  /** A player laid their cards down; every hand still held is shown face up (cards: the claimer's, hands: by seat). */
+  | { type: "claimed"; seat: number; cards: Card[]; hands: Card[][] }
   | { type: "announcements"; result: AnnouncementResult }
   | { type: "roundScored"; result: RoundResult; summary: RoundSummary }
   | { type: "gameOver"; winner: Team };
@@ -427,7 +428,7 @@ function applyClaim(state: GameState, seat: number, belot: boolean, events: Game
       events.push({ type: "belot", seat, suit });
     }
   }
-  events.push({ type: "claimed", seat, cards: laid });
+  events.push({ type: "claimed", seat, cards: laid, hands: state.hands.map((h) => [...h]) });
 
   // Every card still in a hand goes to the claimer's team, wherever it sits.
   const rest = [0, 1, 2, 3].flatMap((i) => state.hands[(seat + i) % 4]!);

@@ -374,7 +374,9 @@ describe("laying the cards down", () => {
     expect(r.state.hands.every((h) => h.length === 0)).toBe(true);
     expect(["roundEnd", "gameOver"]).toContain(r.state.phase);
     expect(r.state.collected.length).toBe(32);
-    expect(r.events.some((e) => e.type === "claimed")).toBe(true);
+    const claimed = r.events.find((e) => e.type === "claimed");
+    // the other players' cards go face up too, so the table sees the claim is good
+    expect(claimed && claimed.type === "claimed" && claimed.hands).toEqual(hands);
   });
 
   it("lets the claimer call a belot on the cards they lay down", () => {
