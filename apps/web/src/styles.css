@@ -1,41 +1,41 @@
 /* ---------- tokens ---------- */
-/* the palette of a village kafene card table: green baize, brass trim, and the red of shevitsa embroidery */
+/* printed like a playing card: white stock, black and red ink, and the navy of a card back as the one accent */
 :root {
-  --bg: #e6eae5;
-  --surface: #f8faf6;
-  --surface-2: #eef2ec;
-  --text: #13241b;
-  --muted: #56675d;
-  --line: #d3dcd4;
-  --line-strong: #93a398;
-  --accent: #1d5a3e;
-  --accent-ink: #f4f7f1;
-  --ring: #c99532;
-  --accent-soft: #d5e1d7;
-  --danger: #b3302c;
-  --warn: #93650f;
-  --brass: #c99532;
-  --felt-a: #286a4a;
-  --felt-b: #164630;
-  --felt-line: rgba(6, 24, 15, 0.35);
-  --felt-trim: rgba(226, 182, 92, 0.55);
-  --chip-bg: rgba(250, 251, 246, 0.94);
-  --chip-ink: #13241b;
-  --ours: #1d5a3e;
-  --theirs: #b3302c;
-  --stitch: #b3302c;
-  --ours-ink: #1d5a3e;
-  --theirs-ink: #a52b27;
-  --card-bg: #fcfcf8;
-  --card-ink: #141a17;
-  --card-red: #c42a30;
-  --card-edge: rgba(10, 24, 16, 0.18);
-  --felt-ink: #eef4ec;
-  --felt-ink-soft: rgba(238, 244, 236, 0.8);
-  --turn-bg: var(--brass);
-  --turn-ink: #1a1406;
-  --shadow-1: 0 1px 2px rgba(10, 30, 20, 0.1);
-  --shadow-2: 0 10px 30px rgba(10, 30, 20, 0.18);
+  --bg: #fbfbf9;
+  --surface: #ffffff;
+  --surface-2: #f2f2ef;
+  --text: #141414;
+  --muted: #66665f;
+  --line: #e6e6e2;
+  --line-strong: #c9c9c2;
+  --accent: #141414;
+  --accent-ink: #ffffff;
+  --ring: #22305e;
+  --ring-ink: #ffffff;
+  --accent-soft: #ecece8;
+  --danger: #c8202e;
+  --warn: #8a5a00;
+  --brass: #22305e;
+  --felt-a: #ffffff;
+  --felt-b: #ffffff;
+  --felt-line: transparent;
+  --felt-trim: transparent;
+  --chip-bg: #ffffff;
+  --chip-ink: #141414;
+  --ours: #22305e;
+  --theirs: #a3a39c;
+  --ours-ink: #22305e;
+  --theirs-ink: #5f5f58;
+  --card-bg: #ffffff;
+  --card-ink: #141414;
+  --card-red: #c8202e;
+  --card-edge: rgba(20, 20, 20, 0.14);
+  --felt-ink: #141414;
+  --felt-ink-soft: #66665f;
+  --turn-bg: #141414;
+  --turn-ink: #ffffff;
+  --shadow-1: 0 1px 2px rgba(20, 20, 20, 0.06);
+  --shadow-2: 0 10px 28px rgba(20, 20, 20, 0.1);
   --cw: clamp(52px, 16.5vw, 72px);
   /* your hand is the hero: eight cards fill the width, each showing a half-width strip */
   --hand-cw: clamp(54px, calc((100vw - 24px) / 4.5), 84px);
@@ -44,88 +44,85 @@
   --side-cw: clamp(34px, 9.5vw, 46px);
   --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --felt-bg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0' intercept='0.4'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") 0 0 / 180px 180px, radial-gradient(ellipse at 50% 40%, var(--felt-a), var(--felt-b) 78%);
-  --back-a: #b8352f;
-  --back-b: #94271f;
+  --felt-bg: var(--bg);
+  --back-a: #22305e;
+  --back-b: #1a2549;
   color-scheme: light;
 }
 
+/* the same deck in a dark room: near-black table, white ink, the cards stay white */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0b1410;
-    --surface: #13201a;
-    --surface-2: #1a2a22;
-    --text: #e8eee8;
-    --muted: #93a49a;
-    --line: #233429;
-    --line-strong: #4d6457;
-    --accent: #ddb055;
-    --accent-ink: #1a1406;
-    --ring: #e2b65a;
-    --accent-soft: #1f3128;
-    --danger: #ec8a7e;
+    --bg: #111111;
+    --surface: #1b1b1b;
+    --surface-2: #252525;
+    --text: #f2f2ef;
+    --muted: #9d9d96;
+    --line: #2b2b2b;
+    --line-strong: #474744;
+    --accent: #f2f2ef;
+    --accent-ink: #111111;
+    --ring: #93a5ec;
+    --ring-ink: #111111;
+    --accent-soft: #2a2a2a;
+    --danger: #f0676c;
     --warn: #e0b456;
-    --brass: #ddb055;
-    --felt-a: #1f5039;
-    --felt-b: #0d281c;
-    --felt-line: rgba(0, 0, 0, 0.45);
-    --felt-trim: rgba(221, 176, 85, 0.42);
-      --chip-bg: rgba(10, 24, 17, 0.78);
-    --chip-ink: #e8eee8;
-    --ours: #7cc39a;
-    --theirs: #e0776b;
-    --stitch: #d0574b;
-    --ours-ink: #8fd0aa;
-    --theirs-ink: #ec8a7e;
-    --card-bg: #eef0ea;
-    --card-red: #cf2f36;
-    --card-edge: rgba(0, 0, 0, 0.35);
-    --felt-ink: #e8eee8;
-    --felt-ink-soft: rgba(232, 238, 232, 0.78);
-    --turn-ink: #1a1406;
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.55);
-    --back-a: #a83630;
-    --back-b: #842720;
+    --brass: #93a5ec;
+    --chip-bg: #1b1b1b;
+    --chip-ink: #f2f2ef;
+    --ours: #93a5ec;
+    --theirs: #6e6e68;
+    --ours-ink: #a9b8f0;
+    --theirs-ink: #a5a59e;
+    --card-bg: #f6f6f3;
+    --card-ink: #141414;
+    --card-red: #c8202e;
+    --card-edge: rgba(0, 0, 0, 0.4);
+    --felt-ink: #f2f2ef;
+    --felt-ink-soft: #9d9d96;
+    --turn-bg: #f2f2ef;
+    --turn-ink: #111111;
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.55);
+    --back-a: #2d3d78;
+    --back-b: #22305e;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0b1410;
-  --surface: #13201a;
-  --surface-2: #1a2a22;
-  --text: #e8eee8;
-  --muted: #93a49a;
-  --line: #233429;
-  --line-strong: #4d6457;
-  --accent: #ddb055;
-  --accent-ink: #1a1406;
-  --ring: #e2b65a;
-  --accent-soft: #1f3128;
-  --danger: #ec8a7e;
+  --bg: #111111;
+  --surface: #1b1b1b;
+  --surface-2: #252525;
+  --text: #f2f2ef;
+  --muted: #9d9d96;
+  --line: #2b2b2b;
+  --line-strong: #474744;
+  --accent: #f2f2ef;
+  --accent-ink: #111111;
+  --ring: #93a5ec;
+  --ring-ink: #111111;
+  --accent-soft: #2a2a2a;
+  --danger: #f0676c;
   --warn: #e0b456;
-  --brass: #ddb055;
-  --felt-a: #1f5039;
-  --felt-b: #0d281c;
-  --felt-line: rgba(0, 0, 0, 0.45);
-  --felt-trim: rgba(221, 176, 85, 0.42);
-  --chip-bg: rgba(10, 24, 17, 0.78);
-  --chip-ink: #e8eee8;
-  --ours: #7cc39a;
-  --theirs: #e0776b;
-  --stitch: #d0574b;
-  --ours-ink: #8fd0aa;
-  --theirs-ink: #ec8a7e;
-  --card-bg: #eef0ea;
-  --card-red: #cf2f36;
-  --card-edge: rgba(0, 0, 0, 0.35);
-  --felt-ink: #e8eee8;
-  --felt-ink-soft: rgba(232, 238, 232, 0.78);
-  --turn-ink: #1a1406;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-2: 0 12px 34px rgba(0, 0, 0, 0.55);
-  --back-a: #a83630;
-  --back-b: #842720;
+  --brass: #93a5ec;
+  --chip-bg: #1b1b1b;
+  --chip-ink: #f2f2ef;
+  --ours: #93a5ec;
+  --theirs: #6e6e68;
+  --ours-ink: #a9b8f0;
+  --theirs-ink: #a5a59e;
+  --card-bg: #f6f6f3;
+  --card-ink: #141414;
+  --card-red: #c8202e;
+  --card-edge: rgba(0, 0, 0, 0.4);
+  --felt-ink: #f2f2ef;
+  --felt-ink-soft: #9d9d96;
+  --turn-bg: #f2f2ef;
+  --turn-ink: #111111;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --back-a: #2d3d78;
+  --back-b: #22305e;
   color-scheme: dark;
 }
 
@@ -202,17 +199,6 @@ button:disabled { cursor: default; }
   padding: 28px 24px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
 }
 .home > *, .lobby > * { position: relative; z-index: 1; }
-/* a faint scatter of suits, faded out toward the middle so the card stays clean */
-.home::before, .lobby::before {
-  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: var(--muted); opacity: 0.16;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' font-family='serif' font-size='30' text-anchor='middle'%3E%3Cg transform='rotate(-12 40 40)'%3E%3Ctext x='40' y='52'%3E♠%3C/text%3E%3C/g%3E%3Cg transform='rotate(10 120 40)'%3E%3Ctext x='120' y='52'%3E♥%3C/text%3E%3C/g%3E%3Cg transform='rotate(14 40 120)'%3E%3Ctext x='40' y='132'%3E♦%3C/text%3E%3C/g%3E%3Cg transform='rotate(-8 120 120)'%3E%3Ctext x='120' y='132'%3E♣%3C/text%3E%3C/g%3E%3C/svg%3E") repeat center / 160px 160px;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' font-family='serif' font-size='30' text-anchor='middle'%3E%3Cg transform='rotate(-12 40 40)'%3E%3Ctext x='40' y='52'%3E♠%3C/text%3E%3C/g%3E%3Cg transform='rotate(10 120 40)'%3E%3Ctext x='120' y='52'%3E♥%3C/text%3E%3C/g%3E%3Cg transform='rotate(14 40 120)'%3E%3Ctext x='40' y='132'%3E♦%3C/text%3E%3C/g%3E%3Cg transform='rotate(-8 120 120)'%3E%3Ctext x='120' y='132'%3E♣%3C/text%3E%3C/g%3E%3C/svg%3E") repeat center / 160px 160px;
-  -webkit-mask-composite: source-in; mask-composite: intersect;
-}
-.home::after, .lobby::after {
-  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: radial-gradient(ellipse 55% 50% at 50% 50%, var(--bg) 35%, transparent 100%);
-}
 .home-logo { color: inherit; text-decoration: none; background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer; position: absolute; z-index: 1; top: 14px; left: 16px; display: inline-flex; align-items: center; gap: 10px; font-size: 1.25rem; font-weight: 750; letter-spacing: -0.02em; }
 .logo-mark { display: block; flex: none; }
 .home-invite { margin: 0 0 2px; text-align: center; color: var(--muted); }
@@ -290,14 +276,8 @@ button:disabled { cursor: default; }
 
 .felt {
   position: relative; margin: 0 10px; border-radius: 26px; min-height: 0;
-  /* the nap of the cloth is fine noise blended into the green */
-  background: var(--felt-bg); background-blend-mode: overlay, normal;
-  box-shadow: inset 0 0 0 1px var(--felt-line), inset 0 0 60px rgba(0, 0, 0, 0.22), var(--shadow-2);
-}
-/* brass tooling round the edge of the baize, a double line as on an old card table */
-.felt::before {
-  content: ""; position: absolute; inset: 12px; border-radius: 18px; pointer-events: none;
-  border: 1px solid var(--felt-trim); outline: 1px solid color-mix(in srgb, var(--felt-trim) 45%, transparent); outline-offset: 3px;
+  /* the table is a sheet of card stock: white, one hairline edge, a soft lift off the page */
+  background: var(--surface); box-shadow: 0 0 0 1px var(--line), var(--shadow-2);
 }
 
 /* seats */
@@ -395,7 +375,7 @@ button:disabled { cursor: default; }
   --h: calc(var(--cw) * 1.42);
   width: var(--cw); height: var(--h); border-radius: calc(var(--cw) * 0.13); background: var(--card-bg); color: var(--card-ink);
   position: relative; flex: none; border: 1px solid var(--card-edge); padding: 0; user-select: none; display: block;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14), 0 6px 14px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 1px 2px rgba(20, 20, 20, 0.08), 0 6px 16px rgba(20, 20, 20, 0.08);
 }
 .card.small { --cw: clamp(40px, 11.5vw, 58px); }
 .card.red { color: var(--card-red); }
@@ -405,10 +385,10 @@ button:disabled { cursor: default; }
 .card .pip { position: absolute; right: 11%; bottom: 7%; font-size: calc(var(--cw) * 0.5); line-height: 1; }
 .card.back {
   background: var(--back-bg); border: 3px solid var(--card-bg);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 4px 10px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 1px 2px rgba(20, 20, 20, 0.16), 0 3px 8px rgba(20, 20, 20, 0.1);
 }
 .card.dim { opacity: 0.4; }
-.card.winner { box-shadow: 0 0 0 3px var(--ring), 0 8px 18px rgba(0, 0, 0, 0.3); }
+.card.winner { box-shadow: 0 0 0 2px var(--ring), 0 8px 18px rgba(20, 20, 20, 0.14); }
 .card.deal { animation: deal-in 0.5s var(--ease) both; }
 
 .hand { --cw: var(--hand-cw); display: flex; justify-content: center; padding: 22px 12px 30px; position: relative; z-index: 3; min-height: calc(var(--cw) * 1.42 + 34px); }
@@ -434,7 +414,7 @@ button:disabled { cursor: default; }
 .bid-log { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 0.85rem; max-height: 3.9em; overflow: auto; }
 .bid-log li span { color: var(--muted); }
 .bid {
-  min-height: 52px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface-2); color: var(--text); font-weight: 650; padding: 0 8px;
+  min-height: 52px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-weight: 650; padding: 0 8px; box-shadow: var(--shadow-1);
   transition: transform 0.12s var(--ease), background-color 0.15s, border-color 0.15s;
 }
 .bid.suit.red { color: var(--card-red); }
@@ -635,7 +615,7 @@ button:disabled { cursor: default; }
 
 /* ---------- decisions happen on the felt ---------- */
 .felt-pop {
-  position: absolute; left: 50%; bottom: 16px; z-index: 6; width: min(calc(100% - 24px), 400px); padding: 14px; border-radius: 20px;
+  position: absolute; left: 50%; bottom: 16px; z-index: 6; width: min(calc(100% - 24px), 400px); padding: 14px; border-radius: 14px;
   background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); transform: translateX(-50%); animation: pop-center 0.35s var(--ease) both;
 }
 @keyframes pop-center { from { opacity: 0; transform: translate(-50%, 12px) scale(0.97); } to { opacity: 1; transform: translateX(-50%); } }
@@ -736,17 +716,11 @@ button:disabled { cursor: default; }
 
 /* ---------- on a phone the felt is the whole screen ---------- */
 @media (max-width: 759px), (max-height: 560px) and (orientation: landscape) {
-  .table { max-width: none; background: var(--felt-bg); background-blend-mode: overlay, normal; }
+  .table { max-width: none; background: var(--bg); }
   .felt { margin: 0; border-radius: 0; background: none; box-shadow: none; }
-  .felt::before { display: none; }
-  /* the brass tooling runs round the screen instead of round the felt */
-  .table::before {
-    content: ""; position: absolute; z-index: 1; pointer-events: none; border-radius: 22px; border: 1px solid var(--felt-trim);
-    inset: calc(env(safe-area-inset-top) + 6px) 6px calc(env(safe-area-inset-bottom) + 6px);
-  }
   .topbar { position: relative; z-index: 5; padding: 6px 10px; }
   .topbar .icon-btn { width: 44px; height: 44px; color: var(--felt-ink-soft); }
-  .topbar .icon-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--felt-ink); }
+  .topbar .icon-btn:hover { background: var(--surface-2); color: var(--felt-ink); }
   /* the top player sits inside the felt, clear of the score */
   .felt .seat.top { top: 8px; }
 }
@@ -832,14 +806,14 @@ button:disabled { cursor: default; }
 
   .felt .seat .name { flex-direction: column; gap: 0; padding: 0; background: none; backdrop-filter: none; box-shadow: none; animation: none; max-width: none; overflow: visible; }
   .felt .seat.turn .name { box-shadow: none; animation: none; }
-  .felt .seat .avatar { width: 46px; height: 46px; box-shadow: 0 0 0 2.5px var(--theirs), 0 2px 6px rgba(0, 0, 0, 0.3); }
-  .felt .seat.ours .avatar { box-shadow: 0 0 0 2.5px var(--ours), 0 2px 6px rgba(0, 0, 0, 0.3); }
+  .felt .seat .avatar { width: 46px; height: 46px; box-shadow: 0 0 0 2px var(--theirs), var(--shadow-2); }
+  .felt .seat.ours .avatar { box-shadow: 0 0 0 2px var(--ours), var(--shadow-2); }
   .felt .seat.turn .avatar { box-shadow: 0 0 0 3px var(--ring), 0 0 0 7px color-mix(in srgb, var(--ring) 30%, transparent); }
   .felt .seat .name > span:not(.balloon) {
     position: relative; z-index: 2; display: block; max-width: 84px; margin-top: -9px; padding: 1px 9px 2px; border-radius: 7px;
-    background: rgba(8, 24, 15, 0.82); color: #eef4ec; font-size: 0.74rem; font-weight: 650; line-height: 1.25;
+    background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); font-size: 0.74rem; font-weight: 650; line-height: 1.25;
   }
-  .felt .seat.turn .name > span:not(.balloon) { background: var(--brass); color: #1a1406; }
+  .felt .seat.turn .name > span:not(.balloon) { background: var(--ring); color: var(--ring-ink); border-color: transparent; }
   .felt .seat .clock { left: 2px; right: 2px; top: -10px; }
   /* every opponent sits centred on its side of the table; the avatar lies over the top of their cards, a little see-through */
   .felt .seat.top { top: 46px; }
@@ -868,3 +842,22 @@ button:disabled { cursor: default; }
   .felt-pop.bidding .bid.suit { flex-direction: row; gap: 6px; }
   .felt-pop.bidding .bid.pass { min-height: 38px; }
 }
+
+/* ---------- the score as card corner indices ----------
+   each team's points sit in a small white tile like the index in a card's corner; the tile turns over when points land */
+.score-btn { gap: 6px; padding: 0; min-height: 0; background: none; border: 0; box-shadow: none; }
+.score-team {
+  grid-template-columns: 1fr; justify-items: start; gap: 0; min-width: 54px; padding: 5px 9px 6px; border-radius: 9px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+}
+.score-team small { font-size: 0.68rem; line-height: 1.1; }
+.score-team b { font-size: 1.45rem; line-height: 1.05; font-weight: 800; letter-spacing: -0.02em; }
+.score-team .to-win { width: 100%; height: 2px; margin-top: 4px; }
+.score-team b > * { display: inline-block; }
+.score-team.flip { animation: index-turn 0.5s var(--ease); }
+@keyframes index-turn { 0% { transform: perspective(300px) rotateY(0); } 45% { transform: perspective(300px) rotateY(88deg); } 55% { transform: perspective(300px) rotateY(-88deg); } 100% { transform: perspective(300px) rotateY(0); } }
+@media (prefers-reduced-motion: reduce) { .score-team.flip { animation: none; } }
+.seat .name { border: 1px solid var(--line); }
+.table > .seat.bottom .name { border-color: var(--line); }
+.balloon { border: 1px solid var(--line); box-shadow: var(--shadow-2); }
+.balloon::before, .balloon::after { border: 1px solid var(--line); box-shadow: none; }

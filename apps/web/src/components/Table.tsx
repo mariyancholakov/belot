@@ -462,8 +462,18 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
 
 /** One team's running total, with a thin track showing how far it is from 151. */
 function ScoreTeam({ label, value, cls, big }: { label: string; value: number; cls: "us" | "them"; big?: boolean }) {
+  // the tile turns over like a card whenever the team's points change
+  const [flip, setFlip] = useState(false);
+  const shown = useRef(value);
+  useEffect(() => {
+    if (shown.current === value) return;
+    shown.current = value;
+    setFlip(true);
+    const t = setTimeout(() => setFlip(false), 520);
+    return () => clearTimeout(t);
+  }, [value]);
   return (
-    <span className={`score-team ${cls} ${big ? "big" : ""}`}>
+    <span className={`score-team ${cls} ${big ? "big" : ""} ${flip ? "flip" : ""}`}>
       <small>{label}</small>
       <b>
         <AnimatedNumber value={value} />
