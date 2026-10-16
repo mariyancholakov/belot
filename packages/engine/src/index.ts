@@ -8,3 +8,4 @@ export * from "./game";
 export * from "./view";
 export * from "./bot";
 export * from "./arena";
+export * from "./sim";
