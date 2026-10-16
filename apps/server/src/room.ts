@@ -51,6 +51,7 @@ export class Room {
   ) {
     this.host = hostToken;
     this.join(hostToken, hostNickname);
+    this.takeSeat(hostToken, 0);
   }
 
   toJSON(): SavedRoom {

@@ -118,7 +118,7 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
           ))}
         </div>
 
-        {room.watchers.length > 0 && (
+        {room.watchers.length > 0 && !room.youAreHost && (
           <p className="muted">
             {bg.watching}: {room.watchers.join(", ")}
           </p>

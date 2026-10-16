@@ -33,7 +33,7 @@ export const bg = {
   connecting: "Свързване…",
   reconnecting: "Връзката се прекъсна. Свързваме отново…",
   leave: "Напусни",
-  leaveToMenu: "Към главното меню",
+  leaveToMenu: "Напусни играта",
   copyLink: "Копирай линка",
   copied: "Копирано",
   share: "Сподели",

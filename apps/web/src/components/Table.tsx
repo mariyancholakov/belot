@@ -295,9 +295,6 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   return (
     <div className="table">
       <header className="topbar">
-        <button className="icon-btn topbar-back" onClick={onLeave} aria-label={bg.leave} title={bg.leave}>
-          <Icon name="back" />
-        </button>
         <div className="chips">
         </div>
         <button className="score-btn" onClick={() => setSheetOpen(true)} aria-label={`${bg.scoreTitle}: ${bg.teamUs} ${view.scores[myTeam]}, ${bg.teamThem} ${view.scores[otherTeam]}`}>
