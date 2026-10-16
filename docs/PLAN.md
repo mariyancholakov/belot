@@ -29,7 +29,7 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 - [x] M3 — Web client: playable game
 - [x] M4 — Polish and Bulgarian UX (modern light/dark redesign, animations, synthesized sounds, manifest, browser smoke test; turn timer later)
 - [~] M5 — Deploy and play with friends (Dockerfile, CI, fly.toml, docs/DEPLOY.md ready; needs the owner to deploy)
-- [~] M6 — Bots (simple computer players that fill empty seats are in; stronger play and contra later)
+- [~] M6 — Bots (simple computer players that fill empty seats are in; arena in; stronger bidding and play next)
 - [ ] M7 — History and stats (optional)
 
 ---
@@ -130,6 +130,18 @@ Rule details to verify while building 1.5–1.6 (record the answer in `docs/RULE
 | 6.4 | Bot-vs-bot simulations as an extra engine stress test |
 
 **Done when:** one person can play a full game with three bots, and a game continues when someone drops out.
+
+### Stronger bots
+Bots are `BotPolicy = (view, seed) => action`: they see only their seat's `GameView` and draw randomness from the seed, so the engine stays deterministic.
+
+| # | Step |
+|---|---|
+| 6.5 | Arena: `pnpm arena --a basic --b random --deals 1000 [--games 200]` plays every seed from both seatings (duplicate deals) and reports points per deal with a 95% interval, contracts taken and made, and time per move |
+| 6.6 | Bidding: no trumps and all trumps, contra, the partner's bids, when to announce |
+| 6.7 | Card play by sampling: deal the unseen cards many times consistent with what is known (played cards, voids, bids, announcements), play each legal move out, keep the best on average; the number of samples sets the difficulty |
+| 6.8 | Learning, once 6.7 stops improving: train small networks (bidding first, then card inference) on arena games, run them in plain TypeScript from exported weights |
+
+A new bot ships only when the arena shows it ahead of the current one.
 
 ## M7 — History and stats (optional)
 - SQLite: finished games, round scores, per-nickname wins
