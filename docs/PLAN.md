@@ -156,6 +156,17 @@ Recorded points per deal, A − B, duplicate deals, 95% interval.
 | smart policy leading low from the longest suit | smart policy | 1500 | −0.24 ±0.46 (dropped) |
 | `mc:play.bids=1,play.pool=3` (play deals weighed by the bids) | `mc` | 2×1500 | +0.22 ±0.45, +0.16 ±0.34 |
 | `mc:play.bids=1,play.pool=6` | `mc` | 2×1500 | +0.56 ±0.51, +0.29 ±0.37 (5.1 vs 2.1 ms per move) |
+| hand model refitted on smart-policy rounds | hand model fitted on greedy rounds | 1500 | −0.42 ±0.33 (kept the greedy fit) |
+| `bid.bidMargin=0` / `=5` | `mc` | 1500 | −0.32 ±0.52 / −2.07 ±0.63 |
+| `bid.contraMargin=3` / `=12` | `mc` | 1500 | −0.07 ±0.19 / +0.22 ±0.25 |
+| `bid.overcallExtra=2` / `=10` | `mc` | 1500 | −0.05 ±0.22 / +0.01 ±0.09 |
+| `bid.samples=150` | `mc` (300) | 1500 | −0.32 ±0.44 |
+| `bid.bidPoint=-3` | `mc` (0) | 1500 | −1.46 ±0.49 |
+| `bid.bidPoint=3` | `mc` (0) | 2×1500 | +0.40 ±0.36, +0.21 ±0.32 |
+| `bid.bidPoint=5` | `mc` (0) | 1500 | +0.32 ±0.37 |
+
+Bidding re-tuned with the smart play: `bidPoint` (the hand value at which another player is taken
+to bid) goes from 0 to 3; the other numbers were already near their best.
 
 The smart policy is now the default rollout for both bidding and play. Weighing the play deals by
 the bids helps a little at best, for 2.5× the time, so it is off by default (`play.bids`,

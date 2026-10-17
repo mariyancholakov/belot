@@ -50,7 +50,7 @@ export const DEFAULT_BID_TUNING: BidTuning = {
   bidMargin: 2,
   contraMargin: 6,
   inference: 1,
-  bidPoint: 0,
+  bidPoint: 3,
   contraPoint: 4,
   spread: 4,
   overcallExtra: 6,
