@@ -131,25 +131,47 @@ function finish(a: Auction, next: number, me: number, first: readonly number[], 
   return a;
 }
 
-/** How likely a seat holding `hand` (its first five cards) was to make the bids it made. */
-function likelihood(view: GameView, seat: number, hand: number, t: BidTuning): number {
-  const p = positionOf(seat, view.dealer);
-  let l = 1;
-  replay(view.bidLog, (s, bid, before) => {
+/** What each of a seat's bids says about its first five cards, read once from the bid log. */
+type Evidence = { kind: "bid" | "contra" | "pass"; contract: number }[];
+
+function evidenceOf(log: GameView["bidLog"], seat: number): Evidence {
+  const out: Evidence = [];
+  replay(log, (s, bid, before) => {
     if (s !== seat) return;
-    const odds = (value: number, point: number) => sigmoid((value - point) / t.spread);
-    if (bid.type === "bid") {
-      l *= odds(handValue(hand, contractId(bid.contract), p), t.bidPoint);
-    } else if (bid.type === "contra" || bid.type === "recontra") {
-      l *= odds(handValue(hand, before.highest!.contract, p), t.contraPoint);
-    } else if (before.multiplier === 1 && !(before.highest && teamOf(before.highest.seat) === teamOf(seat))) {
-      // A pass with bids still open says the hand had no contract worth bidding.
-      let best = -Infinity;
-      for (let c = before.highest ? before.highest.contract + 1 : 0; c < 6; c++) best = Math.max(best, handValue(hand, c, p));
-      if (best > -Infinity) l *= 1 - odds(best, t.bidPoint);
+    if (bid.type === "bid") out.push({ kind: "bid", contract: contractId(bid.contract) });
+    else if (bid.type === "contra" || bid.type === "recontra") out.push({ kind: "contra", contract: before.highest!.contract });
+    // A pass with bids still open says the hand had no contract worth bidding.
+    else if (before.multiplier === 1 && !(before.highest && teamOf(before.highest.seat) === teamOf(seat)) && (before.highest?.contract ?? -1) < 5) {
+      out.push({ kind: "pass", contract: before.highest ? before.highest.contract + 1 : 0 });
     }
   });
-  return l;
+  return out;
+}
+
+/**
+ * For each seat, how likely a seat holding a given hand (its first five cards) was to make the bids
+ * it made; null for a seat whose bids say nothing about its hand.
+ */
+export function bidLikelihoods(view: GameView, t: BidTuning = DEFAULT_BID_TUNING): (((hand: number) => number) | null)[] {
+  return [0, 1, 2, 3].map((seat) => {
+    const evidence = evidenceOf(view.bidLog, seat);
+    if (evidence.length === 0) return null;
+    const p = positionOf(seat, view.dealer);
+    const odds = (value: number, point: number) => sigmoid((value - point) / t.spread);
+    return (hand: number) => {
+      let l = 1;
+      for (const e of evidence) {
+        if (e.kind === "bid") l *= odds(handValue(hand, e.contract, p), t.bidPoint);
+        else if (e.kind === "contra") l *= odds(handValue(hand, e.contract, p), t.contraPoint);
+        else {
+          let best = -Infinity;
+          for (let c = e.contract; c < 6; c++) best = Math.max(best, handValue(hand, c, p));
+          l *= 1 - odds(best, t.bidPoint);
+        }
+      }
+      return l;
+    };
+  });
 }
 
 interface Option {
@@ -190,6 +212,8 @@ export function bidOptions(view: GameView, seed: number, t: BidTuning = DEFAULT_
   for (let i = 0; i < 32; i++) if (!(mine & (1 << i)) && i !== luckyCard) unknown.push(i);
   const rand = mulberry32(seed);
 
+  const likely = bidLikelihoods(view, t);
+
   for (let n = 0; n < t.samples; n++) {
     for (let i = unknown.length - 1; i > 0; i--) {
       const j = Math.floor(rand() * (i + 1));
@@ -213,7 +237,7 @@ export function bidOptions(view: GameView, seed: number, t: BidTuning = DEFAULT_
 
     let w = 1;
     if (t.inference > 0) {
-      for (let s = 0; s < 4; s++) if (s !== me) w *= likelihood(view, s, first[s]!, t);
+      for (let s = 0; s < 4; s++) if (s !== me) w *= likely[s]?.(first[s]!) ?? 1;
       w = Math.pow(w, t.inference);
     }
     if (w < 1e-9) continue;
