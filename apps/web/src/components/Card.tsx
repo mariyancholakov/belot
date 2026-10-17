@@ -16,9 +16,14 @@ interface Props {
   lucky?: boolean;
   /** Offset from the middle card of a held hand: the card tilts and drops a little, like a fan. */
   fan?: number;
+  /**
+   * A card in the hand you play from: always a button, switched off while it cannot be played. Swapping it for
+   * a plain element when the turn moves would rebuild the card and replay its deal animation.
+   */
+  button?: boolean;
 }
 
-export function CardFace({ card, onClick, disabled, small, highlight, delay, deal, land, lucky, fan }: Props) {
+export function CardFace({ card, onClick, disabled, small, highlight, delay, deal, land, lucky, fan, button }: Props) {
   const cls = ["card", isRed(card.suit) ? "red" : "black", small ? "small" : "", disabled ? "dim" : "", highlight ? "winner" : "", deal ? "deal" : "", land ? "land" : "", lucky ? "lucky" : ""]
     .filter(Boolean)
     .join(" ");
@@ -34,9 +39,9 @@ export function CardFace({ card, onClick, disabled, small, highlight, delay, dea
       <span className="pip">{suitSymbol[card.suit]}</span>
     </>
   );
-  if (onClick) {
+  if (onClick || button) {
     return (
-      <button className={cls} style={style} onClick={onClick} disabled={disabled} aria-label={label}>
+      <button className={cls} style={style} onClick={onClick} disabled={disabled || !onClick} aria-label={label}>
         {inner}
       </button>
     );

@@ -447,7 +447,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           chooseRef.current[i] = choose;
           return (
             <div key={card.suit + card.rank} className={`hand-slot ${ok ? "" : "off"}`}>
-              <CardFace card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={choose} />
+              <CardFace card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={choose} button />
             </div>
           );
         })}

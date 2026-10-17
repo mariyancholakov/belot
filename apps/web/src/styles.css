@@ -430,6 +430,7 @@ button:disabled { cursor: default; }
 /* the card under the pointer comes up out of the fan and straightens, as if picked up */
 .hand.active .hand-slot[data-hot]:not(.off) .card { translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px) - 24px); z-index: 2; box-shadow: 0 12px 20px rgba(0, 0, 0, 0.26); }
 .hand.active .card.dim { opacity: 1; filter: brightness(0.55); }
+.hand .card { transition: translate 0.11s ease-out, rotate 0.11s ease-out, filter 0.2s ease-out; }
 
 /* ---------- bidding ---------- */
 .sheet-panel { margin: 10px 10px 0; padding: 14px; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); animation: rise 0.35s var(--ease); }
