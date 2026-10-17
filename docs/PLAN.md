@@ -205,6 +205,21 @@ other bids and plays the auction out; `bid.model` picks which one.
   no-trumps, 0.085 vs 0.085 all-trumps): the target is one noisy round, and the linear features
   already hold what can be learned from it. In the arena `normal:bid.model=1` − `normal` is
   −0.13 ±0.29 over 3000 deals, 3× slower. Kept as model 1 for the record, not used.
+- A bid network (`bidNet.ts`, 64 ReLU units) predicts the bid itself from the five cards and the
+  auction so far, trained by `pnpm --filter @belot/lab fit-bids` on 1.23M bids of `normal` in
+  150 000 self-play auctions: 91.6% of held-out bids right (81.2% for the most common legal bid).
+  - Reading the other bids with it as it is overbids badly (`normal:bid.netInference=1` − `normal`
+    −3.10 ±0.77, 74% of contracts taken, 72% made): its probabilities are sharp, so a few sampled
+    deals carry all the weight and the bidder picks whatever looks best on the noise. Raising its
+    likelihoods to a power fixes this; over 6000 deals: 0.15 → +0.13 ±0.22, 0.25 → +0.30 ±0.25,
+    0.35 → −0.05 ±0.31. The same softening of the hand model loses (−0.76 ±0.28), so the gain is
+    the network's. Now the default (`bid.netInference=1`, `bid.netPower=0.25`).
+  - Playing the auction out with it (`bid.netLookahead`) loses (−0.59 ±0.53 alone, −1.05 ±0.41 on
+    top of the reading) at twice the time; off.
+  - Against the old reading on fresh deals: `normal` +0.28 ±0.26 (6000), `hard` +0.36 ±0.25 (3000),
+    `easy` −0.64 ±0.48 (6000; 40 samples are too few even softened, so `easy` keeps the hand
+    model). About 10% slower per move. The play still reads the bids with the hand model
+    (`play.bids`, only `hard`); the network is untested there.
 
 ## M7 — History and stats (optional)
 - SQLite: finished games, round scores, per-nickname wins
