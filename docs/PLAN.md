@@ -186,6 +186,16 @@ The smart policy is now the default rollout for both bidding and play. Weighing 
 the bids helps a little at best, for 2.5× the time, so it is off by default (`play.bids`,
 `play.pool`): the contract, voids and announcements already say most of what the bids do.
 
+Rule fixes (2026-10-17, checked with the project owner against belot.bg and Bulgarian Wikipedia):
+no announcements in no-trumps; no under-trumping (a player who cannot overtrump an opponent's
+trump may play any card); carrés count for both teams and only sequences are compared; belot on
+laid-down cards. After them `normal` − `basic` is +4.57 ±0.45 over 1500 deals (was +4.13).
+
+Contra stays rare: the simulation calls it only when it clearly pays (0.8% of `basic`'s
+contracts). New: a last-chance contra (`bid.lastChance`, on by default) when the opponents'
+contract would most likely take them to 151 and our team is behind, since then it can only help.
+`normal` won 52.0% ±1.3% of 6000 games against `normal:bid.lastChance=0`.
+
 ## M7 — History and stats (optional)
 - SQLite: finished games, round scores, per-nickname wins
 - Room survives server restart (snapshot `GameState` as JSON)

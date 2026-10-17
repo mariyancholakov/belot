@@ -1,4 +1,5 @@
 import { teamOf, type BidAction } from "./bidding";
+import type { Contract } from "./cards";
 import { mulberry32 } from "./deal";
 import { smartPolicy } from "./rollout";
 import type { GameAction } from "./game";
@@ -14,7 +15,7 @@ import {
   type SimPolicy,
   type SimRound,
 } from "./sim";
-import type { Multiplier } from "./scoring";
+import { TARGET_SCORE, type Multiplier } from "./scoring";
 import type { GameView } from "./view";
 
 /**
@@ -39,6 +40,8 @@ export interface BidTuning {
   /** Extra hand value another player wants before overcalling a partner, or re-contra. */
   overcallExtra: number;
   recontraExtra: number;
+  /** 1: contra with nothing to lose when the opponents' contract would end the game (`lastChanceContra`). */
+  lastChance: number;
   /** 1: play the rest of the auction out with the hand model; 0: take every bid to stand as it is. */
   lookahead: number;
   /** How the simulated rounds are played. */
@@ -55,6 +58,7 @@ export const DEFAULT_BID_TUNING: BidTuning = {
   spread: 4,
   overcallExtra: 6,
   recontraExtra: 4,
+  lastChance: 1,
   lookahead: 1,
   policy: smartPolicy,
 };
@@ -131,15 +135,31 @@ function finish(a: Auction, next: number, me: number, first: readonly number[], 
   return a;
 }
 
+/** Recorded points the bidders usually take from a made contract, by contract number. */
+const USUAL_MADE = [12, 12, 12, 12, 16, 16];
+
+/**
+ * Nothing to lose: the opponents' contract, if made, would most likely take them to 151 while
+ * `team` is behind, so a contra can only help (it doubles what `team` takes if they fail).
+ */
+export function lastChanceContra(scores: readonly [number, number], team: number, contract: number): boolean {
+  const them = scores[1 - team]!;
+  return scores[team]! < them && them + USUAL_MADE[contract]! >= TARGET_SCORE;
+}
+
 /** What each of a seat's bids says about its first five cards, read once from the bid log. */
 type Evidence = { kind: "bid" | "contra" | "pass"; contract: number }[];
 
-function evidenceOf(log: GameView["bidLog"], seat: number): Evidence {
+function evidenceOf(view: GameView, seat: number): Evidence {
   const out: Evidence = [];
-  replay(log, (s, bid, before) => {
+  replay(view.bidLog, (s, bid, before) => {
     if (s !== seat) return;
     if (bid.type === "bid") out.push({ kind: "bid", contract: contractId(bid.contract) });
-    else if (bid.type === "contra" || bid.type === "recontra") out.push({ kind: "contra", contract: before.highest!.contract });
+    else if (bid.type === "recontra") out.push({ kind: "contra", contract: before.highest!.contract });
+    // A last-chance contra says nothing about the hand.
+    else if (bid.type === "contra") {
+      if (!lastChanceContra(view.scores, teamOf(seat), before.highest!.contract)) out.push({ kind: "contra", contract: before.highest!.contract });
+    }
     // A pass with bids still open says the hand had no contract worth bidding.
     else if (before.multiplier === 1 && !(before.highest && teamOf(before.highest.seat) === teamOf(seat)) && (before.highest?.contract ?? -1) < 5) {
       out.push({ kind: "pass", contract: before.highest ? before.highest.contract + 1 : 0 });
@@ -154,7 +174,7 @@ function evidenceOf(log: GameView["bidLog"], seat: number): Evidence {
  */
 export function bidLikelihoods(view: GameView, t: BidTuning = DEFAULT_BID_TUNING): (((hand: number) => number) | null)[] {
   return [0, 1, 2, 3].map((seat) => {
-    const evidence = evidenceOf(view.bidLog, seat);
+    const evidence = evidenceOf(view, seat);
     if (evidence.length === 0) return null;
     const p = positionOf(seat, view.dealer);
     const odds = (value: number, point: number) => sigmoid((value - point) / t.spread);
@@ -265,9 +285,13 @@ export function chooseBid(view: GameView, seed: number, t: BidTuning = DEFAULT_B
   const pass = view.legalActions.find((a) => a.type === "bid" && a.bid.type === "pass")!;
   let best: GameAction = pass;
   let bestScore = options.find((o) => o.action === pass)!.value;
+  const h = view.highestBid;
+  const lastChance = t.lastChance > 0 && h !== null && lastChanceContra(view.scores, teamOf(view.seat), contractId(h.contract as Contract));
   for (const o of options) {
     if (o.action === pass) continue;
-    const score = o.value - o.margin;
+    let score = o.value - o.margin;
+    // With nothing to lose, a contra is never worse than passing.
+    if (lastChance && o.action.type === "bid" && o.action.bid.type === "contra") score = Math.max(score, bestScore + 0.01);
     if (score > bestScore) {
       best = o.action;
       bestScore = score;

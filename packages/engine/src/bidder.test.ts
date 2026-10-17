@@ -19,8 +19,9 @@ const pass: GameAction = { type: "bid", bid: { type: "pass" } };
 const bid = (contract: Contract): GameAction => ({ type: "bid", bid: { type: "bid", contract } });
 
 /** The bid `seat` makes holding `hand` after the given bids (dealer 0, so seat 1 bids first). */
-function bidWith(hand: string[], before: GameAction[] = []): GameAction {
+function bidWith(hand: string[], before: GameAction[] = [], scores: [number, number] = [0, 0]): GameAction {
   let state = newGame(1);
+  state.scores = scores;
   state = must(state, state.turn, { type: "cut", position: 5 });
   state = must(state, state.turn, { type: "deal", lucky: false });
   for (const action of before) state = must(state, state.turn, action);
@@ -44,6 +45,13 @@ describe("bidding by simulation", () => {
 
   it("doubles an opponent's trump suit it holds the top of", () => {
     expect(bidWith(["Jh", "9h", "Ah", "10h", "As"], [bid("hearts")])).toEqual({ type: "bid", bid: { type: "contra" } });
+  });
+
+  it("doubles with nothing when the opponents are about to win anyway", () => {
+    // Seat 2 bids after seat 1's hearts; its team (0) is far behind and seat 1's team needs little.
+    const weak = ["7c", "8d", "7h", "8s", "9c"];
+    expect(bidWith(weak, [bid("hearts")], [80, 145])).toEqual({ type: "bid", bid: { type: "contra" } });
+    expect(bidWith(weak, [bid("hearts")], [80, 100])).toEqual(pass);
   });
 
   it("always answers with a legal bid, the same one for the same seed", () => {
