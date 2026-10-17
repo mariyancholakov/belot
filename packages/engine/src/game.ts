@@ -428,6 +428,15 @@ function applyClaim(state: GameState, seat: number, belot: boolean, events: Game
       events.push({ type: "belot", seat, suit });
     }
   }
+  // Belot on laid-down cards: anyone else still holding a K+Q pair calls it, and it counts.
+  for (let other = 0; other < 4; other++) {
+    if (other === seat) continue;
+    for (const suit of findBelots(state.hands[other]!, contract)) {
+      if (state.belots[other]!.includes(suit)) continue;
+      state.belots[other]!.push(suit);
+      events.push({ type: "belot", seat: other, suit });
+    }
+  }
   events.push({ type: "claimed", seat, cards: laid, hands: state.hands.map((h) => [...h]) });
 
   // Every card still in a hand goes to the claimer's team, wherever it sits.

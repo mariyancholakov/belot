@@ -396,6 +396,21 @@ describe("laying the cards down", () => {
     expect(r.state.belots[0]).toEqual(["hearts"]);
     expect(r.events.some((e) => e.type === "belot")).toBe(true);
   });
+
+  it("counts a belot the other players still hold (belot on laid-down cards)", () => {
+    const hands = [[k("J", "hearts"), k("9", "hearts"), k("A", "hearts")], [k("K", "hearts"), k("Q", "hearts"), k("7", "clubs")], [k("8", "clubs"), k("9", "clubs"), k("10", "clubs")], [k("J", "clubs"), k("Q", "clubs"), k("K", "clubs")]];
+    const s = playing(hands, "hearts");
+    s.tricksPlayed = 5;
+    const all: Card[] = [];
+    for (const suit of ["clubs", "diamonds", "hearts", "spades"] as Suit[]) for (const rank of ["7", "8", "9", "10", "J", "Q", "K", "A"] as Rank[]) all.push({ rank, suit });
+    s.collected = all.filter((c) => !hands.flat().some((h) => h.rank === c.rank && h.suit === c.suit));
+    s.decided[0] = true;
+    const r = applyAction(s, 0, { type: "claim" });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.belots[1]).toEqual(["hearts"]);
+    expect(r.events.some((e) => e.type === "belot" && e.seat === 1)).toBe(true);
+    expect(r.state.history.at(-1)!.announcements[1]).toBe(20);
+  });
 });
 
 describe("a game cannot be won with a capo", () => {
