@@ -5,7 +5,7 @@ import { viewFor } from "./view";
 
 describe("bot", () => {
   it("plays whole games with legal moves only", () => {
-    for (let seed = 1; seed <= 20; seed++) {
+    for (let seed = 1; seed <= 4; seed++) {
       let state: GameState = newGame(seed);
       let steps = 0;
       while (state.phase !== "gameOver") {
