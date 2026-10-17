@@ -196,6 +196,16 @@ contracts). New: a last-chance contra (`bid.lastChance`, on by default) when the
 contract would most likely take them to 151 and our team is behind, since then it can only help.
 `normal` won 52.0% ±1.3% of 6000 games against `normal:bid.lastChance=0`.
 
+6.8, learned models. The bidder values five-card hands with the hand model when it reads the
+other bids and plays the auction out; `bid.model` picks which one.
+- Linear model refitted under the fixed rules: same strength as before (−0.01 ±0.28 over 3000 deals).
+- A value network (`handNet.ts`, one hidden layer of 32 ReLU units per kind of contract, trained by
+  `pnpm --filter @belot/lab fit-net` on 100 000 simulated deals) predicts the same thing as the
+  linear model and barely better on held-out deals (R² 0.0835 vs 0.0832 for suits, 0.128 vs 0.126
+  no-trumps, 0.085 vs 0.085 all-trumps): the target is one noisy round, and the linear features
+  already hold what can be learned from it. In the arena `normal:bid.model=1` − `normal` is
+  −0.13 ±0.29 over 3000 deals, 3× slower. Kept as model 1 for the record, not used.
+
 ## M7 — History and stats (optional)
 - SQLite: finished games, round scores, per-nickname wins
 - Room survives server restart (snapshot `GameState` as JSON)

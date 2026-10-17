@@ -1,4 +1,6 @@
 import { ALL_TRUMPS, NO_TRUMPS, popcount, SUIT_MASK } from "./sim";
+import { netModel } from "./handNet";
+import { HAND_NET } from "./handNetWeights";
 import { HAND_WEIGHTS } from "./handWeights";
 
 /**
@@ -142,5 +144,5 @@ export function linearModel(weights: Record<HandKind, readonly number[]>): HandM
 
 export const handValue: HandModel = linearModel(HAND_WEIGHTS);
 
-/** Hand models a bot can pick by number (`bid.model`): 0 is the linear model. */
-export const HAND_MODELS: HandModel[] = [handValue];
+/** Hand models a bot can pick by number (`bid.model`): 0 is the linear model, 1 the network (`handNet.ts`). */
+export const HAND_MODELS: HandModel[] = [handValue, netModel(HAND_NET)];
