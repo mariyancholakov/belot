@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CARD_BACKS, type CardBack, type RoomState } from "@belot/protocol";
+import { BOT_LEVEL_IDS, CARD_BACKS, type BotLevel, type CardBack, type RoomState } from "@belot/protocol";
 import { bg } from "../i18n/bg";
 import { Avatar } from "./Avatar";
 import { Controls } from "./Controls";
@@ -12,11 +12,12 @@ interface Props {
   onAddBots: () => void;
   onRemoveBots: () => void;
   onCardBack: (back: CardBack) => void;
+  onBotLevel: (level: BotLevel) => void;
   onStart: () => void;
   onLeave: () => void;
 }
 
-export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStart, onLeave }: Props) {
+export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onBotLevel, onStart, onLeave }: Props) {
   const [copied, setCopied] = useState(false);
   const link = `${location.origin}/${room.code}`;
   const hasBots = room.seats.some((s) => s?.bot);
@@ -95,6 +96,16 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onStar
             );
           })}
         </div>
+
+        {hasBots && (
+          <div className="level-pick" role="radiogroup" aria-label={bg.botLevelTitle}>
+            {BOT_LEVEL_IDS.map((l) => (
+              <button key={l} type="button" role="radio" aria-checked={room.botLevel === l} disabled={!room.youAreHost} onClick={() => onBotLevel(l)}>
+                {bg.botLevelNames[l]}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="back-pick" role="radiogroup" aria-label={bg.cardBackTitle}>
           {CARD_BACKS.map((b) => (

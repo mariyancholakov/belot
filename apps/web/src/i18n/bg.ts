@@ -104,6 +104,8 @@ export const bg = {
   announcements: "Обявявания",
   belot: "Белот",
   cardBackTitle: "Гръб на картите",
+  botLevelTitle: "Ниво на ботовете",
+  botLevelNames: { easy: "Лесни", normal: "Нормални", hard: "Трудни" } as Record<string, string>,
   cardBackNames: { classic: "Синьо", noir: "Черно", ivory: "Слонова кост", graphite: "Графит" } as Record<string, string>,
   claim: "Свали картите",
   claimSay: "Свалям",

@@ -77,6 +77,7 @@ export function App() {
         onAddBots={() => send({ type: "addBots" })}
         onRemoveBots={() => send({ type: "removeBots" })}
         onCardBack={(back) => send({ type: "setCardBack", back })}
+        onBotLevel={(level) => send({ type: "setBotLevel", level })}
         onStart={() => send({ type: "startGame" })}
         onLeave={() => send({ type: "leaveRoom" })}
       />
