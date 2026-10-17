@@ -315,6 +315,24 @@ describe("card back", () => {
   });
 });
 
+describe("bot level", () => {
+  it("is chosen by the host before the game and shown to everybody", async () => {
+    const a = await client("Ани");
+    a.send({ type: "createRoom" });
+    await a.until(() => a.room !== null);
+    expect(a.room!.botLevel).toBe("normal");
+    const code = a.room!.code;
+    const b = await client("Бони");
+    b.send({ type: "joinRoom", code });
+    await b.until(() => b.room !== null);
+    b.send({ type: "setBotLevel", level: "hard" });
+    await b.until(() => b.lastError() !== undefined);
+    expect(a.room!.botLevel).toBe("normal");
+    a.send({ type: "setBotLevel", level: "hard" });
+    await b.until(() => b.room?.botLevel === "hard");
+  });
+});
+
 describe("restart", () => {
   it("keeps a running game across a server restart", async () => {
     const dir = mkdtempSync(join(tmpdir(), "belot-"));

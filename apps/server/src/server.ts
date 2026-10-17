@@ -177,6 +177,12 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
         deliver(room.broadcast([], false));
         break;
       }
+      case "setBotLevel": {
+        const room = roomOf(conn);
+        room.setBotLevel(token, msg.level);
+        deliver(room.broadcast([], false));
+        break;
+      }
       case "setCardBack": {
         const room = roomOf(conn);
         room.setCardBack(token, msg.back);

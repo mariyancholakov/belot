@@ -1,5 +1,5 @@
 import { applyAction, chooseBotAction, newGame, viewFor, type GameAction, type GameEvent, type GameState } from "@belot/engine";
-import { CARD_BACKS, type CardBack, type ErrorCode, type RoomState, type ServerMessage } from "@belot/protocol";
+import { BOT_LEVEL_IDS, CARD_BACKS, type BotLevel, type CardBack, type ErrorCode, type RoomState, type ServerMessage } from "@belot/protocol";
 
 export interface Member {
   token: string;
@@ -14,6 +14,8 @@ export interface SavedRoom {
   code: string;
   host: string;
   cardBack: CardBack;
+  /** Missing in tables saved before bot levels. */
+  botLevel?: BotLevel;
   seq: number;
   members: Member[];
   seats: (string | null)[];
@@ -38,6 +40,7 @@ export class Room {
   game: GameState | null = null;
   host: string;
   cardBack: CardBack = "classic";
+  botLevel: BotLevel = "normal";
   private seq = 0;
   lastActivity = Date.now();
   /** When the player to move runs out of time, as a timestamp; null while no clock runs. */
@@ -59,6 +62,7 @@ export class Room {
       code: this.code,
       host: this.host,
       cardBack: this.cardBack,
+      botLevel: this.botLevel,
       seq: this.seq,
       members: [...this.members.values()],
       seats: [...this.seats],
@@ -74,6 +78,7 @@ export class Room {
     saved.seats.forEach((t, i) => (room.seats[i] = t));
     // a table saved before a back was retired falls back to the default one
     room.cardBack = (CARD_BACKS as readonly string[]).includes(saved.cardBack) ? saved.cardBack : "classic";
+    room.botLevel = saved.botLevel && (BOT_LEVEL_IDS as readonly string[]).includes(saved.botLevel) ? saved.botLevel : "normal";
     room.seq = saved.seq;
     room.game = saved.game;
     room.host = saved.host;
@@ -180,6 +185,14 @@ export class Room {
     this.touch();
   }
 
+  setBotLevel(token: string, level: BotLevel): void {
+    this.must(token);
+    if (token !== this.host) throw new RoomError("not_host", "only the host picks the bot level");
+    if (this.game && this.game.phase !== "gameOver") throw new RoomError("game_running", "game already started");
+    this.botLevel = level;
+    this.touch();
+  }
+
   /** The computer player whose turn it is, with the move it wants to make. */
   nextBotMove(): { token: string; action: GameAction } | null {
     const game = this.game;
@@ -187,7 +200,7 @@ export class Room {
     const token = this.seats[game.turn];
     const member = token ? this.members.get(token) : undefined;
     if (!member?.bot) return null;
-    const action = chooseBotAction(game, game.turn);
+    const action = chooseBotAction(game, game.turn, this.botLevel);
     return action ? { token: member.token, action } : null;
   }
 
@@ -250,6 +263,7 @@ export class Room {
       you: member?.seat ?? null,
       youAreHost: token === this.host,
       cardBack: this.cardBack,
+      botLevel: this.botLevel,
     };
   }
 

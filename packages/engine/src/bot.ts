@@ -148,12 +148,12 @@ export const BOTS: Record<string, (params: BotParams) => BotPolicy> = {
   random: () => randomBot,
 };
 
-const serverBot = BOTS.normal!({});
+const serverBots: Record<BotLevel, BotPolicy> = { easy: BOTS.easy!({}), normal: BOTS.normal!({}), hard: BOTS.hard!({}) };
 
 /**
- * The move the server plays for a bot seat, or for a player whose clock ran out: the `normal`
- * level, which stays at a few milliseconds a move.
+ * The move the server plays for a bot seat at `level`, or for a player whose clock ran out (the
+ * `normal` level, which stays at a few milliseconds a move).
  */
-export function chooseBotAction(state: GameState, seat: number): GameAction | null {
-  return serverBot(viewFor(state, seat), state.seed + state.dealIndex * 7);
+export function chooseBotAction(state: GameState, seat: number, level: BotLevel = "normal"): GameAction | null {
+  return serverBots[level](viewFor(state, seat), state.seed + state.dealIndex * 7);
 }

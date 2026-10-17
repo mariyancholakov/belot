@@ -29,6 +29,10 @@ export const gameActionSchema = z.discriminatedUnion("type", [
 export const CARD_BACKS = ["classic", "noir", "ivory", "graphite"] as const;
 export type CardBack = (typeof CARD_BACKS)[number];
 
+/** How strong the computer players are; the host picks it before the game starts. */
+export const BOT_LEVEL_IDS = ["easy", "normal", "hard"] as const;
+export type BotLevel = (typeof BOT_LEVEL_IDS)[number];
+
 export const TOKEN_RE = /^[A-Za-z0-9_-]{16,64}$/;
 
 /** Messages a client may send. */
@@ -47,6 +51,7 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("addBots") }),
   z.object({ type: z.literal("removeBots") }),
   z.object({ type: z.literal("setCardBack"), back: z.enum(CARD_BACKS) }),
+  z.object({ type: z.literal("setBotLevel"), level: z.enum(BOT_LEVEL_IDS) }),
   z.object({ type: z.literal("startGame") }),
   z.object({ type: z.literal("action"), action: gameActionSchema }),
 ]);
@@ -73,6 +78,7 @@ export interface RoomState {
   youAreHost: boolean;
   /** Design on the back of the cards. */
   cardBack: CardBack;
+  botLevel: BotLevel;
 }
 
 export type ErrorCode =
