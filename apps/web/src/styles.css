@@ -315,12 +315,21 @@ button:disabled { cursor: default; }
 .seat.offline { opacity: 0.55; }
 /* what a player says (a bid, the belot, an announcement) comes out of their name like a speech balloon */
 .seat .name { position: relative; z-index: 3; }
-/* the time left to move runs down as a bar under the name */
+/* the time left to move runs down as a navy ring round the avatar, going red at the end like a fuse */
+@property --left { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --clock-c { syntax: "<color>"; inherits: false; initial-value: #22305e; }
+.avatar-slot { position: relative; display: block; flex: none; font-style: normal; }
 .clock {
-  position: absolute; left: 12px; right: 12px; top: -14px; height: 4px; border-radius: 2px; background: var(--felt-ink); opacity: 0.7; transform-origin: left center;
-  animation: clock-run linear forwards;
+  /* inside a name pill the ring hugs the avatar; a lone avatar (portrait phones) gets a wider one */
+  --clock-w: 2.5px; position: absolute; inset: -4px; border-radius: 50%; pointer-events: none; --clock-c: var(--ring);
+  background: conic-gradient(var(--clock-c) calc(var(--left) * 1turn), color-mix(in srgb, var(--ring) 16%, transparent) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--clock-w) - 0.5px), #000 calc(100% - var(--clock-w)));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--clock-w) - 0.5px), #000 calc(100% - var(--clock-w)));
+  animation: clock-run var(--dur) linear forwards;
 }
-@keyframes clock-run { 0% { transform: scaleX(1); } 70% { background: var(--felt-ink); } 100% { transform: scaleX(0); background: var(--danger); } }
+@keyframes clock-run { 0% { --left: 1; --clock-c: var(--ring); } 72% { --clock-c: var(--ring); } 100% { --left: 0; --clock-c: var(--danger); } }
+/* the clock is information, not decoration: with reduced motion it still runs, in coarse steps */
+@media (prefers-reduced-motion: reduce) { .clock { animation-duration: var(--dur) !important; animation-timing-function: steps(10); } }
 .balloon {
   position: absolute; z-index: 6; width: max-content; max-width: 220px; padding: 12px 24px; white-space: normal; text-align: center; line-height: 1.2;
   border-radius: 46% 54% 50% 50% / 62% 58% 42% 38%; left: 50%; bottom: calc(100% + 24px); translate: -50% 0; transform-origin: 50% 100%;
@@ -504,6 +513,7 @@ button:disabled { cursor: default; }
 @keyframes pop { from { transform: scale(0.82); opacity: 0; } 60% { transform: scale(1.06); opacity: 1; } to { transform: scale(1); } }
 @keyframes rise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes avatar-turn { 0%, 100% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent); } 50% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 10px color-mix(in srgb, var(--ring) 0%, transparent); } }
 @keyframes ring { 0%, 100% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent); } 50% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 9px color-mix(in srgb, var(--ring) 0%, transparent); } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -834,13 +844,15 @@ button:disabled { cursor: default; }
   .felt .seat.turn .name { box-shadow: none; animation: none; }
   .felt .seat .avatar { width: 46px; height: 46px; box-shadow: 0 0 0 2px var(--theirs), var(--shadow-2); }
   .felt .seat.ours .avatar { box-shadow: 0 0 0 2px var(--ours), var(--shadow-2); }
-  .felt .seat.turn .avatar { box-shadow: 0 0 0 3px var(--ring), 0 0 0 7px color-mix(in srgb, var(--ring) 30%, transparent); }
+  .felt .seat.turn .avatar { box-shadow: 0 0 0 3px var(--ring), var(--shadow-2); }
+  .felt .seat .clock { inset: -8px; --clock-w: 3.5px; }
+  /* a bot to move has no clock: its avatar breathes instead */
+  .felt .seat.turn .avatar-slot:not(.timed) .avatar { animation: avatar-turn 1.6s ease-in-out infinite; }
   .felt .seat .name > span:not(.balloon) {
     position: relative; z-index: 2; display: block; max-width: 84px; margin-top: -9px; padding: 1px 9px 2px; border-radius: 7px;
     background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); font-size: 0.74rem; font-weight: 650; line-height: 1.25;
   }
   .felt .seat.turn .name > span:not(.balloon) { background: var(--ring); color: var(--ring-ink); border-color: transparent; }
-  .felt .seat .clock { left: 2px; right: 2px; top: -10px; }
   /* every opponent sits centred on its side of the table; the avatar lies over the top of their cards, a little see-through */
   .felt .seat.top { top: 46px; }
   .felt .seat .backs { margin-top: -26px; opacity: 0.92; }

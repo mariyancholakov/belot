@@ -561,6 +561,8 @@ interface SeatProps {
 
 function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, callout, clock, clockKey }: SeatProps) {
   const turn = !busy && view.turn === seat && view.phase !== "roundEnd" && view.phase !== "gameOver";
+  /** A person to move has a clock: it runs down as a ring round their avatar. */
+  const timed = turn && clock !== null && (view.phase === "bidding" || view.phase === "playing");
   const lastBid = [...view.bidLog].reverse().find((b) => b.seat === seat);
   const declared = view.announcements
     ?.filter((a) => a.seat === seat)
@@ -570,14 +572,14 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
   return (
     <div className={`seat ${pos} ${turn ? "turn" : ""} ${ours ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
       <div className="name">
-        <i className="avatar" aria-hidden="true">
-          <Avatar name={name} size={44} />
+        <i className={`avatar-slot ${timed ? "timed" : ""}`} aria-hidden="true">
+          <i className="avatar">
+            <Avatar name={name} size={44} />
+          </i>
+          {timed && <i className="clock" key={clockKey} style={{ ["--dur" as string]: `${clock}ms` }} />}
         </i>
         <span>{name}</span>
         {!connected && <small className="off">{bg.offline}</small>}
-        {turn && clock !== null && (view.phase === "bidding" || view.phase === "playing") && (
-          <i className="clock" key={clockKey} style={{ animationDuration: `${clock}ms` }} aria-hidden="true" />
-        )}
         {say && (
           <span className="balloon" key={say}>
             <SuitText text={say} />
