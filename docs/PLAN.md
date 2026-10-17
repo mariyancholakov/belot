@@ -28,8 +28,8 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 - [x] M2 — Protocol and server
 - [x] M3 — Web client: playable game
 - [x] M4 — Polish and Bulgarian UX (modern light/dark redesign, animations, synthesized sounds, manifest, browser smoke test; turn timer later)
-- [~] M5 — Deploy and play with friends (Dockerfile, CI, fly.toml, docs/DEPLOY.md ready; needs the owner to deploy)
-- [~] M6 — Bots (computer players fill empty seats; the server plays the sampling bot at the normal level; a learned bidding model is the optional last step)
+- [x] M5 — Deploy and play with friends (live on Render's free tier, `render.yaml`)
+- [x] M6 — Bots (computer players fill empty seats at the level the host picks; bidding reads the other bids with a learned network)
 - [ ] M7 — History and stats (optional)
 
 ---
