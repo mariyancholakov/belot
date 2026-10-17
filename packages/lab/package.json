@@ -9,7 +9,8 @@
     "typecheck": "tsc -p .",
     "fit-hands": "tsx src/fit-hands.ts",
     "fit-net": "tsx src/fit-net.ts",
-    "fit-bids": "tsx src/fit-bids.ts"
+    "fit-bids": "tsx src/fit-bids.ts",
+    "scenarios": "tsx src/scenarios.ts"
   },
   "dependencies": {
     "@belot/engine": "workspace:*"
