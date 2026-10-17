@@ -143,6 +143,20 @@ Bots are `BotPolicy = (view, seed) => action`: they see only their seat's `GameV
 
 A new bot ships only when the arena shows it ahead of the current one.
 
+#### Arena results
+Recorded points per deal, A − B, duplicate deals, 95% interval.
+
+| A | B | Deals | A − B |
+|---|---|---|---|
+| `bidder` | `basic` | 1500 | +0.2 to +0.4 (noise) |
+| `mc` | `bidder` | 1500 | +5.20 ±0.50 |
+| `mc:play.samples=300` | `mc` | — | no better than 100 samples |
+| `mc:play.rollout=1` (smart policy) | `mc` (greedy rollouts) | 1500 | +1.54 ±0.38 |
+| `mc:bid.rollout=1,play.rollout=1` | `mc:play.rollout=1` | 1500 | +0.90 ±0.54 |
+| smart policy leading low from the longest suit | smart policy | 1500 | −0.24 ±0.46 (dropped) |
+
+The smart policy is now the default rollout for both bidding and play.
+
 ## M7 — History and stats (optional)
 - SQLite: finished games, round scores, per-nickname wins
 - Room survives server restart (snapshot `GameState` as JSON)

@@ -1,12 +1,12 @@
 import { teamOf, type BidAction } from "./bidding";
 import { mulberry32 } from "./deal";
+import { smartPolicy } from "./rollout";
 import type { GameAction } from "./game";
 import { handValue, positionOf } from "./handModel";
 import {
   announcementPoints,
   cardIndex,
   contractId,
-  greedyPolicy,
   maskOf,
   playOut,
   roundResult,
@@ -56,7 +56,7 @@ export const DEFAULT_BID_TUNING: BidTuning = {
   overcallExtra: 6,
   recontraExtra: 4,
   lookahead: 1,
-  policy: greedyPolicy,
+  policy: smartPolicy,
 };
 
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));

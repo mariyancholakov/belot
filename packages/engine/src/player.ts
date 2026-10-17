@@ -1,5 +1,6 @@
 import { BELOT_POINTS } from "./announcements";
 import { mulberry32 } from "./deal";
+import { smartPolicy } from "./rollout";
 import type { GameAction } from "./game";
 import { knowledgeOf, sampleHands } from "./knowledge";
 import {
@@ -8,7 +9,6 @@ import {
   cardOf,
   cloneRound,
   contractId,
-  greedyPolicy,
   maskOf,
   playCard,
   playOut,
@@ -33,7 +33,7 @@ export interface PlayTuning {
   policy: SimPolicy;
 }
 
-export const DEFAULT_PLAY_TUNING: PlayTuning = { samples: 100, policy: greedyPolicy };
+export const DEFAULT_PLAY_TUNING: PlayTuning = { samples: 100, policy: smartPolicy };
 
 /** The round as this seat sees it, with only its own hand filled in. */
 export function roundFromView(view: GameView): SimRound {
