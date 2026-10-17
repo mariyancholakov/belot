@@ -679,6 +679,18 @@ button:disabled { cursor: default; }
 .table > .hand { margin-top: calc((var(--lap) - 30px) * -1); }
 .seat.turn .name small { opacity: 1; }
 
+/* the trump as a watermark: one huge, faint symbol behind everything on the table */
+.felt-mark {
+  position: absolute; left: 50%; top: calc((100% - var(--lap)) * 0.5); z-index: 0; translate: -50% -50%; pointer-events: none; user-select: none;
+  font-size: min(78vw, 46dvh, 520px); line-height: 1; font-weight: 800; color: var(--text); opacity: 0.045;
+  animation: mark-in 0.9s var(--ease) both;
+}
+.felt-mark.red { color: var(--card-red); opacity: 0.06; }
+@keyframes mark-in { from { opacity: 0; scale: 0.9; } }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .felt-mark { opacity: 0.06; } :root:not([data-theme="light"]) .felt-mark.red { opacity: 0.09; } }
+:root[data-theme="dark"] .felt-mark { opacity: 0.06; }
+:root[data-theme="dark"] .felt-mark.red { opacity: 0.09; }
+
 /* the suit being played, always in the corner of the felt: a small card-like badge */
 .trump {
   position: absolute; left: 14px; top: 14px; z-index: 3; display: grid; gap: 2px; padding: 8px 14px 9px; border-radius: 12px;

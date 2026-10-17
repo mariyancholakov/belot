@@ -335,6 +335,12 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       </header>
 
       <div className="felt">
+        {/* the trump, printed huge and faint across the table like a watermark on card stock */}
+        {view.contract && (
+          <div className={`felt-mark ${contractRed(view.contract.contract) ? "red" : ""}`} key={`mark-${view.contract.contract}-${view.round}`} aria-hidden="true">
+            {contractSymbol(view.contract.contract)}
+          </div>
+        )}
         {view.contract && (
           <div className="trump" key={view.contract.contract + view.round} aria-live="polite">
             <small>{bg.trumpLabel}</small>
