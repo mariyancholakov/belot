@@ -8,6 +8,7 @@ import {
   cardIndex,
   cardOf,
   cardsOf,
+  CONTRACTS,
   contractId,
   greedyPolicy,
   legalNow,
@@ -51,7 +52,7 @@ describe("sim", () => {
         } else if (state.phase === "playing") {
           const c = state.contract!;
           if (!sim) {
-            const declared = state.hands.map((h) => findAnnouncements(h));
+            const declared = state.hands.map((h) => findAnnouncements(h, c.contract));
             sim = startRound(state.hands.map(maskOf), contractId(c.contract), c.bidder, state.dealer, c.multiplier, resolveDeclared(declared, [[], [], [], []]).points);
           }
           if (mustDecideAnnouncements(state, seat)) {
@@ -94,8 +95,10 @@ describe("announcement points", () => {
       // Hands biased towards runs and carrés: deal from a deck that keeps a few suits whole.
       const deck = n % 2 ? shuffledDeck(n) : fullDeck().sort(() => rand() - 0.5).sort((a, b) => (rand() < 0.7 ? 0 : a.suit.localeCompare(b.suit)));
       const hands = [0, 1, 2, 3].map((s) => deck.slice(s * 8, s * 8 + 8));
-      const expected = resolveDeclared(hands.map((h) => findAnnouncements(h)), [[], [], [], []]).points;
-      expect(announcementPoints(hands.map(maskOf))).toEqual(expected);
+      for (const c of [0, 4, 5]) {
+        const expected = resolveDeclared(hands.map((h) => findAnnouncements(h, CONTRACTS[c]!)), [[], [], [], []]).points;
+        expect(announcementPoints(hands.map(maskOf), c)).toEqual(expected);
+      }
     }
   });
 });

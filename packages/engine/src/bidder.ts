@@ -243,13 +243,12 @@ export function bidOptions(view: GameView, seed: number, t: BidTuning = DEFAULT_
     if (w < 1e-9) continue;
     weightSum += w;
 
-    const bonus = announcementPoints(hands);
     const played: (SimRound | undefined)[] = [];
     options.forEach((o, i) => {
       const end = t.lookahead > 0 ? finish(o.auction, (me + 1) % 4, me, first, view.dealer, t) : o.contract < 0 ? null : { highest: { seat: o.bidder, contract: o.contract }, multiplier: o.multiplier };
       if (!end?.highest) return; // everybody passed: a redeal is worth nothing to either side
       const c = end.highest.contract;
-      const r = (played[c] ??= playOut(startRound(hands, c, me, view.dealer, 1, [bonus[0], bonus[1]]), t.policy));
+      const r = (played[c] ??= playOut(startRound(hands, c, me, view.dealer, 1, announcementPoints(hands, c)), t.policy));
       r.bidder = end.highest.seat;
       r.multiplier = end.multiplier;
       const rec = roundResult(r).recorded;

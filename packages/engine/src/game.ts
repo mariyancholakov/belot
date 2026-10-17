@@ -207,7 +207,7 @@ export function legalActions(state: GameState, seat: number): GameAction[] {
 
 /** The seat is about to play its first card and holds announcements it has not yet decided about. */
 export function mustDecideAnnouncements(state: GameState, seat: number): boolean {
-  return state.phase === "playing" && state.tricksPlayed === 0 && !state.decided[seat] && findAnnouncements(state.hands[seat]!).length > 0;
+  return state.phase === "playing" && state.contract !== null && state.tricksPlayed === 0 && !state.decided[seat] && findAnnouncements(state.hands[seat]!, state.contract.contract).length > 0;
 }
 
 /** Whether `seat` may lay its cards down now: it leads, and every card it holds is certain to win. */
@@ -354,7 +354,7 @@ function applyAnnounce(state: GameState, seat: number, declare: boolean, events:
   if (!mustDecideAnnouncements(state, seat)) return { ok: false, error: "nothing to announce" };
   state.decided[seat] = true;
   if (declare) {
-    state.declared[seat] = findAnnouncements(state.hands[seat]!);
+    state.declared[seat] = findAnnouncements(state.hands[seat]!, state.contract.contract);
     events.push({ type: "announced", seat, kinds: state.declared[seat]!.map((a) => a.kind) });
   }
   return { ok: true, state, events };

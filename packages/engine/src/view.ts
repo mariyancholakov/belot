@@ -69,7 +69,7 @@ export function viewFor(state: GameState, seat: number): GameView {
     highestBid: state.bidding.highest,
     contract: state.contract,
     tricksWon: state.tricksWon,
-    pendingAnnouncements: mustDecideAnnouncements(state, seat) ? findAnnouncements(state.hands[seat]!) : null,
+    pendingAnnouncements: mustDecideAnnouncements(state, seat) ? findAnnouncements(state.hands[seat]!, state.contract!.contract) : null,
     belotCards: state.contract && state.phase === "playing" ? (state.hands[seat] ?? []).filter((c) => belotCallable(state.hands[seat]!, c, state.contract!.contract) && !state.belots[seat]!.includes(c.suit)) : [],
     claimBelots: state.contract && state.phase === "playing" ? findBelots(state.hands[seat] ?? [], state.contract.contract).filter((s) => !state.belots[seat]!.includes(s)) : [],
     declared: state.declared.map((list) => list.map((a) => a.kind)),

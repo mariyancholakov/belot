@@ -24,9 +24,10 @@ function sequenceKind(length: number): { kind: AnnouncementKind; points: number 
   return { kind: "terca", points: 20 };
 }
 
-/** All announcements a hand holds, before the carré cancels overlapping sequences. */
-export function findAnnouncements(hand: readonly Card[]): Announcement[] {
+/** All announcements a hand holds, before the carré cancels overlapping sequences. No-trumps has none. */
+export function findAnnouncements(hand: readonly Card[], contract: Contract): Announcement[] {
   const found: Announcement[] = [];
+  if (contract === "no-trumps") return found;
 
   // Carrés
   const carreRanks = new Set<Rank>();
@@ -123,7 +124,7 @@ export function resolveDeclared(declared: readonly (readonly Announcement[])[], 
 /** Everything the hands hold, as if every player declared all of it (used by tests and by bots). */
 export function resolveAnnouncements(hands: readonly (readonly Card[])[], contract: Contract): AnnouncementResult {
   return resolveDeclared(
-    hands.map((h) => findAnnouncements(h)),
+    hands.map((h) => findAnnouncements(h, contract)),
     hands.map((h) => findBelots(h, contract)),
   );
 }

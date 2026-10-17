@@ -94,7 +94,7 @@ export function cardValues(view: GameView, seed: number, t: PlayTuning = DEFAULT
     const start = cloneRound(base);
     start.hands = hands;
     if (guessAnnouncements) {
-      const ann = announcementPoints(hands.map((h, seat) => h | playedBy[seat]!));
+      const ann = announcementPoints(hands.map((h, seat) => h | playedBy[seat]!), base.contract);
       start.bonus[0] += ann[0];
       start.bonus[1] += ann[1];
     }

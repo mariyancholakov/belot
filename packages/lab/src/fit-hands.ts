@@ -31,9 +31,8 @@ for (let seed = 1; seed <= deals; seed++) {
   const deck = shuffledDeck(seed * 7919).map(cardIndex);
   const first = [0, 1, 2, 3].map((s) => deck.slice(s * 5, s * 5 + 5).reduce((m, i) => m | (1 << i), 0));
   const hands = first.map((m, s) => deck.slice(20 + s * 3, 23 + s * 3).reduce((h, i) => h | (1 << i), m));
-  const bonus = announcementPoints(hands);
   for (let c = 0; c < 6; c++) {
-    const r = playOut(startRound(hands, c, 0, DEALER, 1, [bonus[0], bonus[1]]), greedyPolicy);
+    const r = playOut(startRound(hands, c, 0, DEALER, 1, announcementPoints(hands, c)), greedyPolicy);
     for (let seat = 0; seat < 4; seat++) {
       r.bidder = seat;
       const rec = roundResult(r).recorded;

@@ -317,6 +317,11 @@ describe("announcements are declared by the player", () => {
       expect(r.state.declared[0]!.length).toBe(declare ? 1 : 0);
     }
   });
+
+  it("asks nothing in no-trumps", () => {
+    const s = playing(hands(), "no-trumps");
+    expect(legalActions(s, 0).every((a) => a.type === "play")).toBe(true);
+  });
 });
 
 describe("belot is only counted when called", () => {

@@ -7,27 +7,31 @@ const filler: Card[] = [c("7", "clubs"), c("8", "diamonds"), c("9", "spades")];
 
 describe("findAnnouncements", () => {
   it("finds terca, fifty and hundred by length", () => {
-    expect(findAnnouncements([c("7", "hearts"), c("8", "hearts"), c("9", "hearts")])[0]).toMatchObject({ kind: "terca", points: 20, high: "9" });
-    expect(findAnnouncements([c("10", "hearts"), c("J", "hearts"), c("Q", "hearts"), c("K", "hearts")])[0]).toMatchObject({ kind: "fifty", points: 50, high: "K" });
+    expect(findAnnouncements([c("7", "hearts"), c("8", "hearts"), c("9", "hearts")], "hearts")[0]).toMatchObject({ kind: "terca", points: 20, high: "9" });
+    expect(findAnnouncements([c("10", "hearts"), c("J", "hearts"), c("Q", "hearts"), c("K", "hearts")], "hearts")[0]).toMatchObject({ kind: "fifty", points: 50, high: "K" });
     const five = ["9", "10", "J", "Q", "K"].map((r) => c(r as Card["rank"], "spades"));
-    expect(findAnnouncements(five)[0]).toMatchObject({ kind: "hundred", points: 100 });
+    expect(findAnnouncements(five, "hearts")[0]).toMatchObject({ kind: "hundred", points: 100 });
   });
 
   it("does not join cards that are not adjacent", () => {
-    expect(findAnnouncements([c("7", "hearts"), c("8", "hearts"), c("10", "hearts"), c("J", "hearts")])).toEqual([]);
+    expect(findAnnouncements([c("7", "hearts"), c("8", "hearts"), c("10", "hearts"), c("J", "hearts")], "hearts")).toEqual([]);
   });
 
   it("values carrés: J 200, 9 150, A/10/K/Q 100, none for 7 or 8", () => {
     const four = (rank: Card["rank"]) => (["clubs", "diamonds", "hearts", "spades"] as const).map((s) => c(rank, s));
-    expect(findAnnouncements(four("J"))[0]!.points).toBe(200);
-    expect(findAnnouncements(four("9"))[0]!.points).toBe(150);
-    expect(findAnnouncements(four("A"))[0]!.points).toBe(100);
-    expect(findAnnouncements(four("7"))).toEqual([]);
+    expect(findAnnouncements(four("J"), "hearts")[0]!.points).toBe(200);
+    expect(findAnnouncements(four("9"), "hearts")[0]!.points).toBe(150);
+    expect(findAnnouncements(four("A"), "hearts")[0]!.points).toBe(100);
+    expect(findAnnouncements(four("7"), "hearts")).toEqual([]);
+  });
+
+  it("none in no-trumps", () => {
+    expect(findAnnouncements([c("7", "hearts"), c("8", "hearts"), c("9", "hearts")], "no-trumps")).toEqual([]);
   });
 
   it("a carré cancels a sequence that uses one of its cards", () => {
     const hand = [c("K", "clubs"), c("K", "diamonds"), c("K", "hearts"), c("K", "spades"), c("Q", "hearts"), c("J", "hearts")];
-    expect(findAnnouncements(hand).map((a) => a.kind)).toEqual(["carre"]);
+    expect(findAnnouncements(hand, "hearts").map((a) => a.kind)).toEqual(["carre"]);
   });
 });
 

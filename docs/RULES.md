@@ -27,7 +27,7 @@ Last trick +10. Totals: suit 162, no-trumps 130 (doubled to 260), all-trumps 258
 | Carré 9 | 150 |
 | Carré J | 200 |
 
-Only the strongest combinations count; a carré cancels terca/fifty/hundred; belot is never cancelled.
+Only the strongest combinations count; a carré cancels terca/fifty/hundred; belot is never cancelled. No-trumps has no announcements at all, belot included (belot.bg, Bulgarian Wikipedia, confirmed by the project owner).
 
 ## Round score
 Raw team total = card points + last trick + announcements; no-trumps raw is doubled. Converted to recorded points (÷10) with team-dependent rounding on the units digit:
@@ -49,7 +49,6 @@ First team to reach 151 wins; if both pass 151 the higher total wins; a tie is p
 
 ## Assumptions to confirm with the group
 - Capo bonus recorded as 9 (90 raw ÷ 10), on top of the normal round score. belot.bg says "90 points" without saying whether that is 9 or 90 in the 151 scale; we assume 9, as the other premiums are also divided by 10.
-- Announcements are doubled in no-trumps together with the rest of the raw points.
 - Bidding: after a contra no higher bids are allowed (only pass or re-contra); the three other players each get one turn after a contra, and re-contra ends bidding at once. The source does not say whether bidding can continue after a contra.
-- Announcements are declared by the player. Before a seat's first card of the round, if its hand holds any, it is asked whether to declare them; what it does not declare scores nothing. Only the first trick can carry announcements (belot excepted). The team with the stronger best declared announcement (points, then top card) scores all its declared announcements; if the best ones are equal, neither team scores announcements. A carré cancels any sequence that uses one of its cards. Belot (K+Q of trump; in all-trumps, of any suit) is called by the player when playing the first of the pair, or when laying cards down, and then counts 20; a belot not called is lost. Announcements are allowed in every contract (belot excluded in no-trumps).
+- Announcements are declared by the player. Before a seat's first card of the round, if its hand holds any, it is asked whether to declare them; what it does not declare scores nothing. Only the first trick can carry announcements (belot excepted). The team with the stronger best declared announcement (points, then top card) scores all its declared announcements; if the best ones are equal, neither team scores announcements. A carré cancels any sequence that uses one of its cards. Belot (K+Q of trump; in all-trumps, of any suit) is called by the player when playing the first of the pair, or when laying cards down, and then counts 20; a belot not called is lost.
 - Laying the cards down ("сваляне"): a player who leads may lay their hand down (with at least two cards left) when every card in it is certain to win (no unseen card beats it; a plain-suit card only counts while no trump is unseen). The team takes every remaining card plus the last-trick bonus, and the round ends at once.

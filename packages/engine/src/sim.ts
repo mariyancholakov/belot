@@ -374,9 +374,10 @@ const CARRE_POINTS = [0, 0, 150, 100, 200, 100, 100, 100];
  * Announcement points per team when every seat declares everything it holds, as
  * `resolveAnnouncements` counts them (belots are left out: the simulation adds them as played).
  */
-export function announcementPoints(hands: readonly number[]): [number, number] {
+export function announcementPoints(hands: readonly number[], c: number): [number, number] {
   const best = [-1, -1];
   const total: [number, number] = [0, 0];
+  if (c === NO_TRUMPS) return total;
   for (let seat = 0; seat < 4; seat++) {
     const hand = hands[seat]!;
     const team = seat & 1;
