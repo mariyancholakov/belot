@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { BOTS, basicBot } from "./bot";
 import { applyAction, newGame, type GameState } from "./game";
-import { chooseCard, roundFromView } from "./player";
+import { mulberry32 } from "./deal";
+import { knowledgeOf } from "./knowledge";
+import { chooseCard, DEFAULT_PLAY_TUNING, roundFromView, sampleDeals } from "./player";
+import { contractId, maskOf, popcount, SUIT_MASK } from "./sim";
 import { viewFor } from "./view";
 
 function advance(state: GameState, bot = basicBot): GameState {
@@ -30,8 +33,8 @@ describe("card play by sampling", () => {
         if (state.phase === "playing") {
           const view = viewFor(state, state.turn);
           if (view.legalActions.some((a) => a.type === "play")) {
-            const action = chooseCard(view, seed, { samples: 20, policy: (r, legal) => 31 - Math.clz32(legal) });
-            expect(chooseCard(view, seed, { samples: 20, policy: (r, legal) => 31 - Math.clz32(legal) })).toEqual(action);
+            const action = chooseCard(view, seed, { ...DEFAULT_PLAY_TUNING, samples: 20, policy: (r, legal) => 31 - Math.clz32(legal) });
+            expect(chooseCard(view, seed, { ...DEFAULT_PLAY_TUNING, samples: 20, policy: (r, legal) => 31 - Math.clz32(legal) })).toEqual(action);
             expect(view.legalActions).toContainEqual(action);
           }
         }
@@ -47,5 +50,26 @@ describe("card play by sampling", () => {
       state = advance(state, mc);
       expect(steps).toBeLessThan(5000);
     }
+  });
+
+  it("weighs the deals by the bids: a seat that bid a suit holds more of it", () => {
+    let checked = 0;
+    for (let seed = 1; checked < 5 && seed < 200; seed++) {
+      let state = newGame(seed);
+      while (state.phase !== "playing") state = advance(state);
+      const view = viewFor(state, state.turn);
+      const bidder = view.contract!.bidder;
+      const c = contractId(view.contract!.contract);
+      if (bidder === view.seat || c > 3) continue;
+      const k = knowledgeOf(view);
+      const count = (bids: number) => {
+        const deals = sampleDeals(view, k, maskOf(view.hand), [0, 0, 0, 0], mulberry32(seed), { ...DEFAULT_PLAY_TUNING, samples: 400, bids, pool: 6 });
+        expect(deals).toHaveLength(400);
+        return deals.reduce((n, hands) => n + popcount(hands[bidder]! & SUIT_MASK[c]!), 0);
+      };
+      expect(count(1)).toBeGreaterThan(count(0));
+      checked++;
+    }
+    expect(checked).toBe(5);
   });
 });

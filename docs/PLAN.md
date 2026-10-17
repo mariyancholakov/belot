@@ -154,8 +154,12 @@ Recorded points per deal, A − B, duplicate deals, 95% interval.
 | `mc:play.rollout=1` (smart policy) | `mc` (greedy rollouts) | 1500 | +1.54 ±0.38 |
 | `mc:bid.rollout=1,play.rollout=1` | `mc:play.rollout=1` | 1500 | +0.90 ±0.54 |
 | smart policy leading low from the longest suit | smart policy | 1500 | −0.24 ±0.46 (dropped) |
+| `mc:play.bids=1,play.pool=3` (play deals weighed by the bids) | `mc` | 2×1500 | +0.22 ±0.45, +0.16 ±0.34 |
+| `mc:play.bids=1,play.pool=6` | `mc` | 2×1500 | +0.56 ±0.51, +0.29 ±0.37 (5.1 vs 2.1 ms per move) |
 
-The smart policy is now the default rollout for both bidding and play.
+The smart policy is now the default rollout for both bidding and play. Weighing the play deals by
+the bids helps a little at best, for 2.5× the time, so it is off by default (`play.bids`,
+`play.pool`): the contract, voids and announcements already say most of what the bids do.
 
 ## M7 — History and stats (optional)
 - SQLite: finished games, round scores, per-nickname wins
