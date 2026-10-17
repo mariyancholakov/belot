@@ -5,7 +5,7 @@ import { Home } from "./components/Home";
 import { Lobby } from "./components/Lobby";
 import { Table } from "./components/Table";
 import { bg } from "./i18n/bg";
-import { getNickname, getToken, saveNickname, useSession } from "./net";
+import { getNickname, getResumeCode, getToken, saveNickname, saveResumeCode, useSession } from "./net";
 
 const codeFromPath = () => {
   const m = location.pathname.match(/^\/([A-Za-z]{4})\/?$/);
@@ -18,6 +18,32 @@ export function App() {
   const { room, view } = session;
   const [pathCode] = useState(codeFromPath);
   const [showHistory, setShowHistory] = useState(false);
+  const [resumeCode, setResumeCode] = useState(getResumeCode);
+  const rememberResume = (code: string | null) => {
+    setResumeCode(code);
+    saveResumeCode(code);
+  };
+
+  // While seated in a running game, remember it: leaving keeps the seat, and the menu then offers the way back.
+  const running = !!room?.started && room.you !== null && !!view && view.phase !== "gameOver";
+  useEffect(() => {
+    if (running) rememberResume(room!.code);
+    else if (room && view?.phase === "gameOver") rememberResume(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, room?.code, view?.phase]);
+
+  // A way back to a table that no longer exists is dropped (and is not the code field's error).
+  const [resuming, setResuming] = useState(false);
+  useEffect(() => {
+    if (resuming && session.error?.code === "room_not_found") rememberResume(null);
+    if (room || (!session.error && resuming)) setResuming(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.error, room]);
+
+  // The menu lists the last few finished games, so it asks for them whenever it is shown.
+  useEffect(() => {
+    if (session.ready && !room) send({ type: "getHistory" });
+  }, [session.ready, room, send]);
 
   const hello = (name: string) => {
     setNickname(name);
@@ -62,12 +88,15 @@ export function App() {
         nickname={nickname}
         initialCode={pathCode}
         ready={session.ready}
-        codeError={session.error?.code === "room_not_found"}
+        codeError={session.error?.code === "room_not_found" && !resuming}
+        resumeCode={resumeCode}
+        games={session.history}
         onCreate={(name) => {
           hello(name);
           send({ type: "createRoom" });
         }}
         onJoin={(name, code) => {
+          setResuming(code === resumeCode);
           hello(name);
           send({ type: "joinRoom", code });
         }}

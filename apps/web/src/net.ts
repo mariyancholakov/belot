@@ -51,6 +51,18 @@ export function getToken(): string {
   return token;
 }
 
+/** A running game this player left by hand: the seat is kept, so the menu offers the way back. */
+const RESUME_KEY = "belot.resume";
+export const getResumeCode = () => safeGet(RESUME_KEY);
+export function saveResumeCode(code: string | null): void {
+  try {
+    if (code) localStorage.setItem(RESUME_KEY, code);
+    else localStorage.removeItem(RESUME_KEY);
+  } catch {
+    /* storage unavailable: no way back offered */
+  }
+}
+
 export const getNickname = () => safeGet(NAME_KEY) ?? "";
 export const saveNickname = (name: string) => safeSet(NAME_KEY, name);
 
