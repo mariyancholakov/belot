@@ -125,7 +125,8 @@ export type BotLevel = "easy" | "normal" | "hard";
 
 /** Difficulty by how many deals the `mc` bot simulates for each bid and each card. */
 export const BOT_LEVELS: Record<BotLevel, BotParams> = {
-  easy: { "bid.samples": 40, "play.samples": 10 },
+  // Too few samples for the bid network's sharp likelihoods: reads the bids with the hand model.
+  easy: { "bid.samples": 40, "play.samples": 10, "bid.netInference": 0 },
   normal: { "bid.samples": 120, "play.samples": 40 },
   hard: { "bid.samples": 300, "play.samples": 100, "play.bids": 1, "play.pool": 6 },
 };

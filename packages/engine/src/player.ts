@@ -1,5 +1,5 @@
 import { BELOT_POINTS } from "./announcements";
-import { bidLikelihoods } from "./bidder";
+import { bidLikelihoods, DEFAULT_BID_TUNING, type BidTuning } from "./bidder";
 import { mulberry32 } from "./deal";
 import { smartPolicy } from "./rollout";
 import type { GameAction } from "./game";
@@ -116,7 +116,7 @@ export function cardValues(view: GameView, seed: number, t: PlayTuning = DEFAULT
  * and the deals kept are drawn by weight.
  */
 export function sampleDeals(view: GameView, k: Knowledge, mine: number, playedBy: readonly number[], rand: () => number, t: PlayTuning): number[][] {
-  const likely = bidLikelihoods(view);
+  const likely = bidLikelihoods(view, PLAY_READING);
   const informative = likely.some((l, seat) => l && seat !== view.seat);
   if (t.bids <= 0 || !informative) return Array.from({ length: t.samples }, () => sampleHands(k, mine, rand));
   const drawn = Array.from({ length: t.samples * Math.max(1, t.pool) }, () => sampleHands(k, mine, rand));
@@ -151,6 +151,9 @@ export function sampleDeals(view: GameView, k: Knowledge, mine: number, playedBy
   while (out.length < t.samples) out.push(drawn[drawn.length - 1]!);
   return out;
 }
+
+/** The play reads the bids with the hand model; the bid network is untested there. */
+const PLAY_READING: BidTuning = { ...DEFAULT_BID_TUNING, netInference: 0 };
 
 /** Random five-card starts averaged per seat: the likelihood of a hand over the cards it may have bid on. */
 const SUBSETS = 4;

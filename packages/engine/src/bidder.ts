@@ -54,6 +54,11 @@ export interface BidTuning {
   netInference: number;
   /** 1: play the rest of the auction out with the bid network instead of the hand model. */
   netLookahead: number;
+  /**
+   * Power the bid network's likelihoods are raised to. Its bid probabilities are sharp, so taken
+   * as they are a few sampled deals carry all the weight and the bidder overbids on the noise.
+   */
+  netPower: number;
   net: BidNetWeights;
 }
 
@@ -71,8 +76,9 @@ export const DEFAULT_BID_TUNING: BidTuning = {
   lookahead: 1,
   policy: smartPolicy,
   model: handValue,
-  netInference: 0,
+  netInference: 1,
   netLookahead: 0,
+  netPower: 0.25,
   net: BID_NET,
 };
 
@@ -249,7 +255,7 @@ export function bidLikelihoods(view: GameView, t: BidTuning = DEFAULT_BID_TUNING
   });
 }
 
-/** With the bid network: the probability that a seat holding `hand` made each of its bids, multiplied. */
+/** With the bid network: the probability that a seat holding `hand` made each of its bids, multiplied (to `netPower`). */
 function netLikelihood(view: GameView, seat: number, t: BidTuning): ((hand: number) => number) | null {
   const steps: { base: Float64Array; legal: number; action: number }[] = [];
   replay(view.bidLog, (s, bid, before) => {
@@ -263,7 +269,7 @@ function netLikelihood(view: GameView, seat: number, t: BidTuning): ((hand: numb
   return (hand) => {
     let l = 1;
     for (const step of steps) l *= bidProbability(bidLogits(t.net, step.base, hand, step.legal, logits), step.action);
-    return l;
+    return Math.pow(l, t.netPower);
   };
 }
 
