@@ -417,6 +417,37 @@ describe("bots", () => {
     expect(a.lastError()).toBeUndefined();
   });
 
+  it("lets the host seat one bot at a time and send one away", async () => {
+    const a = await client("Ани");
+    a.send({ type: "createRoom" });
+    await a.until(() => a.room !== null);
+    a.send({ type: "takeSeat", seat: 0 });
+    a.send({ type: "addBots", seat: 2 });
+    await a.until(() => a.room!.seats[2] !== null);
+    a.send({ type: "addBots", seat: 3 });
+    await a.until(() => a.room!.seats[3] !== null);
+    expect(a.room!.seats[1]).toBeNull();
+    expect(a.room!.seats[2]).toMatchObject({ nickname: "Бот 1", bot: true });
+    expect(a.room!.seats[3]).toMatchObject({ nickname: "Бот 2", bot: true });
+    // the freed name is given to the next bot
+    a.send({ type: "removeBots", seat: 2 });
+    await a.until(() => a.room!.seats[2] === null);
+    expect(a.room!.seats[3]?.nickname).toBe("Бот 2");
+    a.send({ type: "addBots", seat: 1 });
+    await a.until(() => a.room!.seats[1] !== null);
+    expect(a.room!.seats[1]?.nickname).toBe("Бот 1");
+    // a taken seat cannot get a bot, and only the host may add one
+    a.send({ type: "addBots", seat: 0 });
+    await a.until(() => a.lastError() !== undefined);
+    expect(a.lastError()).toMatchObject({ code: "seat_taken" });
+    const b = await client("Бони");
+    b.send({ type: "joinRoom", code: a.room!.code });
+    await b.until(() => b.room !== null);
+    b.send({ type: "addBots", seat: 2 });
+    await b.until(() => b.lastError() !== undefined);
+    expect(b.lastError()).toMatchObject({ code: "not_host" });
+    expect(a.room!.seats[2]).toBeNull();
+  });
 
   it("fills empty seats and plays their turns until the human has to act", async () => {
     await server.close();

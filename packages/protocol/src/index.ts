@@ -48,8 +48,9 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("leaveRoom") }),
   z.object({ type: z.literal("takeSeat"), seat: z.number().int().min(0).max(3) }),
   z.object({ type: z.literal("leaveSeat") }),
-  z.object({ type: z.literal("addBots") }),
-  z.object({ type: z.literal("removeBots") }),
+  /** Without a seat: fill every empty seat. With one: a bot sits there (or, for removeBots, leaves it). */
+  z.object({ type: z.literal("addBots"), seat: z.number().int().min(0).max(3).optional() }),
+  z.object({ type: z.literal("removeBots"), seat: z.number().int().min(0).max(3).optional() }),
   z.object({ type: z.literal("setCardBack"), back: z.enum(CARD_BACKS) }),
   z.object({ type: z.literal("setBotLevel"), level: z.enum(BOT_LEVEL_IDS) }),
   z.object({ type: z.literal("startGame") }),

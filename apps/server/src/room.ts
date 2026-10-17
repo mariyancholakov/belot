@@ -154,11 +154,17 @@ export class Room {
     this.touch();
   }
 
-  /** Host fills every empty seat with computer players. */
-  addBots(token: string): void {
+  /** Host fills every empty seat with computer players, or just `seat`. */
+  addBots(token: string, seat?: number): void {
     this.must(token);
     if (token !== this.host) throw new RoomError("not_host", "only the host can add bots");
     if (this.game) throw new RoomError("game_running", "game already started");
+    if (seat !== undefined) {
+      if (this.seats[seat]) throw new RoomError("seat_taken", "seat is taken");
+      this.seatBot(seat);
+      this.touch();
+      return;
+    }
     const host = this.must(token);
     // Never leave the host without a seat: take the first free one before filling the rest.
     if (host.seat === null) {
@@ -168,22 +174,27 @@ export class Room {
         host.seat = free;
       }
     }
-    let n = 0;
-    for (let seat = 0; seat < 4; seat++) {
-      if (this.seats[seat]) continue;
-      const botToken = `bot-${this.code}-${seat}`;
-      this.members.set(botToken, { token: botToken, nickname: `Бот ${++n}`, seat, connected: true, bot: true });
-      this.seats[seat] = botToken;
-    }
+    for (let seat = 0; seat < 4; seat++) if (!this.seats[seat]) this.seatBot(seat);
     this.touch();
   }
 
-  /** Host sends every computer player away again, freeing their seats. */
-  removeBots(token: string): void {
+  /** A computer player sits in an empty seat, named with the lowest number no other bot has. */
+  private seatBot(seat: number): void {
+    const taken = new Set([...this.members.values()].filter((m) => m.bot).map((m) => m.nickname));
+    let n = 1;
+    while (taken.has(`Бот ${n}`)) n++;
+    const botToken = `bot-${this.code}-${seat}`;
+    this.members.set(botToken, { token: botToken, nickname: `Бот ${n}`, seat, connected: true, bot: true });
+    this.seats[seat] = botToken;
+  }
+
+  /** Host sends every computer player away again (or only the one in `seat`), freeing their seats. */
+  removeBots(token: string, only?: number): void {
     this.must(token);
     if (token !== this.host) throw new RoomError("not_host", "only the host can remove bots");
     if (this.game) throw new RoomError("game_running", "game already started");
     for (let seat = 0; seat < 4; seat++) {
+      if (only !== undefined && seat !== only) continue;
       const t = this.seats[seat];
       if (t && this.members.get(t)?.bot) {
         this.members.delete(t);
