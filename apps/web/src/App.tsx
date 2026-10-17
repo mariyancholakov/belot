@@ -82,8 +82,8 @@ export function App() {
       <Lobby
         room={room}
         onSit={(seat) => send({ type: "takeSeat", seat })}
-        onAddBots={() => send({ type: "addBots" })}
-        onRemoveBots={() => send({ type: "removeBots" })}
+        onAddBots={(seat) => send({ type: "addBots", seat })}
+        onRemoveBots={(seat) => send({ type: "removeBots", seat })}
         onCardBack={(back) => send({ type: "setCardBack", back })}
         onBotLevel={(level) => send({ type: "setBotLevel", level })}
         onStart={() => send({ type: "startGame" })}

@@ -9,8 +9,10 @@ import { LogoMark } from "./Logo";
 interface Props {
   room: RoomState;
   onSit: (seat: number) => void;
-  onAddBots: () => void;
-  onRemoveBots: () => void;
+  /** Fills every empty seat with bots, or only `seat`. */
+  onAddBots: (seat?: number) => void;
+  /** Sends every bot away, or only the one in `seat`. */
+  onRemoveBots: (seat?: number) => void;
   onCardBack: (back: CardBack) => void;
   onBotLevel: (level: BotLevel) => void;
   onStart: () => void;
@@ -84,15 +86,28 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onBotL
             // one short word under the name, so every box keeps the same height
             const note = s ? (mine ? bg.you : !s.connected && !s.bot ? bg.offline : partner ? bg.partnerOf : s.bot ? bg.bot : teamLabel(seat)) : "";
             return (
-              <button key={seat} className={`slot ${ours ? "ours" : "theirs"} ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} aria-label={s ? undefined : `${teamLabel(seat)}: ${bg.takeSeat}`} onClick={() => onSit(seat)}>
-                <span className="slot-avatar" aria-hidden="true">
-                  {s ? <Avatar name={s.nickname} size={52} /> : "+"}
-                </span>
-                <span className="slot-text">
-                  {s ? <b>{s.nickname}</b> : <b className="slot-empty">{teamLabel(seat)}</b>}
-                  {s && <small>{note}</small>}
-                </span>
-              </button>
+              <div key={seat} className="slot-cell">
+                <button className={`slot ${ours ? "ours" : "theirs"} ${s ? "taken" : ""} ${mine ? "mine" : ""}`} disabled={!!s && !mine} aria-label={s ? undefined : `${teamLabel(seat)}: ${bg.takeSeat}`} onClick={() => onSit(seat)}>
+                  <span className="slot-avatar" aria-hidden="true">
+                    {s ? <Avatar name={s.nickname} size={52} /> : "+"}
+                  </span>
+                  <span className="slot-text">
+                    {s ? <b>{s.nickname}</b> : <b className="slot-empty">{teamLabel(seat)}</b>}
+                    {s && <small>{note}</small>}
+                  </span>
+                </button>
+                {/* the host can put a bot in any empty seat, and send a single bot away */}
+                {room.youAreHost && !s && (
+                  <button type="button" className="slot-bot" onClick={() => onAddBots(seat)} aria-label={bg.addBotTo(teamLabel(seat))}>
+                    + {bg.addBot}
+                  </button>
+                )}
+                {room.youAreHost && s?.bot && (
+                  <button type="button" className="slot-bot remove" onClick={() => onRemoveBots(seat)} aria-label={bg.removeBot(s.nickname)} title={bg.removeBot(s.nickname)}>
+                    <Icon name="close" size={14} />
+                  </button>
+                )}
+              </div>
             );
           })}
         </div>
@@ -132,13 +147,8 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onBotL
 
         <div className="lobby-actions">
           {room.youAreHost && !full && (
-            <button className="secondary" onClick={onAddBots}>
+            <button className="secondary" onClick={() => onAddBots()}>
               {bg.addBots}
-            </button>
-          )}
-          {room.youAreHost && hasBots && (
-            <button className="secondary" onClick={onRemoveBots}>
-              {bg.removeBots}
             </button>
           )}
           {room.youAreHost ? (

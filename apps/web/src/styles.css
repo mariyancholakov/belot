@@ -760,7 +760,7 @@ button:disabled { cursor: default; }
 }
 .back-swatch:disabled { cursor: default; opacity: 0.55; }
 .back-swatch:not(:disabled):hover { transform: translateY(-3px); }
-.back-swatch[aria-checked="true"] { opacity: 1; transform: translateY(-3px); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4.5px var(--gold), 0 6px 12px rgba(0, 0, 0, 0.25); }
+.back-swatch[aria-checked="true"] { opacity: 1; transform: translateY(-3px); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent), 0 6px 12px rgba(0, 0, 0, 0.25); }
 
 /* ---------- on a phone the felt is the whole screen ---------- */
 @media (max-width: 759px), (max-height: 560px) and (orientation: landscape) {
@@ -920,6 +920,23 @@ button:disabled { cursor: default; }
 /* the round sheet is one printed card: no boxes inside it */
 .score-team.big { background: none; border: 0; box-shadow: none; padding: 0; }
 .slot-empty { color: var(--muted); font-weight: 600; }
+/* a seat box with the host's bot button tucked into its right edge */
+.slot-cell { position: relative; min-width: 0; }
+.slot-cell .slot { width: 100%; }
+.slot-cell:has(.slot-bot:not(.remove)) .slot { padding-right: 76px; }
+/* on a phone the empty box is narrow: the bot button takes the place of the "+" disc */
+@media (max-width: 759px) { .slot-cell:has(.slot-bot:not(.remove)) .slot-avatar { display: none; } .slot-cell:has(.slot-bot:not(.remove)) .slot { padding-left: 14px; } }
+.slot-bot {
+  position: absolute; z-index: 2; right: 10px; top: 50%; translate: 0 -50%; min-height: 32px; padding: 0 10px; border-radius: 99px;
+  border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); font-size: 0.82rem; font-weight: 650; white-space: nowrap;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.12s var(--ease);
+}
+.slot-bot:hover { border-color: var(--text); }
+.slot-bot:active { transform: scale(0.95); }
+/* sending a bot away: a small round badge on the box's corner, so it never squeezes the name */
+.slot-bot.remove { top: -9px; right: -9px; translate: none; width: 28px; height: 28px; min-height: 28px; padding: 0; display: grid; place-items: center; color: var(--muted); box-shadow: var(--shadow-1); }
+.slot-bot.remove:hover { color: var(--text); }
+.slot-bot.remove::before { content: ""; position: absolute; inset: -8px; }
 
 /* ---------- a trick spread as a cross: every card's corner index stays in view, whoever played first ---------- */
 .played.bottom { transform: translate(-50%, calc(-50% + var(--ph) * 0.42)) rotate(2deg); }
