@@ -70,7 +70,7 @@ export interface BidTuning {
 
 export const DEFAULT_BID_TUNING: BidTuning = {
   samples: 300,
-  pool: 1,
+  pool: 20,
   bidMargin: 2,
   contraMargin: 6,
   inference: 1,
@@ -85,7 +85,7 @@ export const DEFAULT_BID_TUNING: BidTuning = {
   model: handValue,
   netInference: 1,
   netLookahead: 0,
-  netPower: 0.25,
+  netPower: 0.5,
   net: BID_NET,
 };
 
