@@ -1,6 +1,6 @@
 import { BELOT_POINTS } from "./announcements";
 import { bidLikelihoods, DEFAULT_BID_TUNING, type BidTuning } from "./bidder";
-import { mulberry32 } from "./deal";
+import { mulberry32, resample } from "./deal";
 import { smartPolicy } from "./rollout";
 import type { GameAction } from "./game";
 import { knowledgeOf, sampleHands, type Knowledge } from "./knowledge";
@@ -134,22 +134,7 @@ export function sampleDeals(view: GameView, k: Knowledge, mine: number, playedBy
     }
     return Math.pow(w, t.bids);
   });
-  const sum = weights.reduce((a, b) => a + b, 0);
-  if (!(sum > 0)) return drawn.slice(0, t.samples);
-  // Systematic resampling: one random offset, evenly spaced picks along the running weight.
-  const out: number[][] = [];
-  const step = sum / t.samples;
-  let pick = rand() * step;
-  let run = 0;
-  for (let i = 0; i < drawn.length && out.length < t.samples; i++) {
-    run += weights[i]!;
-    while (pick < run && out.length < t.samples) {
-      out.push(drawn[i]!);
-      pick += step;
-    }
-  }
-  while (out.length < t.samples) out.push(drawn[drawn.length - 1]!);
-  return out;
+  return resample(weights, t.samples, rand).map((i) => drawn[i]!);
 }
 
 /** The play reads the bids with the hand model; the bid network is untested there. */

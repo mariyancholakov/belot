@@ -18,6 +18,28 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
+/**
+ * `k` indices drawn in proportion to `weights` by systematic resampling (one random offset, evenly
+ * spaced picks along the running weight); the first `k` when no weight is positive.
+ */
+export function resample(weights: readonly number[], k: number, rand: () => number): number[] {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  if (!(sum > 0)) return Array.from({ length: Math.min(k, weights.length) }, (_, i) => i);
+  const out: number[] = [];
+  const step = sum / k;
+  let pick = rand() * step;
+  let run = 0;
+  for (let i = 0; i < weights.length && out.length < k; i++) {
+    run += weights[i]!;
+    while (pick < run && out.length < k) {
+      out.push(i);
+      pick += step;
+    }
+  }
+  while (out.length < k) out.push(weights.length - 1);
+  return out;
+}
+
 /** Fisher-Yates shuffle of a fresh 32-card deck, fully determined by `seed`. */
 export function shuffledDeck(seed: number): Card[] {
   const deck = fullDeck();

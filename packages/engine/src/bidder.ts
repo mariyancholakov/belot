@@ -2,7 +2,7 @@ import { teamOf, type BidAction } from "./bidding";
 import { BID_ACTIONS, bidIndex, bidLogits, bidProbability, bidStateInputs, CONTRA, likeliestBid, PASS, RECONTRA, stateHidden, type BidNetWeights } from "./bidNet";
 import { BID_NET } from "./bidNetWeights";
 import type { Contract } from "./cards";
-import { mulberry32 } from "./deal";
+import { mulberry32, resample } from "./deal";
 import { smartPolicy } from "./rollout";
 import type { GameAction } from "./game";
 import { handValue, positionOf, type HandModel } from "./handModel";
@@ -28,6 +28,12 @@ import type { GameView } from "./view";
 
 export interface BidTuning {
   samples: number;
+  /**
+   * Above 1: draw `samples × pool` deals, weigh them all by the bids and play out `samples` of
+   * them drawn by weight, so sharp likelihoods narrow the deals instead of leaving a few to
+   * carry all the weight.
+   */
+  pool: number;
   /** Extra points a new bid must be worth over passing (bids carry the risk of a contra). */
   bidMargin: number;
   /** Extra points a contra must be worth over passing. */
@@ -64,6 +70,7 @@ export interface BidTuning {
 
 export const DEFAULT_BID_TUNING: BidTuning = {
   samples: 300,
+  pool: 1,
   bidMargin: 2,
   contraMargin: 6,
   inference: 1,
@@ -313,12 +320,12 @@ export function bidOptions(view: GameView, seed: number, t: BidTuning = DEFAULT_
 
   const likely = bidLikelihoods(view, t);
 
-  for (let n = 0; n < t.samples; n++) {
+  /** First five cards of every other seat, then three more for everybody. */
+  const draw = (): { first: number[]; hands: number[] } => {
     for (let i = unknown.length - 1; i > 0; i--) {
       const j = Math.floor(rand() * (i + 1));
       [unknown[i], unknown[j]] = [unknown[j]!, unknown[i]!];
     }
-    // First five cards of every other seat, then three more for everybody.
     const first = [0, 0, 0, 0];
     first[me] = mine;
     let k = 0;
@@ -333,12 +340,25 @@ export function bidOptions(view: GameView, seed: number, t: BidTuning = DEFAULT_
     }
     const hands = first.map((h) => h);
     for (let s = 0; s < 4; s++) for (let i = 0; i < 3; i++) hands[s]! |= 1 << unknown[k++]!;
-
+    return { first, hands };
+  };
+  const weightOf = (first: readonly number[]): number => {
+    if (t.inference <= 0) return 1;
     let w = 1;
-    if (t.inference > 0) {
-      for (let s = 0; s < 4; s++) if (s !== me) w *= likely[s]?.(first[s]!) ?? 1;
-      w = Math.pow(w, t.inference);
-    }
+    for (let s = 0; s < 4; s++) if (s !== me) w *= likely[s]?.(first[s]!) ?? 1;
+    return Math.pow(w, t.inference);
+  };
+  let deals: { first: number[]; hands: number[]; w: number }[];
+  if (t.pool > 1) {
+    const drawn = Array.from({ length: t.samples * t.pool }, draw);
+    const weights = drawn.map((d) => weightOf(d.first));
+    deals = resample(weights, t.samples, rand).map((i) => ({ ...drawn[i]!, w: 1 }));
+  } else deals = Array.from({ length: t.samples }, () => {
+    const d = draw();
+    return { ...d, w: weightOf(d.first) };
+  });
+
+  for (const { first, hands, w } of deals) {
     if (w < 1e-9) continue;
     weightSum += w;
 
