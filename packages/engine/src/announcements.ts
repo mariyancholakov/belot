@@ -24,7 +24,11 @@ function sequenceKind(length: number): { kind: AnnouncementKind; points: number 
   return { kind: "terca", points: 20 };
 }
 
-/** All announcements a hand holds, before the carré cancels overlapping sequences. No-trumps has none. */
+/**
+ * The announcements a hand declares. A card counts in one announcement only: a carré (100 or
+ * more) always beats the sequences through its cards, so carrés come first and the sequences are
+ * read from the cards left over. No-trumps has none.
+ */
 export function findAnnouncements(hand: readonly Card[], contract: Contract): Announcement[] {
   const found: Announcement[] = [];
   if (contract === "no-trumps") return found;
@@ -44,16 +48,13 @@ export function findAnnouncements(hand: readonly Card[], contract: Contract): An
   // Sequences
   for (const suit of SUITS) {
     const inSuit = hand
-      .filter((c) => c.suit === suit)
+      .filter((c) => c.suit === suit && !carreRanks.has(c.rank))
       .sort((a, b) => natural(a.rank) - natural(b.rank));
     let run: Card[] = [];
     const flush = () => {
       if (run.length >= 3) {
         const { kind, points } = sequenceKind(run.length);
-        // A carré cancels any sequence that uses one of its cards.
-        if (!run.some((c) => carreRanks.has(c.rank))) {
-          found.push({ kind, points, suit, high: run[run.length - 1]!.rank, cards: run });
-        }
+        found.push({ kind, points, suit, high: run[run.length - 1]!.rank, cards: run });
       }
       run = [];
     };
@@ -97,18 +98,19 @@ export interface AnnouncementResult {
 }
 
 /**
- * Work out which announcements count, from what each seat actually declared. The team whose
- * best declared announcement is stronger scores all of its declared announcements; if the best
- * ones tie, neither team scores announcements. Declared belots always count for the player who
- * called them.
+ * Work out which announcements count, from what each seat actually declared. Carrés always count.
+ * Of the sequences, only the team whose best declared sequence is stronger scores (all of its
+ * sequences); if the best ones tie, neither team scores sequences. Declared belots always count
+ * for the player who called them.
  */
 export function resolveDeclared(declared: readonly (readonly Announcement[])[], belots: readonly (readonly Suit[])[]): AnnouncementResult {
-  const teamAnnouncements = (team: Team) => declared.filter((_, seat) => seat % 2 === team).flat();
-  const bestA = best(teamAnnouncements(0));
-  const bestB = best(teamAnnouncements(1));
+  const isSequence = (a: Announcement) => a.kind !== "carre";
+  const teamSequences = (team: Team) => declared.filter((_, seat) => seat % 2 === team).flat().filter(isSequence);
+  const bestA = best(teamSequences(0));
+  const bestB = best(teamSequences(1));
   const winner: Team | null = bestA === bestB ? null : bestA > bestB ? 0 : 1;
 
-  const counted = declared.map((list, seat) => (winner !== null && seat % 2 === winner ? [...list] : []));
+  const counted = declared.map((list, seat) => list.filter((a) => !isSequence(a) || seat % 2 === winner));
 
   const points: [number, number] = [0, 0];
   counted.forEach((list, seat) => {

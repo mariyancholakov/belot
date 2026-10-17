@@ -29,9 +29,11 @@ describe("findAnnouncements", () => {
     expect(findAnnouncements([c("7", "hearts"), c("8", "hearts"), c("9", "hearts")], "no-trumps")).toEqual([]);
   });
 
-  it("a carré cancels a sequence that uses one of its cards", () => {
+  it("a card counts once: the carré takes it and the sequence is read from the rest", () => {
     const hand = [c("K", "clubs"), c("K", "diamonds"), c("K", "hearts"), c("K", "spades"), c("Q", "hearts"), c("J", "hearts")];
     expect(findAnnouncements(hand, "hearts").map((a) => a.kind)).toEqual(["carre"]);
+    const fifty = [c("A", "clubs"), c("A", "diamonds"), c("A", "hearts"), c("A", "spades"), c("J", "hearts"), c("Q", "hearts"), c("K", "hearts")];
+    expect(findAnnouncements([...fifty, c("10", "hearts")], "hearts").map((a) => [a.kind, a.high])).toEqual([["carre", "A"], ["fifty", "K"]]);
   });
 });
 
@@ -69,6 +71,13 @@ describe("resolveAnnouncements", () => {
     const other = [c("7", "diamonds"), c("8", "diamonds"), c("9", "diamonds")];
     const r = resolveAnnouncements([terca, other, none, none], "clubs");
     expect(r.points).toEqual([0, 0]);
+  });
+
+  it("carrés of both teams count, and do not cancel the other team's sequences", () => {
+    const four = (rank: Card["rank"]) => (["clubs", "diamonds", "hearts", "spades"] as const).map((s) => c(rank, s));
+    const r = resolveAnnouncements([four("J"), [...four("A"), ...terca.slice(0, 3)], fifty, none], "spades");
+    expect(r.points).toEqual([200 + 50, 100]);
+    expect(r.counted[1]!.map((a) => a.kind)).toEqual(["carre"]);
   });
 
   it("belot counts even when the team loses the announcement comparison", () => {
