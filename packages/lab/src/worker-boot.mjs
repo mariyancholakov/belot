@@ -1,3 +1,4 @@
+import { workerData } from "node:worker_threads";
 import { register } from "tsx/esm/api";
 register();
-await import("./worker.ts");
+await import(workerData?.module ?? "./worker.ts");
