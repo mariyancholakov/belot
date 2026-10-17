@@ -14,9 +14,15 @@ const dataFile = process.env.BELOT_DATA ?? fileURLToPath(new URL("../data/rooms.
 const databaseUrl = process.env.DATABASE_URL;
 let store: PostgresStore | undefined;
 if (databaseUrl) {
-  const sql = postgres(databaseUrl, { max: 3, idle_timeout: 60, onnotice: () => {} });
-  store = await PostgresStore.open({ query: (text, params) => sql.unsafe(text, (params ?? []) as never[]) as Promise<Record<string, unknown>[]> });
-  console.log("recording finished games in the database");
+  // A database that cannot be reached must not keep the game from starting: fall back to memory.
+  try {
+    const sql = postgres(databaseUrl, { max: 3, idle_timeout: 60, connect_timeout: 15, onnotice: () => {} });
+    store = await PostgresStore.open({ query: (text, params) => sql.unsafe(text, (params ?? []) as never[]) as Promise<Record<string, unknown>[]> });
+    console.log("recording finished games in the database");
+  } catch (err) {
+    const hint = (err as { code?: string }).code === "ENETUNREACH" ? " (an IPv6 address: use Supabase's session pooler string, not the direct connection)" : "";
+    console.error(`could not open the database${hint}; finished games are kept in memory only`, err);
+  }
 } else console.log("no DATABASE_URL: finished games are kept in memory only");
 
 const server = await startServer({
