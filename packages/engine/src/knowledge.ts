@@ -17,8 +17,9 @@ export interface Knowledge {
 
 /**
  * Reads the round so far. A seat that does not follow suit has none of it; in a suit contract a
- * seat that neither follows nor trumps while the opponents win has no trumps; a seat that plays
- * under the best trump on the table when it had to beat it holds nothing higher.
+ * seat that neither follows nor trumps while the opponents win has no trumps, or none above an
+ * opponent's trump already on the table; a seat that plays under the best trump on the table
+ * when it had to beat it holds nothing higher.
  */
 export function knowledgeOf(view: GameView): Knowledge {
   const c = contractId(view.contract!.contract);
@@ -51,15 +52,14 @@ export function knowledgeOf(view: GameView): Knowledge {
       cannot[seat]! |= SUIT_MASK[led]!;
       if (c >= NO_TRUMPS) continue;
       if (trickWinnerSim(before, leader, c) === (seat + 2) % 4) continue;
-      if (!t[card]) {
-        cannot[seat]! |= SUIT_MASK[c]!;
+      const tableTrumps = before.filter((b) => t[b]);
+      if (tableTrumps.length === 0) {
+        if (!t[card]) cannot[seat]! |= SUIT_MASK[c]!;
         continue;
       }
-      const tableTrumps = before.filter((b) => t[b]);
-      if (tableTrumps.length > 0) {
-        const best = Math.max(...tableTrumps.map((b) => s[b]!));
-        if (s[card]! < best) cannot[seat]! |= above(c, c, best);
-      }
+      // Over a trump it had to overtrump if it could; with nothing higher it may play anything.
+      const best = Math.max(...tableTrumps.map((b) => s[b]!));
+      if (!t[card] || s[card]! < best) cannot[seat]! |= above(c, c, best);
     }
   }
 

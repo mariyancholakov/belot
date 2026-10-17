@@ -190,7 +190,7 @@ export function legalMask(hand: number, trick: readonly number[], leader: number
   for (const card of trick) if (t[card] === 1 && s[card]! > best) best = s[card]!;
   if (best < 0) return trumps;
   const higher = trumps & above(c, c, best);
-  return higher !== 0 ? higher : trumps;
+  return higher !== 0 ? higher : hand;
 }
 
 export const legalNow = (r: SimRound): number => legalMask(r.hands[r.turn]!, r.trick, r.leader, r.turn, r.contract);

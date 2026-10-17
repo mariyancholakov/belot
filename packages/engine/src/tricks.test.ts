@@ -75,6 +75,12 @@ describe("legalPlays", () => {
     expect(legalPlays(hand, plays, "hearts", 2)).toEqual([c("J", "hearts")]);
   });
 
+  it("any card when void and unable to overtrump an opponent's trump", () => {
+    const hand = [c("7", "hearts"), c("A", "diamonds")];
+    const plays = [play(0, "A", "clubs"), play(1, "9", "hearts")];
+    expect(legalPlays(hand, plays, "hearts", 2)).toHaveLength(2);
+  });
+
   it("any card when void in no-trumps", () => {
     const hand = [c("7", "hearts"), c("A", "diamonds")];
     expect(legalPlays(hand, [play(0, "A", "clubs")], "no-trumps", 1)).toHaveLength(2);

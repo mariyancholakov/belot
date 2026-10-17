@@ -44,6 +44,13 @@ describe("knowledge", () => {
     expect(k.cannot[2]! & SUIT_MASK[2]!).toBe(SUIT_MASK[2]!);
   });
 
+  it("a seat that throws a plain card over an opponent's trump only has no higher trump", () => {
+    // Hearts trump. Seat 1 leads clubs, seat 2 trumps with the 9, seat 3 throws a diamond: no J of hearts, but maybe low ones.
+    const k = knowledgeOf(viewWith("hearts", ["7s", "8s", "9s", "10s", "Js", "Qs", "Ks"], [[1, ["Ac", "9h", "7d"]]]));
+    expect(k.cannot[3]! & bit("Jh")).not.toBe(0);
+    expect(k.cannot[3]! & bit("7h")).toBe(0);
+  });
+
   it("a seat may throw anything while its partner wins", () => {
     // Seat 1 leads the ace of clubs; its partner, seat 3, throws a diamond: nothing about trumps.
     const k = knowledgeOf(viewWith("hearts", ["7s", "8s", "9s", "10s", "Js", "Qs", "Ks"], [[1, ["Ac", "7d", "7h"]], [3, []]]));

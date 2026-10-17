@@ -41,7 +41,8 @@ function beats(challenger: Card, current: Card, led: Card, contract: Contract): 
  * - must follow the led suit; in a trump suit (or all-trumps) you must also beat the
  *   best trump so far when you can ("overtrump")
  * - if you cannot follow: in a suit contract you must trump, unless your partner is
- *   currently winning the trick; in no-trumps you may play anything
+ *   currently winning the trick; over an opponent's trump you must overtrump, and when you
+ *   cannot you may play anything (no under-trumping); in no-trumps you may play anything
  */
 export function legalPlays(
   hand: readonly Card[],
@@ -73,12 +74,12 @@ export function legalPlays(
   const trumps = hand.filter((c) => isTrump(c, contract));
   if (trumps.length === 0) return [...hand];
 
-  // Must trump, and overtrump a trump already on the table if able.
+  // Must trump, and overtrump a trump already on the table if able; otherwise free choice.
   const tableTrumps = plays.filter((p) => isTrump(p.card, contract));
   if (tableTrumps.length === 0) return trumps;
   const best = tableTrumps.map((p) => p.card).reduce((a, b) => (strength(b, contract) > strength(a, contract) ? b : a));
   const higher = trumps.filter((c) => strength(c, contract) > strength(best, contract));
-  return higher.length > 0 ? higher : trumps;
+  return higher.length > 0 ? higher : [...hand];
 }
 
 export function isPartner(a: number, b: number): boolean {

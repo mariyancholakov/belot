@@ -16,6 +16,11 @@ Order, weakest to strongest: ♣ < ♦ < ♥ < ♠ < no-trumps < all-trumps. A p
 
 Last trick +10. Totals: suit 162, no-trumps 130 (doubled to 260), all-trumps 258.
 
+## Play
+- Follow the led suit if you can. When the led suit is trumps (a suit contract's trump, or any suit in all-trumps) you must also beat the best card of that suit on the table if you can, even over your partner.
+- Void in the led suit, suit contract: if your partner is winning the trick, play anything. Otherwise you must trump; if an opponent has already trumped you must overtrump. If you cannot overtrump, play anything: you never have to under-trump (belot.bg, Bulgarian Wikipedia, confirmed by the project owner). The usual play is then to throw your weakest card so the opponents take no points.
+- Void in the led suit, no-trumps or all-trumps: play anything.
+
 ## Announcements
 | | points |
 |---|---|
