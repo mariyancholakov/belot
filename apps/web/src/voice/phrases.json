@@ -1,0 +1,19 @@
+{
+  "pass": "Пас",
+  "clubs": "Спатия",
+  "diamonds": "Каро",
+  "hearts": "Купа",
+  "spades": "Пика",
+  "no-trumps": "Без коз",
+  "all-trumps": "Всичко коз",
+  "contra": "Контра!",
+  "recontra": "Реконтра!",
+  "belot": "Белот!",
+  "terca": "Терца",
+  "fifty": "Петдесет",
+  "hundred": "Сто",
+  "carre": "Каре",
+  "capo": "Капо!",
+  "inside": "Вътре!",
+  "hanging": "Висяща"
+}
