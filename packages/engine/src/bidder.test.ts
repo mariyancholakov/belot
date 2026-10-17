@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chooseBid } from "./bidder";
+import { chooseBid, DEFAULT_BID_TUNING } from "./bidder";
 import type { Card, Contract } from "./cards";
 import { applyAction, newGame, type GameAction, type GameState } from "./game";
 import { viewFor } from "./view";
@@ -62,6 +62,21 @@ describe("bidding by simulation", () => {
       const view = viewFor(state, state.turn);
       const action = chooseBid(view, 3);
       expect(chooseBid(view, 3)).toEqual(action);
+      state = must(state, state.turn, action);
+    }
+  });
+});
+
+describe("bidding with the bid network", () => {
+  it("answers with a legal bid when it reads the bids and plays the auction out with the network", () => {
+    let state = newGame(4);
+    state = must(state, state.turn, { type: "cut", position: 5 });
+    state = must(state, state.turn, { type: "deal", lucky: false });
+    const t = { ...DEFAULT_BID_TUNING, samples: 30, netInference: 1, netLookahead: 1 };
+    while (state.phase === "bidding") {
+      const view = viewFor(state, state.turn);
+      const action = chooseBid(view, 5, t);
+      expect(view.legalActions).toContainEqual(action);
       state = must(state, state.turn, action);
     }
   });

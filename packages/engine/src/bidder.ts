@@ -1,4 +1,6 @@
 import { teamOf, type BidAction } from "./bidding";
+import { BID_ACTIONS, bidIndex, bidLogits, bidProbability, bidStateInputs, CONTRA, likeliestBid, PASS, RECONTRA, stateHidden, type BidNetWeights } from "./bidNet";
+import { BID_NET } from "./bidNetWeights";
 import type { Contract } from "./cards";
 import { mulberry32 } from "./deal";
 import { smartPolicy } from "./rollout";
@@ -48,6 +50,11 @@ export interface BidTuning {
   policy: SimPolicy;
   /** How a five-card hand is valued when reading the other players' bids and playing the auction out. */
   model: HandModel;
+  /** 1: read the other players' bids with the bid network instead of the hand model. */
+  netInference: number;
+  /** 1: play the rest of the auction out with the bid network instead of the hand model. */
+  netLookahead: number;
+  net: BidNetWeights;
 }
 
 export const DEFAULT_BID_TUNING: BidTuning = {
@@ -64,6 +71,9 @@ export const DEFAULT_BID_TUNING: BidTuning = {
   lookahead: 1,
   policy: smartPolicy,
   model: handValue,
+  netInference: 0,
+  netLookahead: 0,
+  net: BID_NET,
 };
 
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));
@@ -75,11 +85,18 @@ interface Auction {
   passes: number;
   /** True once a re-contra has ended the bidding. */
   closed: boolean;
+  /** Highest contract each seat has bid, -1 for none. */
+  bids: readonly number[];
 }
 
 /** The auction after `seat` makes `bid`. */
 function after(a: Auction, seat: number, bid: BidAction | { type: "bid"; contract: number }): Auction {
-  if (bid.type === "bid") return { highest: { seat, contract: typeof bid.contract === "number" ? bid.contract : contractId(bid.contract) }, multiplier: 1, passes: 0, closed: false };
+  if (bid.type === "bid") {
+    const contract = typeof bid.contract === "number" ? bid.contract : contractId(bid.contract);
+    const bids = [...a.bids];
+    bids[seat] = contract;
+    return { highest: { seat, contract }, multiplier: 1, passes: 0, closed: false, bids };
+  }
   if (bid.type === "contra") return { ...a, multiplier: 2, passes: 0 };
   if (bid.type === "recontra") return { ...a, multiplier: 4, passes: 0, closed: true };
   return { ...a, passes: a.passes + 1 };
@@ -89,7 +106,7 @@ const over = (a: Auction) => a.closed || (a.highest === null ? a.passes === 4 : 
 
 /** Replays the bid log, calling `visit` with the state each bid was made in. */
 function replay(log: GameView["bidLog"], visit: (seat: number, bid: BidAction, before: Auction) => void): Auction {
-  let auction: Auction = { highest: null, multiplier: 1, passes: 0, closed: false };
+  let auction: Auction = { highest: null, multiplier: 1, passes: 0, closed: false, bids: [-1, -1, -1, -1] };
   for (const { seat, bid } of log) {
     visit(seat, bid, auction);
     auction = after(auction, seat, bid);
@@ -99,8 +116,39 @@ function replay(log: GameView["bidLog"], visit: (seat: number, bid: BidAction, b
 
 type ModelBid = { type: "pass" } | { type: "bid"; contract: number } | { type: "contra" } | { type: "recontra" };
 
-/** What another player with `hand` (five cards) is taken to bid: the quick hand model against fixed points. */
+/** The bid network's view of the auction for `seat`: its state inputs and the mask of legal actions. */
+function bidContext(a: Auction, seat: number, dealer: number): { state: number[]; legal: number } {
+  const h = a.highest;
+  const holder = h === null ? -1 : h.seat === seat ? 0 : teamOf(h.seat) === teamOf(seat) ? 1 : 2;
+  const partner = a.bids[(seat + 2) % 4]!;
+  const opponents = Math.max(a.bids[(seat + 1) % 4]!, a.bids[(seat + 3) % 4]!);
+  const state = bidStateInputs(positionOf(seat, dealer), h ? h.contract : -1, holder, a.multiplier, partner, opponents);
+  let legal = 1 << PASS;
+  if (a.multiplier < 4) for (let c = h ? h.contract + 1 : 0; c < 6; c++) legal |= 1 << bidIndex(c);
+  if (h && a.multiplier === 1 && holder === 2) legal |= 1 << CONTRA;
+  if (h && a.multiplier === 2 && holder !== 2) legal |= 1 << RECONTRA;
+  return { state, legal };
+}
+
+/** The bid network's output index for a bid. */
+export function bidActionIndex(bid: BidAction | ModelBid): number {
+  if (bid.type === "bid") return bidIndex(typeof bid.contract === "number" ? bid.contract : contractId(bid.contract));
+  return bid.type === "contra" ? CONTRA : bid.type === "recontra" ? RECONTRA : PASS;
+}
+
+/** The bid network's inputs for the seat on turn in `view` (used to record training data). */
+export function bidContextOf(view: GameView): { state: number[]; legal: number } {
+  return bidContext(replay(view.bidLog, () => {}), view.seat, view.dealer);
+}
+
+const NET_BIDS: ModelBid[] = [{ type: "pass" }, ...[0, 1, 2, 3, 4, 5].map((contract) => ({ type: "bid" as const, contract })), { type: "contra" }, { type: "recontra" }];
+
+/** What another player with `hand` (five cards) is taken to bid: the quick hand model against fixed points, or the bid network. */
 function modelBid(hand: number, seat: number, a: Auction, dealer: number, t: BidTuning): ModelBid {
+  if (t.netLookahead > 0) {
+    const { state, legal } = bidContext(a, seat, dealer);
+    return NET_BIDS[likeliestBid(bidLogits(t.net, stateHidden(t.net, state), hand, legal))]!;
+  }
   const p = positionOf(seat, dealer);
   const h = a.highest;
   if (a.multiplier === 4) return { type: "pass" };
@@ -180,6 +228,7 @@ function evidenceOf(view: GameView, seat: number): Evidence {
  */
 export function bidLikelihoods(view: GameView, t: BidTuning = DEFAULT_BID_TUNING): (((hand: number) => number) | null)[] {
   return [0, 1, 2, 3].map((seat) => {
+    if (t.netInference > 0) return netLikelihood(view, seat, t);
     const evidence = evidenceOf(view, seat);
     if (evidence.length === 0) return null;
     const p = positionOf(seat, view.dealer);
@@ -198,6 +247,24 @@ export function bidLikelihoods(view: GameView, t: BidTuning = DEFAULT_BID_TUNING
       return l;
     };
   });
+}
+
+/** With the bid network: the probability that a seat holding `hand` made each of its bids, multiplied. */
+function netLikelihood(view: GameView, seat: number, t: BidTuning): ((hand: number) => number) | null {
+  const steps: { base: Float64Array; legal: number; action: number }[] = [];
+  replay(view.bidLog, (s, bid, before) => {
+    if (s !== seat) return;
+    if (bid.type === "contra" && lastChanceContra(view.scores, teamOf(seat), before.highest!.contract)) return;
+    const { state, legal } = bidContext(before, seat, view.dealer);
+    steps.push({ base: stateHidden(t.net, state), legal, action: bidActionIndex(bid) });
+  });
+  if (steps.length === 0) return null;
+  const logits = new Float64Array(BID_ACTIONS);
+  return (hand) => {
+    let l = 1;
+    for (const step of steps) l *= bidProbability(bidLogits(t.net, step.base, hand, step.legal, logits), step.action);
+    return l;
+  };
 }
 
 interface Option {
