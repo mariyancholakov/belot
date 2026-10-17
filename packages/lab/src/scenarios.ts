@@ -40,12 +40,19 @@ export interface Scenario {
 export const SCENARIOS: Scenario[] = [
   { name: "Strong hearts over the opponents' clubs", hand: "J♥ 9♥ A♥ 10♠ K♣", before: ["clubs"], expected: ["hearts"] },
   { name: "Jack-nine of hearts over the opponents' clubs", hand: "J♥ 9♥ 7♥ 8♠ 7♣", before: ["clubs"], expected: ["hearts"] },
-  { name: "Three jacks over the opponents' clubs", hand: "J♥ J♠ J♣ 9♦ A♦", before: ["clubs"], expected: ["all-trumps"] },
+  // Sitting right after the clubs bidder ("под ръка") makes all trumps likelier, not certain.
+  { name: "Three jacks right after the opponent's clubs", hand: "J♥ J♠ J♣ 9♦ A♦", before: ["clubs"], expected: ["all-trumps", "pass"] },
+  { name: "Three jacks right before the opponent's clubs", hand: "J♥ J♠ J♣ 9♦ A♦", before: ["clubs", "pass", "pass"], expected: ["all-trumps", "pass"] },
   { name: "Own suit over the partner's: partner bid clubs, I hold diamonds", hand: "J♦ 9♦ A♦ 10♦ 7♠", before: ["clubs", "pass"], expected: ["diamonds", "all-trumps"] },
   { name: "Partner overcalled my suit: raise to all trumps", hand: "J♦ 9♦ A♦ 7♠ 8♣", before: ["diamonds", "pass", "hearts", "pass"], expected: ["all-trumps"] },
   { name: "Partner bid no trumps: no all trumps on two jacks", hand: "J♠ J♥ 9♠ A♦ 7♣", before: ["no-trumps", "pass"], expected: ["pass"] },
   { name: "Partner bid no trumps: all trumps with a carré of jacks", hand: "J♠ J♥ J♦ J♣ 7♣", before: ["no-trumps", "pass"], expected: ["all-trumps", "pass"] },
   { name: "Aces and tens over the opponents' clubs: no trumps", hand: "A♥ A♠ 10♠ K♥ 8♦", before: ["clubs"], expected: ["no-trumps"] },
+];
+
+/** Good practice rather than rule: `bid` is likelier in the first scenario than in the second. */
+export const TENDENCIES: { more: string; less: string; bid: Short }[] = [
+  { more: "Three jacks right after the opponent's clubs", less: "Three jacks right before the opponent's clubs", bid: "all-trumps" },
 ];
 
 /** A bidding state where the seat on turn holds `hand`, after the bids in `before`. */
@@ -80,6 +87,7 @@ function setUp(s: Scenario, seed: number): GameState {
 const bot = parseBot(values.bot!);
 const seeds = Number(values.seeds);
 let good = 0;
+const rates = new Map<string, Map<Short, number>>();
 for (const s of SCENARIOS) {
   const counts = new Map<Short, number>();
   for (let seed = 1; seed <= seeds; seed++) {
@@ -88,9 +96,15 @@ for (const s of SCENARIOS) {
     if (action?.type !== "bid") throw new Error(`${s.name}: expected a bid`);
     counts.set(short(action.bid), (counts.get(short(action.bid)) ?? 0) + 1);
   }
+  rates.set(s.name, counts);
   const right = s.expected.reduce((n, b) => n + (counts.get(b) ?? 0), 0);
   good += right / seeds;
   const shown = [...counts].sort((a, b) => b[1] - a[1]).map(([b, n]) => `${b} ${n}`).join(", ");
   console.log(`${right === seeds ? "✓" : right >= seeds / 2 ? "~" : "✗"} ${String(Math.round((right / seeds) * 100)).padStart(3)}%  ${s.name}  [${s.hand}${s.before.length ? ` after ${s.before.join(", ")}` : ""}]  expected ${s.expected.join(" or ")}; bot: ${shown}`);
+}
+for (const t of TENDENCIES) {
+  const more = rates.get(t.more)?.get(t.bid) ?? 0;
+  const less = rates.get(t.less)?.get(t.bid) ?? 0;
+  console.log(`${more > less ? "✓" : "✗"} ${t.bid} ${more}/${seeds} "${t.more}" against ${less}/${seeds} "${t.less}"`);
 }
 console.log(`\n${values.bot}: ${((good / SCENARIOS.length) * 100).toFixed(0)}% of the expected bids`);
