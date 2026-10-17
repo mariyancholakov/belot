@@ -21,7 +21,13 @@ const files = import.meta.glob("./voice/*/*.mp3", { query: "?url", import: "defa
 const urlOf = (voice: string, phrase: Phrase) => files[`./voice/${voice}/${phrase}.mp3`];
 
 let enabled = readEnabled();
-const buffers = new Map<string, AudioBuffer>();
+/** A decoded clip and the part of it that is the word, without the silence the voice leaves around it. */
+interface Clip {
+  buffer: AudioBuffer;
+  start: number;
+  duration: number;
+}
+const buffers = new Map<string, Clip>();
 const loading = new Set<string>();
 let out: GainNode | null = null;
 /** When the voice is free again, on the audio clock. */
@@ -35,13 +41,27 @@ function readEnabled(): boolean {
   }
 }
 
+/** Finds where the word starts and ends: one of the voices pads its clips with up to a second of silence. */
+function trim(buffer: AudioBuffer): Clip {
+  const data = buffer.getChannelData(0);
+  const loud = (i: number) => Math.abs(data[i]!) > 0.012;
+  let first = 0;
+  while (first < data.length && !loud(first)) first++;
+  let last = data.length - 1;
+  while (last > first && !loud(last)) last--;
+  const rate = buffer.sampleRate;
+  const start = Math.max(0, first / rate - 0.01);
+  const end = Math.min(buffer.duration, last / rate + 0.05);
+  return end > start ? { buffer, start, duration: end - start } : { buffer, start: 0, duration: buffer.duration };
+}
+
 function load(ctx: AudioContext, url: string): void {
   if (buffers.has(url) || loading.has(url)) return;
   loading.add(url);
   fetch(url)
     .then((res) => res.arrayBuffer())
     .then((data) => ctx.decodeAudioData(data))
-    .then((buffer) => buffers.set(url, buffer))
+    .then((buffer) => buffers.set(url, trim(buffer)))
     .catch(() => {
       /* a clip that will not load is simply not said */
     })
@@ -65,8 +85,8 @@ export function say(phrase: Phrase, team: number, delayMs = 0): boolean {
   const a = audio();
   const url = urlOf(VOICES[team % 2]!, phrase);
   if (!a || !url) return false;
-  const buffer = buffers.get(url);
-  if (!buffer) {
+  const clip = buffers.get(url);
+  if (!clip) {
     load(a.ctx, url);
     return false;
   }
@@ -80,10 +100,10 @@ export function say(phrase: Phrase, team: number, delayMs = 0): boolean {
   const at = Math.max(want, freeAt);
   if (at - want > MAX_LAG) return false;
   const src = a.ctx.createBufferSource();
-  src.buffer = buffer;
+  src.buffer = clip.buffer;
   src.connect(out);
-  src.start(at);
-  freeAt = at + buffer.duration + GAP;
+  src.start(at, clip.start, clip.duration);
+  freeAt = at + clip.duration + GAP;
   return true;
 }
 
