@@ -220,6 +220,25 @@ other bids and plays the auction out; `bid.model` picks which one.
     `easy` −0.64 ±0.48 (6000; 40 samples are too few even softened, so `easy` keeps the hand
     model). About 10% slower per move. The play still reads the bids with the hand model
     (`play.bids`, only `hard`); the network is untested there.
+  - Softened to 0.25 the reading was too weak in clear cases (checked with the project owner on
+    hands like J♥ 9♥ 7♥ over the opponents' clubs, where the bot often passed). Better: draw
+    20× as many deals as are played out, weigh them all by the network and play out a resample
+    by weight (`bid.pool`, as `play.pool` does for the play), so the reading can be sharper
+    without a few deals carrying all the weight. Over 6000 deals against the 0.25 reading:
+    pool 20 at power 0.5 +0.81 ±0.29 (+0.79 ±0.30 on other seeds), power 0.35 +0.55, power 0.7
+    +0.65, power 1 +0.38 (still overbids), pool 40 +0.78 at twice the time. Now the default
+    (`bid.pool=20`, `bid.netPower=0.5`): `normal` 3.9 ms per move (was 1.2), `hard` +0.50 ±0.31
+    over 3000 deals at 13 ms (was 6.7). `easy` unchanged.
+  - `pnpm --filter @belot/lab scenarios`: bidding situations where good players agree on the bid
+    (from the project owner), with the bot's choice over 20 seeds. `normal` went from 81% to 89%
+    of the expected bids; partner conventions (own suit over partner's, no all trumps over the
+    partner's no trumps without a carré, no trumps over the opponents' suit) come out of the
+    simulation once the reading is sharp. Still short: three jacks over the opponents' clubs.
+  - The quick rollout against real play of `normal` on the same cards (6000 rounds): it
+    underestimates the bidder by about 0.6 points in suits, 1.1 in no trumps, 1.3 in all trumps,
+    so it is close on average. It is far off when the opponents hold a long suit in all trumps
+    (three jacks over clubs: +4.6 against +11.3 in real play), as it gives up the lead with a
+    losing card and lets them run the suit.
 
 ## M7 — History and stats (optional)
 - SQLite: finished games, round scores, per-nickname wins
