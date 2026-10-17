@@ -209,6 +209,32 @@ button:disabled { cursor: default; }
 .field input[aria-invalid="true"] { border-color: var(--danger); outline: 3px solid color-mix(in srgb, var(--danger) 18%, transparent); }
 .join { display: grid; gap: 12px; width: 100%; }
 
+/* ---------- history ---------- */
+.history-link { min-height: 44px; }
+.history { min-height: 100dvh; padding: 84px 20px calc(32px + env(safe-area-inset-bottom)); display: flex; justify-content: center; position: relative; }
+.history-panel {
+  display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 520px; align-self: flex-start;
+  padding: 20px 20px 24px; border-radius: 24px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-1);
+}
+.history-head { display: flex; align-items: center; gap: 8px; margin-left: -8px; }
+.history-head h1 { margin: 0; font-size: 1.35rem; font-weight: 750; letter-spacing: -0.02em; }
+.history-list { list-style: none; margin: 0; padding: 0; }
+.history-list li { border-top: 1px solid var(--line); }
+.history-list li.open { padding-bottom: 14px; }
+.history-game {
+  width: 100%; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "result who score" "result when score";
+  align-items: center; gap: 2px 12px; padding: 12px 0; background: none; border: 0; color: inherit; text-align: left; cursor: pointer;
+}
+.history-result { grid-area: result; min-width: 64px; text-align: center; font-size: 0.75rem; font-weight: 700; padding: 3px 8px; border-radius: 99px; border: 1px solid var(--line-strong); color: var(--muted); }
+.history-result.won { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.history-who { grid-area: who; display: flex; flex-direction: column; min-width: 0; }
+.history-who b, .history-who small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-who small { color: var(--muted); font-size: 0.85rem; }
+.history-when { grid-area: when; font-size: 0.8rem; }
+.history-score { grid-area: score; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; }
+.history-score b { font-size: 1.15rem; font-weight: 750; }
+.history-score small { color: var(--muted); font-size: 0.9rem; }
+
 /* ---------- lobby ---------- */
 .page-bar { position: absolute; z-index: 2; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; }
 .page-bar .home-logo { position: static; }

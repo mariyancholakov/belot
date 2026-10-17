@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameAction } from "@belot/engine";
+import { History } from "./components/History";
 import { Home } from "./components/Home";
 import { Lobby } from "./components/Lobby";
 import { Table } from "./components/Table";
@@ -16,6 +17,7 @@ export function App() {
   const { session, send, clearError } = useSession(nickname);
   const { room, view } = session;
   const [pathCode] = useState(codeFromPath);
+  const [showHistory, setShowHistory] = useState(false);
 
   const hello = (name: string) => {
     setNickname(name);
@@ -52,7 +54,9 @@ export function App() {
   }, [session.error, clearError]);
 
   let screen;
-  if (!room) {
+  if (!room && showHistory) {
+    screen = <History games={session.history} onBack={() => setShowHistory(false)} />;
+  } else if (!room) {
     screen = (
       <Home
         nickname={nickname}
@@ -66,6 +70,10 @@ export function App() {
         onJoin={(name, code) => {
           hello(name);
           send({ type: "joinRoom", code });
+        }}
+        onHistory={() => {
+          setShowHistory(true);
+          send({ type: "getHistory" });
         }}
       />
     );

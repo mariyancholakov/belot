@@ -11,9 +11,10 @@ interface Props {
   codeError: boolean;
   onCreate: (nickname: string) => void;
   onJoin: (nickname: string, code: string) => void;
+  onHistory: () => void;
 }
 
-export function Home({ nickname: saved, initialCode, ready, codeError, onCreate, onJoin }: Props) {
+export function Home({ nickname: saved, initialCode, ready, codeError, onCreate, onJoin, onHistory }: Props) {
   const [nickname, setNickname] = useState(saved);
   const [code, setCode] = useState(initialCode);
   const [badCode, setBadCode] = useState<string | null>(null);
@@ -85,6 +86,11 @@ export function Home({ nickname: saved, initialCode, ready, codeError, onCreate,
         {fromLink ? join : create}
         {fromLink ? create : join}
       </div>
+      {!fromLink && (
+        <button className="ghost history-link" disabled={!ready} onClick={onHistory}>
+          {bg.historyTitle}
+        </button>
+      )}
     </main>
   );
 }

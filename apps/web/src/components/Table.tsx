@@ -447,7 +447,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
             <Icon name="close" />
           </button>
         </header>
-        <ScoreSheet view={view} mine={myTeam} />
+        <ScoreSheet rounds={view.history} scores={view.scores} hanging={view.hanging} mine={myTeam} />
       </aside>
 
       {finished && summaryReady && last && (

@@ -1,4 +1,4 @@
-import type { GameView, RoundSummary } from "@belot/engine";
+import type { RoundSummary } from "@belot/engine";
 import { bg, contractLabel } from "../i18n/bg";
 import { SuitText } from "./SuitText";
 import { AnimatedNumber } from "./AnimatedNumber";
@@ -13,7 +13,15 @@ function badges(r: RoundSummary): string[] {
   return out;
 }
 
-export function ScoreSheet({ view, mine }: { view: GameView; mine: 0 | 1 }) {
+interface Props {
+  rounds: readonly RoundSummary[];
+  scores: readonly [number, number];
+  /** Points left hanging for the next round. */
+  hanging: number;
+  mine: 0 | 1;
+}
+
+export function ScoreSheet({ rounds, scores, hanging, mine }: Props) {
   const them = mine === 0 ? 1 : 0;
   return (
     <section className="score" aria-label={bg.scoreTitle}>
@@ -23,8 +31,8 @@ export function ScoreSheet({ view, mine }: { view: GameView; mine: 0 | 1 }) {
         <b>{bg.teamThem}</b>
       </div>
       <div className="score-rows">
-        {view.history.length === 0 && <p className="muted empty">{bg.noRoundsYet}</p>}
-        {view.history.map((r) => (
+        {rounds.length === 0 && <p className="muted empty">{bg.noRoundsYet}</p>}
+        {rounds.map((r) => (
           <div className="score-row" key={r.round}>
             <span className="what">
               <span><SuitText text={contractLabel(r.contract)} /></span>
@@ -40,15 +48,15 @@ export function ScoreSheet({ view, mine }: { view: GameView; mine: 0 | 1 }) {
       <div className="score-row total">
         <span>{bg.total}</span>
         <b>
-          <AnimatedNumber value={view.scores[mine]} />
+          <AnimatedNumber value={scores[mine]} />
         </b>
         <b>
-          <AnimatedNumber value={view.scores[them]} />
+          <AnimatedNumber value={scores[them]} />
         </b>
       </div>
-      {view.hanging > 0 && (
+      {hanging > 0 && (
         <p className="muted hanging">
-          {bg.hanging}: {view.hanging}
+          {bg.hanging}: {hanging}
         </p>
       )}
     </section>

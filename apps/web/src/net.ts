@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { GameEvent, GameView } from "@belot/engine";
-import type { ClientMessage, RoomState, ServerMessage } from "@belot/protocol";
+import type { ClientMessage, HistoryGame, RoomState, ServerMessage } from "@belot/protocol";
 
 export interface Session {
   status: "connecting" | "open" | "closed";
@@ -14,6 +14,8 @@ export interface Session {
   updateId: number;
   /** Time the player to move has left, as of the latest update; null when no clock runs. */
   turnLeftMs: number | null;
+  /** This player's finished games, once asked for (`getHistory`). */
+  history: HistoryGame[] | null;
   error: { code: string } | null;
 }
 
@@ -65,6 +67,7 @@ const initial: Session = {
   events: [],
   updateId: 0,
   turnLeftMs: null,
+  history: null,
   error: null,
 };
 
@@ -111,6 +114,8 @@ export function useSession(nickname: string) {
               return { ...s, ready: true, room: msg.room, view: msg.room ? s.view : null, error: null };
             case "update":
               return { ...s, view: msg.view, events: msg.events, updateId: s.updateId + 1, turnLeftMs: msg.turnLeftMs, error: null };
+            case "history":
+              return { ...s, history: msg.games };
             case "error":
               return { ...s, error: { code: msg.code } };
           }

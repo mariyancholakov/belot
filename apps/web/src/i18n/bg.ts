@@ -105,6 +105,14 @@ export const bg = {
   belot: "Белот",
   cardBackTitle: "Гръб на картите",
   botLevelTitle: "Ниво на ботовете",
+  historyTitle: "История",
+  historyEmpty: "Още нямаш завършени игри на това устройство.",
+  loading: "Зареждане…",
+  back: "Назад",
+  won: "Победа",
+  lost: "Загуба",
+  youAnd: "Ти и",
+  against: "срещу",
   botLevelNames: { easy: "Лесни", normal: "Нормални", hard: "Трудни" } as Record<string, string>,
   cardBackNames: { classic: "Синьо", noir: "Черно", ivory: "Слонова кост", graphite: "Графит" } as Record<string, string>,
   claim: "Свали картите",
@@ -128,6 +136,7 @@ export const bg = {
     game_running: "Играта вече е започнала.",
     illegal_action: "Този ход не е позволен.",
     rate_limited: "Твърде бързо. Опитай пак.",
+    unavailable: "Историята не е достъпна в момента.",
   } as Record<string, string>,
 };
 
