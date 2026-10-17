@@ -13,6 +13,8 @@ export interface Job {
 export interface Clock {
   ms: number;
   moves: number;
+  /** The slowest single move. */
+  max: number;
 }
 
 export interface JobResult {
@@ -28,14 +30,16 @@ function timed(policy: BotPolicy, clock: Clock): BotPolicy {
   return (view, seed) => {
     const t = performance.now();
     const action = policy(view, seed);
-    clock.ms += performance.now() - t;
+    const ms = performance.now() - t;
+    clock.ms += ms;
+    clock.max = Math.max(clock.max, ms);
     clock.moves += 1;
     return action;
   };
 }
 
 export function runJob(job: Job): JobResult {
-  const clocks: [Clock, Clock] = [{ ms: 0, moves: 0 }, { ms: 0, moves: 0 }];
+  const clocks: [Clock, Clock] = [{ ms: 0, moves: 0, max: 0 }, { ms: 0, moves: 0, max: 0 }];
   const A = timed(parseBot(job.a), clocks[0]);
   const B = timed(parseBot(job.b), clocks[1]);
   const AB: Lineup = [A, B];

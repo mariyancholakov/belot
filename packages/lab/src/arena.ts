@@ -93,13 +93,15 @@ if (deals > 0) {
   const sideB = newSide();
   const margins: number[] = [];
   const results = await run("deals", deals);
-  const clockA = { ms: 0, moves: 0 };
-  const clockB = { ms: 0, moves: 0 };
+  const clockA = { ms: 0, moves: 0, max: 0 };
+  const clockB = { ms: 0, moves: 0, max: 0 };
   for (const r of results) {
     clockA.ms += r.clocks[0].ms;
     clockA.moves += r.clocks[0].moves;
+    clockA.max = Math.max(clockA.max, r.clocks[0].max);
     clockB.ms += r.clocks[1].ms;
     clockB.moves += r.clocks[1].moves;
+    clockB.max = Math.max(clockB.max, r.clocks[1].max);
   }
   for (const [r1, r2] of results.flatMap((r) => r.deals)) {
     record(sideA, r1, 0);
@@ -121,6 +123,7 @@ if (deals > 0) {
   const mix = (s: Side) => `${s.kinds.suit}/${s.kinds.nt}/${s.kinds.at}`;
   row("  suit / NT / AT", mix(sideA), mix(sideB));
   row("ms per move", (clockA.ms / clockA.moves).toFixed(3), (clockB.ms / clockB.moves).toFixed(3));
+  row("  slowest", clockA.max.toFixed(1), clockB.max.toFixed(1));
   console.log(`\n${nameA} − ${nameB}: ${pm(meanEstimate(margins), signed, (x) => x.toFixed(2))} recorded points per deal`);
 }
 
