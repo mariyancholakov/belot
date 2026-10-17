@@ -14,6 +14,8 @@ export const bg = {
   themeDark: "Тъмна",
   soundOn: "Звукът е включен",
   soundOff: "Звукът е изключен",
+  voiceOn: "Гласът е включен",
+  voiceOff: "Гласът е изключен",
   scoreTitle: "Резултат",
   total: "Общо",
   cardPoints: "Точки от карти",

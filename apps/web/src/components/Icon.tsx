@@ -20,6 +20,13 @@ const paths: Record<string, ReactNode> = {
       <path d="m17 9 5 6M22 9l-5 6" />
     </>
   ),
+  voice: <path d="M4 5h16v11H9l-5 4V5ZM8 9.5h8M8 12.5h5" />,
+  voiceOff: (
+    <>
+      <path d="M4 5h16v11H9l-5 4V5Z" />
+      <path d="m3 3 18 18" />
+    </>
+  ),
   list: <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />,
   exit: <path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9" />,
   back: <path d="m15 5-7 7 7 7" />,

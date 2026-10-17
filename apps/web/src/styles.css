@@ -1042,3 +1042,6 @@ button:disabled { cursor: default; }
 
 /* the code field's hint is quieter than a typed code */
 .field input.code::placeholder { opacity: 0.6; }
+/* the voice switch rests while all sound is off */
+.icon-btn:disabled { opacity: 0.35; cursor: default; }
+.icon-btn:disabled:hover { background: transparent; color: var(--muted); }

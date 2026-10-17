@@ -21,7 +21,8 @@ function readEnabled(): boolean {
   }
 }
 
-function audio(): { ctx: AudioContext; master: GainNode } | null {
+/** The shared audio context, or null while sound is off. The spoken calls (`voice.ts`) play through it too. */
+export function audio(): { ctx: AudioContext; master: GainNode } | null {
   if (!enabled) return null;
   if (!ctx) {
     const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;

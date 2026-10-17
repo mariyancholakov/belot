@@ -3,6 +3,7 @@ import { strength, type Card, type Contract, type GameAction, type GameEvent, ty
 import type { RoomState } from "@belot/protocol";
 import { announcementName, bg, contractLabel, contractName, contractRed, contractSymbol, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
 import { playSound } from "../sound";
+import { preloadVoice, say, type Phrase } from "../voice";
 import { AnimatedNumber } from "./AnimatedNumber";
 import { SuitText } from "./SuitText";
 import { Avatar } from "./Avatar";
@@ -88,6 +89,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
     );
   };
   useEffect(() => () => animTimers.current.forEach(clearTimeout), []);
+  useEffect(preloadVoice, []);
 
   // The lucky card ("късметче") stays face up beside its owner until it is played.
   const [luckyHidden, setLuckyHidden] = useState(false);
@@ -182,18 +184,22 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           startDeal(true, view.dealer, false);
           animating = true;
           break;
-        case "bid":
-          playSound(e.bid.type === "pass" ? "pass" : e.bid.type === "bid" ? "bid" : "contra");
+        case "bid": {
+          // the player says the bid out loud; without a voice the table hears a tap
+          const phrase: Phrase = e.bid.type === "bid" ? e.bid.contract : e.bid.type;
+          if (!say(phrase, e.seat)) playSound(e.bid.type === "pass" ? "pass" : e.bid.type === "bid" ? "bid" : "contra");
           break;
+        }
         case "belot":
           setCallout({ seat: e.seat, text: `${bg.belot} ${suitSymbol[e.suit]} +20` });
           timers.push(setTimeout(() => setCallout(null), 2400));
-          timers.push(setTimeout(() => playSound("belot"), 120));
+          if (!say("belot", e.seat, 120)) timers.push(setTimeout(() => playSound("belot"), 120));
           break;
         case "announced":
           setCallout({ seat: e.seat, text: e.kinds.map((k) => announcementName[k]).join(", ") });
           timers.push(setTimeout(() => setCallout(null), 2600));
-          playSound("belot");
+          // several announcements are said one after another
+          if (!e.kinds.map((k) => say(k, e.seat)).some(Boolean)) playSound("belot");
           break;
         case "claimed":
           laidAt.current = Date.now();
@@ -218,6 +224,11 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           const ours = e.result.recorded[myTeam];
           const theirs = e.result.recorded[otherTeam];
           timers.push(setTimeout(() => playSound(ours >= theirs ? "win" : "lose"), HOLD_MS + 200));
+          // the side that comes out ahead says what happened: capo, the bidders went inside, or the points hang
+          const bidders = e.summary.bidder % 2;
+          const call: [Phrase, number] | null =
+            e.summary.capo !== null ? ["capo", e.summary.capo] : e.result.outcome === "inside" ? ["inside", 1 - bidders] : e.result.outcome === "tie" ? ["hanging", bidders] : null;
+          if (call) say(call[0], call[1], HOLD_MS + 500);
           break;
         }
         default:

@@ -27,7 +27,7 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 - [x] M1 — Rules engine
 - [x] M2 — Protocol and server
 - [x] M3 — Web client: playable game
-- [x] M4 — Polish and Bulgarian UX (modern light/dark redesign, animations, synthesized sounds, manifest, browser smoke test; turn timer later)
+- [x] M4 — Polish and Bulgarian UX (modern light/dark redesign, animations, synthesized sounds, spoken bids and announcements recorded once with Azure's Bulgarian neural voices (`pnpm --filter @belot/web voices`, key in `.env`), manifest, browser smoke test; turn timer later)
 - [x] M5 — Deploy and play with friends (live on Render's free tier, `render.yaml`)
 - [x] M6 — Bots (computer players fill empty seats at the level the host picks; bidding reads the other bids with a learned network)
 - [~] M7 — Game history (recording and history screen done; needs `DATABASE_URL` on Render)
