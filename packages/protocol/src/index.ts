@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { GameEvent, GameView } from "@belot/engine";
+import type { GameEvent, GameView, RoundSummary } from "@belot/engine";
 
 const suit = z.enum(["clubs", "diamonds", "hearts", "spades"]);
 const rank = z.enum(["7", "8", "9", "10", "J", "Q", "K", "A"]);
@@ -54,6 +54,8 @@ export const clientMessageSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("setBotLevel"), level: z.enum(BOT_LEVEL_IDS) }),
   z.object({ type: z.literal("startGame") }),
   z.object({ type: z.literal("action"), action: gameActionSchema }),
+  /** The finished games this player sat in, newest first. */
+  z.object({ type: z.literal("getHistory") }),
 ]);
 
 export type ClientMessage = z.infer<typeof clientMessageSchema>;
@@ -92,11 +94,27 @@ export type ErrorCode =
   | "need_four_players"
   | "game_running"
   | "illegal_action"
-  | "rate_limited";
+  | "rate_limited"
+  | "unavailable";
+
+/** A finished game as one of its players sees it in the history. */
+export interface HistoryGame {
+  id: string;
+  /** ISO time. */
+  finishedAt: string;
+  /** By seat; partners sit opposite (0 and 2, 1 and 3). */
+  players: { nickname: string; bot: boolean }[];
+  /** The seat this player had. */
+  seat: number;
+  scores: [number, number];
+  winner: 0 | 1;
+  rounds: RoundSummary[];
+}
 
 /** Messages the server sends. */
 export type ServerMessage =
   | { type: "roomState"; room: RoomState | null }
   /** `turnLeftMs`: time the player to move has left before the server plays for them, null when no clock runs. */
   | { type: "update"; seq: number; view: GameView; events: GameEvent[]; turnLeftMs: number | null }
+  | { type: "history"; games: HistoryGame[] }
   | { type: "error"; code: ErrorCode; message: string };

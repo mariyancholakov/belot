@@ -5,11 +5,14 @@ import { createServer, type Server } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { clientMessageSchema, type ErrorCode, type ServerMessage } from "@belot/protocol";
 import { Room, RoomError, type Outgoing, type SavedRoom } from "./room";
+import { MemoryStore, tokenHash, type GameStore } from "./store";
 
 // No I, L, O, 0, 1 to avoid confusion when reading codes aloud.
 const CODE_LETTERS = "ABCDEFGHJKMNPQRSTUVWXYZ";
 const IDLE_ROOM_MS = 30 * 60 * 1000;
 const DEFAULT_MAX_MESSAGES_PER_SECOND = 40;
+/** How many finished games the history shows. */
+const HISTORY_LIMIT = 50;
 
 interface Connection {
   ws: WebSocket;
@@ -43,6 +46,10 @@ export interface ServerOptions {
   turnGraceMs?: number;
   /** Where to keep the tables so a restart does not end the games (omit to keep them in memory only). */
   dataFile?: string;
+  /** Where finished games are kept (omit to keep them in memory only). */
+  store?: GameStore;
+  /** The deployed commit, recorded with each game. */
+  version?: string | null;
   /** Optional handler for non-websocket HTTP requests (static files). */
   onRequest?: Parameters<typeof createServer>[1];
 }
@@ -54,6 +61,9 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
   const botCutDelayMs = options.botCutDelayMs ?? 3200;
   const botDealDelayMs = options.botDealDelayMs ?? 4000;
   const maxPerSecond = options.maxMessagesPerSecond ?? DEFAULT_MAX_MESSAGES_PER_SECOND;
+  const store = options.store ?? new MemoryStore();
+  /** Games being written, so `close` can wait for them. */
+  const writes = new Set<Promise<void>>();
   const rooms = new Map<string, Room>();
   /** token -> room code, so a returning player lands back at their table. */
   const tokenRoom = new Map<string, string>();
@@ -92,6 +102,17 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       for (let i = 0; i < 4; i++) code += CODE_LETTERS[randomInt(CODE_LETTERS.length)];
       if (!rooms.has(code)) return code;
     }
+  }
+
+  /** Hands a game that has just finished to the store; a failed write is logged, never fatal. */
+  function recordFinished(room: Room): void {
+    const record = room.takeFinishedGame(options.version ?? null);
+    if (!record) return;
+    const write = store
+      .save(record)
+      .catch((err) => console.error("could not record the game", err))
+      .finally(() => writes.delete(write));
+    writes.add(write);
   }
 
   function roomOf(conn: Connection): Room {
@@ -200,9 +221,20 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       case "action": {
         const room = roomOf(conn);
         const events = room.act(token, msg.action);
+        recordFinished(room);
         armTurnClock(room);
         deliver(room.broadcast(events, true));
         scheduleBots(room);
+        break;
+      }
+      case "getHistory": {
+        store
+          .gamesOf(tokenHash(token), HISTORY_LIMIT)
+          .then((games) => send(conn.ws, { type: "history", games }))
+          .catch((err) => {
+            console.error("could not read the history", err);
+            sendError(conn.ws, "unavailable", "history unavailable");
+          });
         break;
       }
     }
@@ -230,6 +262,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       if (!move) return;
       try {
         const events = room.act(move.token, move.action);
+        recordFinished(room);
         armTurnClock(room);
         deliver(room.broadcast(events, true));
       } catch (err) {
@@ -262,6 +295,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       if (!current) return;
       try {
         const events = room.act(current.token, current.action);
+        recordFinished(room);
         armTurnClock(room);
         deliver(room.broadcast(events, true));
       } catch (err) {
@@ -393,15 +427,15 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
     port,
     http,
     rooms,
-    close: () =>
-      new Promise<void>((resolve) => {
-        clearInterval(sweep);
-        clearInterval(saver);
-        save();
-        for (const t of botTimers) clearTimeout(t);
-        for (const t of clocks.values()) clearTimeout(t);
-        for (const client of wss.clients) client.terminate();
-        wss.close(() => http.close(() => resolve()));
-      }),
+    close: async () => {
+      clearInterval(sweep);
+      clearInterval(saver);
+      save();
+      for (const t of botTimers) clearTimeout(t);
+      for (const t of clocks.values()) clearTimeout(t);
+      await Promise.all(writes);
+      for (const client of wss.clients) client.terminate();
+      await new Promise<void>((resolve) => wss.close(() => http.close(() => resolve())));
+    },
   };
 }

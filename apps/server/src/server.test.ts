@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import WebSocket from "ws";
-import type { GameAction, GameView } from "@belot/engine";
+import { applyAction, newGame, type GameAction, type GameView } from "@belot/engine";
 import type { ClientMessage, RoomState, ServerMessage } from "@belot/protocol";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startServer, type GameServer } from "./server";
+import { MemoryStore } from "./store";
 
 class TestClient {
   readonly messages: ServerMessage[] = [];
@@ -68,6 +69,7 @@ class TestClient {
 }
 
 let server: GameServer;
+let store: MemoryStore;
 const clients: TestClient[] = [];
 
 let tokenCounter = 0;
@@ -95,7 +97,8 @@ async function table(): Promise<TestClient[]> {
 }
 
 beforeEach(async () => {
-  server = await startServer({ port: 0, maxMessagesPerSecond: 10_000 });
+  store = new MemoryStore();
+  server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, store });
 });
 
 afterEach(async () => {
@@ -227,6 +230,34 @@ describe("a running game", () => {
     expect(final.phase).toBe("gameOver");
     expect(Math.max(...final.scores)).toBeGreaterThanOrEqual(151);
     expect(pending).toBeGreaterThan(30);
+
+    // The finished game is recorded once, and its actions replay to the same result.
+    expect(store.records).toHaveLength(1);
+    const record = store.records[0]!.record;
+    let replay = newGame(record.seed, 0);
+    for (const { seat, action } of record.actions) {
+      const r = applyAction(replay, seat, action);
+      if (!r.ok) throw new Error(r.error);
+      replay = r.state;
+    }
+    expect(replay.scores).toEqual(final.scores);
+    expect(record.players.map((p) => p.nickname)).toEqual(["Ани", "Борис", "Вили", "Гого"]);
+    expect(JSON.stringify(record)).not.toContain(players[0]!.token);
+
+    // Each player sees it in their history from their own seat; someone who was not there sees nothing.
+    for (const [seat, p] of players.entries()) {
+      p.send({ type: "getHistory" });
+      await p.until(() => p.messages.some((m) => m.type === "history"));
+      const games = (p.messages.find((m) => m.type === "history") as { games: { seat: number; scores: number[]; rounds: unknown[] }[] }).games;
+      expect(games).toHaveLength(1);
+      expect(games[0]!.seat).toBe(seat);
+      expect(games[0]!.scores).toEqual(final.scores);
+      expect(games[0]!.rounds).toHaveLength(final.history.length);
+    }
+    const stranger = await client("Ели");
+    stranger.send({ type: "getHistory" });
+    await stranger.until(() => stranger.messages.some((m) => m.type === "history"));
+    expect((stranger.messages.find((m) => m.type === "history") as { games: unknown[] }).games).toEqual([]);
   });
 
   it("rejects an action from the wrong seat", async () => {

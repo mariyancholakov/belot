@@ -1,5 +1,6 @@
 import { applyAction, chooseBotAction, newGame, viewFor, type GameAction, type GameEvent, type GameState } from "@belot/engine";
 import { BOT_LEVEL_IDS, CARD_BACKS, type BotLevel, type CardBack, type ErrorCode, type RoomState, type ServerMessage } from "@belot/protocol";
+import { tokenHash, type GameRecord } from "./store";
 
 export interface Member {
   token: string;
@@ -20,6 +21,10 @@ export interface SavedRoom {
   members: Member[];
   seats: (string | null)[];
   game: GameState | null;
+  /** Missing in tables saved before games were recorded. */
+  actions?: { seat: number; action: GameAction }[];
+  startedAt?: number | null;
+  recorded?: boolean;
 }
 
 export type Outgoing = { token: string; message: ServerMessage };
@@ -45,6 +50,11 @@ export class Room {
   lastActivity = Date.now();
   /** When the player to move runs out of time, as a timestamp; null while no clock runs. */
   turnEndsAt: number | null = null;
+  /** Every action of the running game, so the finished game can be recorded and replayed. */
+  private actions: { seat: number; action: GameAction }[] = [];
+  private startedAt: number | null = null;
+  /** The finished game has been handed out for recording. */
+  private recorded = false;
 
   constructor(
     readonly code: string,
@@ -67,6 +77,9 @@ export class Room {
       members: [...this.members.values()],
       seats: [...this.seats],
       game: this.game,
+      actions: this.actions,
+      startedAt: this.startedAt,
+      recorded: this.recorded,
     };
   }
 
@@ -82,6 +95,9 @@ export class Room {
     room.seq = saved.seq;
     room.game = saved.game;
     room.host = saved.host;
+    room.actions = saved.actions ?? [];
+    room.startedAt = saved.startedAt ?? null;
+    room.recorded = saved.recorded ?? false;
     return room;
   }
 
@@ -234,6 +250,9 @@ export class Room {
     if (this.seats.some((s) => s === null)) throw new RoomError("need_four_players", "need four players");
     this.game = newGame(this.makeSeed(), 0);
     this.seq = 0;
+    this.actions = [];
+    this.startedAt = Date.now();
+    this.recorded = false;
     this.touch();
   }
 
@@ -244,9 +263,34 @@ export class Room {
     const result = applyAction(this.game, member.seat, action);
     if (!result.ok) throw new RoomError("illegal_action", result.error);
     this.game = result.state;
+    this.actions.push({ seat: member.seat, action });
     this.seq += 1;
     this.touch();
     return result.events;
+  }
+
+  /** The game just finished, once: who sat where, the result and every action. Null otherwise. */
+  takeFinishedGame(version: string | null): GameRecord | null {
+    const game = this.game;
+    if (!game || game.phase !== "gameOver" || game.winner === null || this.recorded) return null;
+    this.recorded = true;
+    const players = this.seats.map((t, seat) => {
+      const m = t ? this.members.get(t) : undefined;
+      const bot = m?.bot === true;
+      return { seat, nickname: m?.nickname ?? "", bot, token: t && !bot ? tokenHash(t) : null };
+    });
+    return {
+      roomCode: this.code,
+      startedAt: new Date(this.startedAt ?? Date.now()),
+      seed: game.seed,
+      players,
+      botLevel: players.some((p) => p.bot) ? this.botLevel : null,
+      scores: game.scores,
+      winner: game.winner,
+      rounds: game.history,
+      actions: this.actions,
+      version,
+    };
   }
 
   roomStateFor(token: string): RoomState {
