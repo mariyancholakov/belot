@@ -920,12 +920,9 @@ button:disabled { cursor: default; }
 /* the round sheet is one printed card: no boxes inside it */
 .score-team.big { background: none; border: 0; box-shadow: none; padding: 0; }
 .slot-empty { color: var(--muted); font-weight: 600; }
-/* a seat box with the host's bot button tucked into its right edge */
+/* a seat box; a bot in it carries the host's remove badge on its corner */
 .slot-cell { position: relative; min-width: 0; }
 .slot-cell .slot { width: 100%; }
-.slot-cell:has(.slot-bot:not(.remove)) .slot { padding-right: 76px; }
-/* on a phone the empty box is narrow: the bot button takes the place of the "+" disc */
-@media (max-width: 759px) { .slot-cell:has(.slot-bot:not(.remove)) .slot-avatar { display: none; } .slot-cell:has(.slot-bot:not(.remove)) .slot { padding-left: 14px; } }
 .slot-bot {
   position: absolute; z-index: 2; right: 10px; top: 50%; translate: 0 -50%; min-height: 32px; padding: 0 10px; border-radius: 99px;
   border: 1px solid var(--line-strong); background: var(--surface); color: var(--text); font-size: 0.82rem; font-weight: 650; white-space: nowrap;

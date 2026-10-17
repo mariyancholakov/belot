@@ -50,8 +50,6 @@ export const bg = {
   start: "Започни играта",
   addBots: "Добави ботове",
   removeBots: "Махни ботовете",
-  addBot: "Бот",
-  addBotTo: (place: string) => `Сложи бот: ${place}`,
   removeBot: (name: string) => `Махни ${name}`,
   needFour: "Трябват четирима играчи",
   waitHost: "Чакаме домакина да започне",

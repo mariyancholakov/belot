@@ -96,12 +96,7 @@ export function Lobby({ room, onSit, onAddBots, onRemoveBots, onCardBack, onBotL
                     {s && <small>{note}</small>}
                   </span>
                 </button>
-                {/* the host can put a bot in any empty seat, and send a single bot away */}
-                {room.youAreHost && !s && (
-                  <button type="button" className="slot-bot" onClick={() => onAddBots(seat)} aria-label={bg.addBotTo(teamLabel(seat))}>
-                    + {bg.addBot}
-                  </button>
-                )}
+                {/* the host can send a single bot away */}
                 {room.youAreHost && s?.bot && (
                   <button type="button" className="slot-bot remove" onClick={() => onRemoveBots(seat)} aria-label={bg.removeBot(s.nickname)} title={bg.removeBot(s.nickname)}>
                     <Icon name="close" size={14} />
