@@ -11,6 +11,7 @@ export * from "./arena";
 export * from "./sim";
 export * from "./handModel";
 export * from "./handNet";
+export * from "./bidNet";
 export * from "./bidder";
 export * from "./knowledge";
 export * from "./player";
