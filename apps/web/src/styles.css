@@ -702,15 +702,14 @@ button:disabled { cursor: default; }
 .laid .card.small { --cw: clamp(36px, 8vw, 52px); margin-left: calc(var(--cw) * -0.35); box-shadow: var(--shadow-2); }
 .laid .card.small:first-child { margin-left: 0; }
 
-/* on wide screens the settings are plain buttons in the bar; the three-dot menu is for phones */
+/* one leave button: icon and word on wide screens, the icon alone on phones */
 .topbar-controls { display: contents; }
-.leave-icon { display: none; }
-@media (max-width: 899px) {
-  .leave-btn { display: none; }
-  .leave-icon { display: grid; }
-}
 .leave-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line-strong); background: transparent; color: var(--text); font-weight: 600; }
 .leave-btn:hover { background: var(--surface-2); }
+@media (max-width: 899px) {
+  .leave-btn { justify-content: center; width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 12px; color: var(--muted); }
+  .leave-btn span { display: none; }
+}
 
 @media (min-width: 760px) { .seat .avatar { width: 44px; height: 44px; } .seat .name { font-size: 1.05rem; } }
 

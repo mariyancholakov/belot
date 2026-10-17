@@ -328,11 +328,8 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         </button>
         <span className="topbar-controls">
           <Controls />
-          <button className="leave-btn" onClick={onLeave}>
-            <Icon name="exit" size={18} /> {bg.leave}
-          </button>
-          <button className="icon-btn leave-icon" onClick={onLeave} aria-label={bg.leaveGame} title={bg.leaveGame}>
-            <Icon name="exit" />
+          <button className="leave-btn" onClick={onLeave} aria-label={bg.leaveGame} title={bg.leaveGame}>
+            <Icon name="exit" size={18} /> <span>{bg.leave}</span>
           </button>
         </span>
       </header>
