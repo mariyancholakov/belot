@@ -40,7 +40,7 @@ async function run(kind: Job["kind"], count: number): Promise<JobResult[]> {
     jobs.map(
       (job) =>
         new Promise<JobResult>((resolve, reject) => {
-          const worker = new Worker(new URL("./worker.ts", import.meta.url));
+          const worker = new Worker(new URL("./worker-boot.mjs", import.meta.url));
           worker.once("message", (r: JobResult) => {
             resolve(r);
             void worker.terminate();
