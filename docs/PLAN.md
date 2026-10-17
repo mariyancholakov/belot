@@ -29,7 +29,7 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 - [x] M3 — Web client: playable game
 - [x] M4 — Polish and Bulgarian UX (modern light/dark redesign, animations, synthesized sounds, manifest, browser smoke test; turn timer later)
 - [~] M5 — Deploy and play with friends (Dockerfile, CI, fly.toml, docs/DEPLOY.md ready; needs the owner to deploy)
-- [~] M6 — Bots (simple computer players that fill empty seats are in; arena in; stronger bidding and play next)
+- [~] M6 — Bots (computer players fill empty seats; the server plays the sampling bot at the normal level; a learned bidding model is the optional last step)
 - [ ] M7 — History and stats (optional)
 
 ---
@@ -176,6 +176,11 @@ Difficulty levels (`BOT_LEVELS` in `bot.ts`, arena names `easy`, `normal`, `hard
 | easy | 40 / 10 | +2.37 ±0.50 | 0.3 |
 | normal | 120 / 40 | +4.13 ±0.45 | 1.0, ≤ 3 |
 | hard | 300 / 100, play deals weighed by the bids | +4.85 ±0.43 | 5.9, ≤ 10 |
+
+The server (`chooseBotAction`, for bot seats and players whose clock ran out) now plays the
+`normal` level: clearly ahead of `basic` and a few milliseconds a move. 6.6 and 6.7 are done; 6.8
+(learned models) is still open: more play samples no longer help and the bids add little in play,
+so the next gains are more likely from a better bidding model than from more sampling.
 
 The smart policy is now the default rollout for both bidding and play. Weighing the play deals by
 the bids helps a little at best, for 2.5× the time, so it is off by default (`play.bids`,
