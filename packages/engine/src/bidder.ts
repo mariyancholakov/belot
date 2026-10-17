@@ -100,14 +100,17 @@ type ModelBid = { type: "pass" } | { type: "bid"; contract: number } | { type: "
 function modelBid(hand: number, seat: number, a: Auction, dealer: number, t: BidTuning): ModelBid {
   const p = positionOf(seat, dealer);
   const h = a.highest;
-  if (a.multiplier === 2) {
-    return h && teamOf(h.seat) === teamOf(seat) && handValue(hand, h.contract, p) > t.contraPoint + t.recontraExtra ? { type: "recontra" } : { type: "pass" };
-  }
   if (a.multiplier === 4) return { type: "pass" };
   const partnerHolds = h !== null && teamOf(h.seat) === teamOf(seat);
   let choice: ModelBid = { type: "pass" };
   let best = 0;
-  if (h && !partnerHolds) {
+  if (h && a.multiplier === 2) {
+    const v = handValue(hand, h.contract, p) - t.contraPoint - t.recontraExtra;
+    if (partnerHolds && v > best) {
+      best = v;
+      choice = { type: "recontra" };
+    }
+  } else if (h && !partnerHolds) {
     const v = handValue(hand, h.contract, p) - t.contraPoint;
     if (v > best) {
       best = v;

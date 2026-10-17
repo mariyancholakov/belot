@@ -58,8 +58,8 @@ export function legalBids(state: BiddingState): BidAction[] {
   const actions: BidAction[] = [{ type: "pass" }];
   const { highest, multiplier, turn } = state;
 
-  // Once someone has doubled, no further bids are allowed.
-  if (multiplier === 1) {
+  // A higher bid is allowed after a contra too; it clears the contra.
+  if (multiplier < 4) {
     const floor = highest ? bidRank(highest.contract) : -1;
     for (const contract of BID_ORDER) {
       if (bidRank(contract) > floor) actions.push({ type: "bid", contract });
@@ -90,6 +90,7 @@ export function applyBid(state: BiddingState, seat: number, action: BidAction): 
   switch (action.type) {
     case "bid":
       next.highest = { seat, contract: action.contract };
+      next.multiplier = 1;
       next.passes = 0;
       break;
     case "contra":

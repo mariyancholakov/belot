@@ -58,9 +58,15 @@ describe("bidding", () => {
     expect(s.result).toEqual({ bidder: 1, contract: "hearts", multiplier: 2 });
   });
 
-  it("no new bids after a contra", () => {
-    const s = run(startBidding(0), [[1, bid("hearts")], [2, { type: "contra" }]]);
-    expect(legalBids(s).some((a) => a.type === "bid")).toBe(false);
+  it("a higher bid after a contra clears it", () => {
+    let s = run(startBidding(0), [[1, bid("hearts")], [2, { type: "contra" }]]);
+    expect(legalBids(s).some((a) => a.type === "bid" && a.contract === "hearts")).toBe(false);
+    expect(legalBids(s).some((a) => a.type === "bid" && a.contract === "spades")).toBe(true);
+    s = run(s, [[3, bid("spades")]]);
+    expect(s.multiplier).toBe(1);
+    expect(legalBids(s).some((a) => a.type === "contra")).toBe(true); // seat 0 may double the new bid
+    s = run(s, [[0, pass], [1, pass], [2, pass]]);
+    expect(s.result).toEqual({ bidder: 3, contract: "spades", multiplier: 1 });
   });
 
   it("re-contra is only for the bidder's team and ends bidding at once", () => {
