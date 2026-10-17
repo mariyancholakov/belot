@@ -30,7 +30,7 @@ Related docs: `docs/ARCHITECTURE.md` (system design), `docs/RULES.md` (rules spe
 - [x] M4 — Polish and Bulgarian UX (modern light/dark redesign, animations, synthesized sounds, manifest, browser smoke test; turn timer later)
 - [x] M5 — Deploy and play with friends (live on Render's free tier, `render.yaml`)
 - [x] M6 — Bots (computer players fill empty seats at the level the host picks; bidding reads the other bids with a learned network)
-- [ ] M7 — History and stats (optional)
+- [~] M7 — Game history (recording and history screen done; needs `DATABASE_URL` on Render)
 
 ---
 
@@ -240,10 +240,17 @@ other bids and plays the auction out; `bid.model` picks which one.
     (three jacks over clubs: +4.6 against +11.3 in real play), as it gives up the lead with a
     losing card and lets them run the suit.
 
-## M7 — History and stats (optional)
-- SQLite: finished games, round scores, per-nickname wins
-- Room survives server restart (snapshot `GameState` as JSON)
-- Simple stats page
+## M7 — Game history
+No accounts and no stats page: each player sees the games they sat in, and every game is kept as
+training data for the bots.
+
+| # | Feature | Status |
+|---|---|---|
+| 7.1 | Finished games recorded in Postgres (Supabase, session pooler, `DATABASE_URL`): seed, seats with nicknames, bot level, rounds, final score, every action, deployed commit; replaying the actions with the engine gives the same game | ✅ |
+| 7.2 | Device tokens stored only as SHA-256 hashes; a player gets only the games their token sat in; RLS on with no policies so the Supabase Data API cannot read the table | ✅ |
+| 7.3 | History screen from the home page: result, partners and opponents, score, date; a tap opens the round sheet | ✅ |
+| 7.4 | Running tables kept in the database too, since Render's free disk is wiped on every restart and deploy (today `rooms.json` only helps locally) | |
+| 7.5 | Train the bid network on the recorded human bids once there are enough games | |
 
 ## Risks and how they are handled
 | Risk | Handling |

@@ -5,3 +5,7 @@ services:
     plan: free
     healthCheckPath: /health
     autoDeploy: true
+    envVars:
+      # Supabase session pooler connection string; set it in the dashboard, never in the repo.
+      - key: DATABASE_URL
+        sync: false
