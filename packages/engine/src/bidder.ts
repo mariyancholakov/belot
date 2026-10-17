@@ -3,7 +3,7 @@ import type { Contract } from "./cards";
 import { mulberry32 } from "./deal";
 import { smartPolicy } from "./rollout";
 import type { GameAction } from "./game";
-import { handValue, positionOf } from "./handModel";
+import { handValue, positionOf, type HandModel } from "./handModel";
 import {
   announcementPoints,
   cardIndex,
@@ -46,6 +46,8 @@ export interface BidTuning {
   lookahead: number;
   /** How the simulated rounds are played. */
   policy: SimPolicy;
+  /** How a five-card hand is valued when reading the other players' bids and playing the auction out. */
+  model: HandModel;
 }
 
 export const DEFAULT_BID_TUNING: BidTuning = {
@@ -61,6 +63,7 @@ export const DEFAULT_BID_TUNING: BidTuning = {
   lastChance: 1,
   lookahead: 1,
   policy: smartPolicy,
+  model: handValue,
 };
 
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-x));
@@ -105,13 +108,13 @@ function modelBid(hand: number, seat: number, a: Auction, dealer: number, t: Bid
   let choice: ModelBid = { type: "pass" };
   let best = 0;
   if (h && a.multiplier === 2) {
-    const v = handValue(hand, h.contract, p) - t.contraPoint - t.recontraExtra;
+    const v = t.model(hand, h.contract, p) - t.contraPoint - t.recontraExtra;
     if (partnerHolds && v > best) {
       best = v;
       choice = { type: "recontra" };
     }
   } else if (h && !partnerHolds) {
-    const v = handValue(hand, h.contract, p) - t.contraPoint;
+    const v = t.model(hand, h.contract, p) - t.contraPoint;
     if (v > best) {
       best = v;
       choice = { type: "contra" };
@@ -119,7 +122,7 @@ function modelBid(hand: number, seat: number, a: Auction, dealer: number, t: Bid
   }
   const point = t.bidPoint + (partnerHolds ? t.overcallExtra : 0);
   for (let c = h ? h.contract + 1 : 0; c < 6; c++) {
-    const v = handValue(hand, c, p) - point;
+    const v = t.model(hand, c, p) - point;
     if (v > best) {
       best = v;
       choice = { type: "bid", contract: c };
@@ -184,11 +187,11 @@ export function bidLikelihoods(view: GameView, t: BidTuning = DEFAULT_BID_TUNING
     return (hand: number) => {
       let l = 1;
       for (const e of evidence) {
-        if (e.kind === "bid") l *= odds(handValue(hand, e.contract, p), t.bidPoint);
-        else if (e.kind === "contra") l *= odds(handValue(hand, e.contract, p), t.contraPoint);
+        if (e.kind === "bid") l *= odds(t.model(hand, e.contract, p), t.bidPoint);
+        else if (e.kind === "contra") l *= odds(t.model(hand, e.contract, p), t.contraPoint);
         else {
           let best = -Infinity;
-          for (let c = e.contract; c < 6; c++) best = Math.max(best, handValue(hand, c, p));
+          for (let c = e.contract; c < 6; c++) best = Math.max(best, t.model(hand, c, p));
           l *= 1 - odds(best, t.bidPoint);
         }
       }

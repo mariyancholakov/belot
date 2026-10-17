@@ -123,11 +123,24 @@ export function handFeatures(hand: number, contract: number, p: number): number[
   return [1, jacks, jacks >= 2 ? jacks - 1 : 0, nines, jackNine, aces, tens, belots, ann, ...position(p)];
 }
 
-/** Expected recorded points for the bidding team (theirs minus the other team's) if this hand's team plays `contract`. */
-export function handValue(hand: number, contract: number, p: number): number {
-  const w = HAND_WEIGHTS[handKind(contract)];
-  const f = handFeatures(hand, contract, p);
-  let v = 0;
-  for (let i = 0; i < f.length; i++) v += f[i]! * (w[i] ?? 0);
-  return v;
+/**
+ * Expected recorded points for the bidding team (theirs minus the other team's) if a seat at
+ * bidding position `p` holding this five-card `hand` has its team play `contract`.
+ */
+export type HandModel = (hand: number, contract: number, p: number) => number;
+
+/** The linear model over `handFeatures`, with the given weights per kind of contract. */
+export function linearModel(weights: Record<HandKind, readonly number[]>): HandModel {
+  return (hand, contract, p) => {
+    const w = weights[handKind(contract)];
+    const f = handFeatures(hand, contract, p);
+    let v = 0;
+    for (let i = 0; i < f.length; i++) v += f[i]! * (w[i] ?? 0);
+    return v;
+  };
 }
+
+export const handValue: HandModel = linearModel(HAND_WEIGHTS);
+
+/** Hand models a bot can pick by number (`bid.model`): 0 is the linear model. */
+export const HAND_MODELS: HandModel[] = [handValue];

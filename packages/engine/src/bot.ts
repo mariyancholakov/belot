@@ -3,6 +3,7 @@ import { chooseCard, DEFAULT_PLAY_TUNING, type PlayTuning } from "./player";
 import { POLICIES } from "./rollout";
 import { cardEquals, isTrump, points, strength, SUITS, type Card, type Contract, type Suit } from "./cards";
 import { mulberry32 } from "./deal";
+import { HAND_MODELS } from "./handModel";
 import type { GameAction, GameState } from "./game";
 import { isPartner, trickWinner } from "./tricks";
 import { viewFor, type GameView } from "./view";
@@ -104,10 +105,15 @@ function scoped(p: BotParams, prefix: string): BotParams {
   return out;
 }
 
-/** Bid tuning from `bid.*` numbers; `bid.rollout` picks the playing policy of the simulated rounds. */
+/** Bid tuning from `bid.*` numbers; `bid.rollout` picks the playing policy of the simulated rounds, `bid.model` the hand model. */
 function bidTuning(p: BotParams): BidTuning {
-  const { rollout, ...rest } = scoped(p, "bid");
-  return { ...DEFAULT_BID_TUNING, ...rest, ...(rollout !== undefined ? { policy: POLICIES[rollout]! } : {}) };
+  const { rollout, model, ...rest } = scoped(p, "bid");
+  return {
+    ...DEFAULT_BID_TUNING,
+    ...rest,
+    ...(rollout !== undefined ? { policy: POLICIES[rollout]! } : {}),
+    ...(model !== undefined ? { model: HAND_MODELS[model]! } : {}),
+  };
 }
 
 function playTuning(p: BotParams): PlayTuning {
