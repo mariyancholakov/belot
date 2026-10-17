@@ -168,6 +168,15 @@ Recorded points per deal, A − B, duplicate deals, 95% interval.
 Bidding re-tuned with the smart play: `bidPoint` (the hand value at which another player is taken
 to bid) goes from 0 to 3; the other numbers were already near their best.
 
+Difficulty levels (`BOT_LEVELS` in `bot.ts`, arena names `easy`, `normal`, `hard`), each against `basic` over 1500 deals
+(times on an Apple laptop; the arena's slowest move includes warm-up, so the slowest warm move is shown):
+
+| Level | Samples per bid / per card | A − basic | ms per move (avg, slowest warm move) |
+|---|---|---|---|
+| easy | 40 / 10 | +2.37 ±0.50 | 0.3 |
+| normal | 120 / 40 | +4.13 ±0.45 | 1.0, ≤ 3 |
+| hard | 300 / 100, play deals weighed by the bids | +4.85 ±0.43 | 5.9, ≤ 10 |
+
 The smart policy is now the default rollout for both bidding and play. Weighing the play deals by
 the bids helps a little at best, for 2.5× the time, so it is off by default (`play.bids`,
 `play.pool`): the contract, voids and announcements already say most of what the bids do.

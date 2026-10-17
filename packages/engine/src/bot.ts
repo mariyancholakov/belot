@@ -115,13 +115,29 @@ function playTuning(p: BotParams): PlayTuning {
   return { ...DEFAULT_PLAY_TUNING, ...rest, ...(rollout !== undefined ? { policy: POLICIES[rollout]! } : {}) };
 }
 
+export type BotLevel = "easy" | "normal" | "hard";
+
+/** Difficulty by how many deals the `mc` bot simulates for each bid and each card. */
+export const BOT_LEVELS: Record<BotLevel, BotParams> = {
+  easy: { "bid.samples": 40, "play.samples": 10 },
+  normal: { "bid.samples": 120, "play.samples": 40 },
+  hard: { "bid.samples": 300, "play.samples": 100, "play.bids": 1, "play.pool": 6 },
+};
+
+const mcBot = (p: BotParams): BotPolicy =>
+  makeBot((view, seed) => chooseBid(view, seed, bidTuning(p)), (view, seed) => chooseCard(view, seed, playTuning(p)));
+
 /** Every bot the arena knows, built from optional tuning numbers. */
 export const BOTS: Record<string, (params: BotParams) => BotPolicy> = {
   basic: () => basicBot,
   /** Bids by simulating the round (no trumps, all trumps, contra, reading the other bids); plays like the basic bot. */
   bidder: (p) => makeBot((view, seed) => chooseBid(view, seed, bidTuning(p)), basicPlay),
   /** Bids like `bidder` and plays each card by sampling the unseen hands. */
-  mc: (p) => makeBot((view, seed) => chooseBid(view, seed, bidTuning(p)), (view, seed) => chooseCard(view, seed, playTuning(p))),
+  mc: mcBot,
+  /** `mc` at a difficulty level; tuning numbers given on top override the level's. */
+  easy: (p) => mcBot({ ...BOT_LEVELS.easy, ...p }),
+  normal: (p) => mcBot({ ...BOT_LEVELS.normal, ...p }),
+  hard: (p) => mcBot({ ...BOT_LEVELS.hard, ...p }),
   random: () => randomBot,
 };
 
