@@ -559,6 +559,8 @@ button:disabled { cursor: default; }
   .card.small { --cw: 66px; }
   .table { padding-top: 8px; }
   .felt { margin: 0 16px; }
+  /* the score, the trump badge and the left player's name all start on one line */
+  .topbar { padding-left: 26px; padding-right: 26px; }
   .sheet-panel { margin: 12px 16px 0; }
   .hand { --step: 0.58; --fan-rot: 3deg; --fan-drop: 0.9px; }
   .drawer { left: auto; right: 0; top: 0; bottom: 0; width: 380px; border-radius: 0; max-height: none; transform: translateX(105%); }
@@ -679,21 +681,20 @@ button:disabled { cursor: default; }
 .table > .hand { margin-top: calc((var(--lap) - 30px) * -1); }
 .seat.turn .name small { opacity: 1; }
 
-/* the trump as a watermark: one huge, faint symbol behind everything on the table */
+/* the trump as a watermark: one huge, faint symbol behind the trick, centred on it, in plain ink whatever the suit */
 .felt-mark {
-  position: absolute; left: 50%; top: calc((100% - var(--lap)) * 0.5); z-index: 0; translate: -50% -50%; pointer-events: none; user-select: none;
-  font-size: min(78vw, 46dvh, 520px); line-height: 1; font-weight: 800; color: var(--text); opacity: 0.045;
+  position: absolute; left: 50%; top: 50%; z-index: 0; translate: -50% -50%; pointer-events: none;
+  width: min(72vw, 44dvh, 480px); aspect-ratio: 1; color: var(--text); opacity: 0.03;
   animation: mark-in 0.9s var(--ease) both;
 }
-.felt-mark.red { color: var(--card-red); opacity: 0.06; }
+.felt-mark svg { display: block; width: 100%; height: 100%; }
 @keyframes mark-in { from { opacity: 0; scale: 0.9; } }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .felt-mark { opacity: 0.06; } :root:not([data-theme="light"]) .felt-mark.red { opacity: 0.09; } }
-:root[data-theme="dark"] .felt-mark { opacity: 0.06; }
-:root[data-theme="dark"] .felt-mark.red { opacity: 0.09; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .felt-mark { opacity: 0.04; } }
+:root[data-theme="dark"] .felt-mark { opacity: 0.04; }
 
 /* the suit being played, always in the corner of the felt: a small card-like badge */
 .trump {
-  position: absolute; left: 14px; top: 14px; z-index: 3; display: grid; gap: 2px; padding: 8px 14px 9px; border-radius: 12px;
+  position: absolute; left: 10px; top: 14px; z-index: 3; display: grid; gap: 2px; padding: 8px 14px 9px; border-radius: 12px;
   background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); animation: pop 0.45s var(--ease);
 }
 .trump small { font-size: 0.68rem; font-weight: 650; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }

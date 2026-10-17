@@ -346,12 +346,6 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       </header>
 
       <div className="felt">
-        {/* the trump, printed huge and faint across the table like a watermark on card stock */}
-        {view.contract && (
-          <div className={`felt-mark ${contractRed(view.contract.contract) ? "red" : ""}`} key={`mark-${view.contract.contract}-${view.round}`} aria-hidden="true">
-            {contractSymbol(view.contract.contract)}
-          </div>
-        )}
         {view.contract && (
           <div className="trump" key={view.contract.contract + view.round} aria-live="polite">
             <small>{bg.trumpLabel}</small>
@@ -372,6 +366,12 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         })}
 
         <div className={`center ${sweepTo ? `sweep-${sweepTo}` : ""}`} aria-live="polite">
+          {/* the trump, printed huge and faint behind the trick like a watermark on card stock */}
+          {view.contract && (
+            <div className="felt-mark" key={`mark-${view.contract.contract}-${view.round}`} aria-hidden="true">
+              <ContractMark contract={view.contract.contract} />
+            </div>
+          )}
           {trick.map((play) => (
             <div key={play.seat} className={`played ${POSITIONS[rel(play.seat)]}`}>
               <CardFace card={play.card} small highlight={winnerSeat === play.seat && !sweeping} />
@@ -504,6 +504,33 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         </div>
       )}
     </div>
+  );
+}
+
+/** The contract drawn as a shape (a letter for no trumps and all trumps), centred in a square so it sits exactly in the middle. */
+function ContractMark({ contract }: { contract: Contract }) {
+  const shapes: Record<string, JSX.Element> = {
+    hearts: <path d="M50 90C20 66 4 49 4 31 4 17 15 7 28 7c10 0 18 6 22 15 4-9 12-15 22-15 13 0 24 10 24 24 0 18-16 35-46 59Z" />,
+    diamonds: <path d="M50 4 86 50 50 96 14 50Z" />,
+    spades: <path d="M50 5c30 24 46 38 46 55 0 14-11 22-23 22-9 0-17-5-20-12 1 10 5 18 13 24H34c8-6 12-14 13-24-3 7-11 12-20 12C15 82 4 74 4 60 4 43 20 29 50 5Z" />,
+    clubs: (
+      <>
+        <circle cx="50" cy="27" r="19" />
+        <circle cx="27" cy="57" r="19" />
+        <circle cx="73" cy="57" r="19" />
+        <circle cx="50" cy="52" r="12" />
+        <path d="M46 56c0 17-4 28-12 38h32c-8-10-12-21-12-38Z" />
+      </>
+    ),
+  };
+  return (
+    <svg viewBox="0 0 100 100" fill="currentColor">
+      {shapes[contract] ?? (
+        <text x="50" y="50" textAnchor="middle" dominantBaseline="central" fontSize="92" fontWeight="800">
+          {contractSymbol(contract)}
+        </text>
+      )}
+    </svg>
   );
 }
 
