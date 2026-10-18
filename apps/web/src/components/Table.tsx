@@ -231,6 +231,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           laidAt.current = Date.now();
           setLaid({ seat: e.seat, hands: e.hands.map((h) => sortHand(h, view.contract?.contract ?? null)) });
           showCallout(e.seat, bg.claimSay, 2600);
+          say("claim", e.seat);
           clearTimeout(laidTimer.current);
           laidTimer.current = setTimeout(() => setLaid(null), 4200);
           break;
