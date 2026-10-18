@@ -484,8 +484,6 @@ button:disabled { cursor: default; }
   box-shadow: var(--shadow-2); animation: pop 0.45s var(--ease);
 }
 .modal h2 { font-size: 1.5rem; text-align: center; }
-.modal-sub { margin: -8px 0 0; text-align: center; color: var(--muted); font-size: 0.92rem; }
-.modal-sub b { color: var(--text); font-weight: 650; }
 .details dt.recorded, .details dd.recorded { padding-top: 8px; margin-top: 2px; border-top: 1px solid var(--line); color: var(--text); font-weight: 700; }
 .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 2px 4px; }
 .score-team.big { gap: 0 8px; }
@@ -988,7 +986,7 @@ button:disabled { cursor: default; }
 .felt .seat .name { max-width: min(190px, 30vw); }
 @media (max-width: 759px) and (orientation: portrait) { .felt .seat .name { max-width: none; } }
 /* where a name sits in running text, a long one breaks instead of overflowing */
-.modal-sub, .bid-log, .waiting, .hint, .cut-hint { overflow-wrap: anywhere; }
+.bid-log, .waiting, .hint, .cut-hint { overflow-wrap: anywhere; }
 /* no trumps and all trumps carry a sign like a suit: a black A, a red J */
 .bid .bsym { font-weight: 800; margin-right: 6px; }
 .bid .bsym.red { color: var(--card-red); }

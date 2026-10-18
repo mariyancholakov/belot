@@ -24,7 +24,6 @@ export const bg = {
     outcome === "tie" ? "Равенство" : outcome === "inside" ? (ours ? "Ние сме вътре" : "Вие сте вътре") : ours ? "Ние изкарахме" : "Вие изкарахте",
   noRoundsYet: "Още няма изиграни ръце",
   close: "Затвори",
-  roundShort: "Ръка",
   nickname: "Твоето име",
   nicknamePlaceholder: "Иван",
   newRoom: "Създай игра",

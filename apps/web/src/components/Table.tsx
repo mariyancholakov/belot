@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { strength, type Card, type Contract, type GameAction, type GameEvent, type GameView, type Play } from "@belot/engine";
 import type { RoomState } from "@belot/protocol";
-import { announcementName, bg, contractLabel, contractName, contractRed, contractSymbol, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
+import { announcementName, bg, contractName, contractRed, contractSymbol, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
 import { playSound } from "../sound";
 import { preloadVoice, say, type Phrase } from "../voice";
 import { AnimatedNumber } from "./AnimatedNumber";
@@ -524,10 +524,6 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
             ) : (
               <h2>{bg.roundTitle(last.bidder % 2 === myTeam, last.result.outcome)}</h2>
             )}
-            <p className="modal-sub">
-              {bg.roundShort} {last.round} · <b>{names[last.bidder]}</b> · <SuitText text={contractLabel(last.contract)} />
-              {last.multiplier > 1 && ` ×${last.multiplier}`}
-            </p>
             <RoundDetails summary={last} myTeam={myTeam} />
             <div className="totals" aria-label={bg.total}>
               <ScoreTeam label={bg.teamUs} value={view.scores[myTeam]} cls="us" big />
