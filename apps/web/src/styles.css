@@ -1040,3 +1040,9 @@ button:disabled { cursor: default; }
 /* the voice switch rests while all sound is off */
 .icon-btn:disabled { opacity: 0.35; cursor: default; }
 .icon-btn:disabled:hover { background: transparent; color: var(--muted); }
+
+/* ---------- portrait phones: the opponents' cards a size up (they may run under the avatars), the trick and the trump watermark a little lower ---------- */
+@media (max-width: 759px) and (orientation: portrait) {
+  :root { --top-cw: clamp(38px, 11vw, 50px); --side-cw: clamp(32px, 9.4vw, 44px); }
+  .center { inset: 18% 0 calc(var(--lap) - 64px); }
+}
