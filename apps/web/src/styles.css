@@ -372,6 +372,8 @@ button:disabled { cursor: default; }
 .seat.right .backs .card.small { rotate: calc(-90deg - var(--off, 0) * var(--bf-rot)); translate: calc(var(--off, 0) * var(--off, 0) * var(--bf-drop)) 0; }
 .seat.left .backs .card.small:first-child, .seat.right .backs .card.small:first-child { margin-top: 0; }
 .backs .card.small:first-child { margin-left: 0; }
+/* a card leaving an opponent's hand closes the fan smoothly */
+.backs .card.small { transition: rotate 0.24s var(--ease), translate 0.24s var(--ease); }
 
 /* trick */
 .center { --ph: calc(var(--play-cw) * 1.42); position: absolute; inset: 7% 0 0; display: grid; place-items: center; pointer-events: none; }
@@ -962,7 +964,8 @@ button:disabled { cursor: default; }
 /* ---------- touch: the card under the finger comes up at once, with no slide, so a tap lands on what it shows ---------- */
 .hand { touch-action: none; }
 @media (pointer: coarse) {
-  .hand .card { transition: none; }
+  /* the lift is instant; the fan's tilt still eases when a card leaves */
+  .hand .card { transition: rotate 0.24s var(--ease), filter 0.2s ease-out; }
   .hand.active .hand-slot[data-hot]:not(.off) .card { translate: 0 calc(var(--off, 0) * var(--off, 0) * var(--fan-drop, 0.6px) - 14px); }
 }
 /* the laid hands keep their own placement, so they fade in without the centred pop */

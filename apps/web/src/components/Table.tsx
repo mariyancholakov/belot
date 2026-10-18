@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { strength, type Card, type Contract, type GameAction, type GameEvent, type GameView, type Play } from "@belot/engine";
 import type { RoomState } from "@belot/protocol";
 import { announcementName, bg, contractLabel, contractName, contractRed, contractSymbol, isRed, rankLabel, suitName, suitSymbol } from "../i18n/bg";
@@ -62,6 +62,18 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   // A finished trick stays on screen briefly, then sweeps to whoever took it.
   const [held, setHeld] = useState<{ plays: Play[]; winner: number } | null>(null);
   const [sweeping, setSweeping] = useState(false);
+  // Taken from the update while rendering it: set later, in an effect, the trick would be gone for a frame and its cards would fly in again.
+  const [heldFor, setHeldFor] = useState(0);
+  if (heldFor !== updateId) {
+    setHeldFor(updateId);
+    const won = events.find((e) => e.type === "trickWon");
+    if (won && won.type === "trickWon") {
+      setHeld({ plays: won.plays, winner: won.winner });
+      setSweeping(false);
+    }
+  }
+  /** The sweep runs on its own clock, so an update arriving while the trick is held does not cancel it. */
+  const holdTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const [callout, setCallout] = useState<{ seat: number; text: string } | null>(null);
   /** A card waiting for the player to say whether they call belot with it ("claim": while laying the cards down). */
   const [askBelot, setAskBelot] = useState<Card | "claim" | null>(null);
@@ -88,7 +100,13 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       }, ms),
     );
   };
-  useEffect(() => () => animTimers.current.forEach(clearTimeout), []);
+  useEffect(
+    () => () => {
+      animTimers.current.forEach(clearTimeout);
+      holdTimers.current.forEach(clearTimeout);
+    },
+    [],
+  );
   useEffect(preloadVoice, []);
 
   // The lucky card ("късметче") stays face up beside its owner until it is played.
@@ -209,16 +227,17 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           timers.push(setTimeout(() => setLaid(null), 4200));
           break;
         case "trickWon":
-          setHeld({ plays: e.plays, winner: e.winner });
-          setSweeping(false);
-          timers.push(setTimeout(() => setSweeping(true), HOLD_MS - SWEEP_MS));
-          timers.push(setTimeout(() => playSound("trick"), HOLD_MS - SWEEP_MS));
-          timers.push(
+          holdTimers.current.forEach(clearTimeout);
+          holdTimers.current = [
+            setTimeout(() => {
+              setSweeping(true);
+              playSound("trick");
+            }, HOLD_MS - SWEEP_MS),
             setTimeout(() => {
               setHeld(null);
               setSweeping(false);
             }, HOLD_MS),
-          );
+          ];
           break;
         case "roundScored": {
           const ours = e.result.recorded[myTeam];
@@ -320,6 +339,23 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
     el?.setAttribute("data-hot", "");
     hotSlot.current = el;
   };
+  // When a card leaves (or arrives), the rest of the hand slides to its new place instead of jumping there.
+  const slotLeft = useRef(new Map<string, number>());
+  const handKey = hand.map((c) => c.suit + c.rank).join();
+  useLayoutEffect(() => {
+    const root = handEl.current;
+    if (!root) return;
+    const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const before = slotLeft.current;
+    const after = new Map<string, number>();
+    for (const slot of root.querySelectorAll<HTMLElement>(".hand-slot")) {
+      const id = slot.dataset.card!;
+      after.set(id, slot.offsetLeft);
+      const dx = (before.get(id) ?? slot.offsetLeft) - slot.offsetLeft;
+      if (!still && dx !== 0) slot.firstElementChild?.animate([{ transform: `translateX(${dx}px)` }, { transform: "none" }], { duration: 240, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
+    }
+    slotLeft.current = after;
+  }, [handKey]);
   const myBidTurn = view.phase === "bidding" && !busy && view.legalActions.some((a) => a.type === "bid");
   const cutting = view.phase === "cutting" && stage?.kind === "wait" && view.turn === me;
   /** The shuffle and deal choices are popups; the status line would repeat them. */
@@ -446,7 +482,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           const choose = myTurn && ok ? () => (view.belotCards.some((b) => b.suit === card.suit && b.rank === card.rank) ? setAskBelot(card) : playCard(card)) : undefined;
           chooseRef.current[i] = choose;
           return (
-            <div key={card.suit + card.rank} className={`hand-slot ${ok ? "" : "off"}`}>
+            <div key={card.suit + card.rank} className={`hand-slot ${ok ? "" : "off"}`} data-card={card.suit + card.rank}>
               <CardFace card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={choose} button />
             </div>
           );
