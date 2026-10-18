@@ -170,16 +170,6 @@ const recipes = {
     thump(a, done + 0.12, 0.22);
     click(a, done + 0.12, 0.18, 1900);
   },
-  /** Lift the top packet, set it down, put the bottom packet on top. */
-  cut(a: A) {
-    slide(a, 0, 0.16, 0.12, 3200, 1800);
-    thump(a, 0.3, 0.26);
-    click(a, 0.3, 0.25, 2000);
-    slide(a, 0.55, 0.16, 0.12, 3200, 1800);
-    thump(a, 0.78, 0.3);
-    click(a, 0.78, 0.28, 2000);
-    thump(a, 0.9, 0.2);
-  },
   /** A trick being gathered up and slid to its winner. */
   trick(a: A) {
     slide(a, 0, 0.26, 0.14, 4200, 1600);

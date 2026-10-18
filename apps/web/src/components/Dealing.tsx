@@ -1,6 +1,5 @@
 import { useRef, useState } from "react";
 import { bg } from "../i18n/bg";
-import { playSound } from "../sound";
 
 export type Pos = "bottom" | "right" | "top" | "left";
 
@@ -84,26 +83,26 @@ interface PickerProps {
   onCut: (position: number) => void;
 }
 
-/** The cutter points along the deck, which opens a gap where it would split; a click cuts there. */
+/** The cutter points along the deck, which opens a gap where it would split; letting go (or a click) cuts there. */
 export function CutPicker({ onCut }: PickerProps) {
-  // Pointing at a card shows where the deck would split; a click cuts there.
+  // A finger slides along the deck and cuts where it lifts; a mouse shows the split as it hovers and cuts on click.
   const [position, setPosition] = useState<number | null>(null);
   const spread = useRef<HTMLDivElement>(null);
+  const pressed = useRef(false);
+  const done = useRef(false);
   const at = (clientX: number): number | null => {
     const box = spread.current?.getBoundingClientRect();
     if (!box) return null;
     return Math.min(31, Math.max(1, Math.ceil(((clientX - box.left) / box.width) * 32)));
   };
   const cut = (n: number) => {
-    playSound("tap");
+    if (done.current) return;
+    done.current = true;
     onCut(n);
   };
   const point = (clientX: number) => {
     const next = at(clientX);
-    if (next !== null && next !== position) {
-      if (position !== null) playSound("tap");
-      setPosition(next);
-    }
+    if (next !== null && next !== position) setPosition(next);
   };
   return (
     <div className="cut-table cut-picker">
@@ -111,13 +110,24 @@ export function CutPicker({ onCut }: PickerProps) {
       <div
         className="spread"
         ref={spread}
-        onPointerMove={(e) => point(e.clientX)}
-        onPointerDown={(e) => point(e.clientX)}
-        onPointerLeave={() => setPosition(null)}
-        onClick={(e) => {
+        onPointerDown={(e) => {
+          pressed.current = true;
+          // the deck keeps following the finger even when it slides off the cards
+          e.currentTarget.setPointerCapture(e.pointerId);
+          point(e.clientX);
+        }}
+        onPointerMove={(e) => (pressed.current || e.pointerType === "mouse") && point(e.clientX)}
+        onPointerUp={(e) => {
+          if (!pressed.current) return;
+          pressed.current = false;
           const n = at(e.clientX);
           if (n !== null) cut(n);
         }}
+        onPointerCancel={() => {
+          pressed.current = false;
+          setPosition(null);
+        }}
+        onPointerLeave={() => !pressed.current && setPosition(null)}
       >
         {Array.from({ length: 32 }, (_, i) => (
           <i

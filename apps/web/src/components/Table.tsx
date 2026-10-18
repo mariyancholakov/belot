@@ -150,7 +150,6 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
     const gen = ++animGen.current;
     setShown(null);
     setStage({ kind: "cut", position });
-    playSound("cut");
     later(gen, CUT_MS, () => setStage({ kind: "wait" }));
   };
 

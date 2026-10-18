@@ -73,7 +73,7 @@ export const bg = {
   waitingShuffleChoice: (name: string) => `${name} решава дали да разбърква…`,
   dealing: (name: string) => `${name} раздава…`,
   cutTitle: "Цепи тестето",
-  cutHint: "Плъзни, за да избереш къде да цепиш.",
+  cutHint: "Плъзни и пусни, за да цепиш.",
   cutConfirm: "Цепи",
   cutLabel: "Място на цепене",
   cutSplit: (top: number) => `${top} горе · ${32 - top} долу`,
