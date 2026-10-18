@@ -1046,3 +1046,13 @@ button:disabled { cursor: default; }
   :root { --top-cw: clamp(38px, 11vw, 50px); --side-cw: clamp(32px, 9.4vw, 44px); }
   .center { inset: 18% 0 calc(var(--lap) - 64px); }
 }
+
+/* ---------- home: the diamond lattice off the navy card back, drawn faintly across the page and clear around the form ---------- */
+.home::before {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.11;
+  background:
+    repeating-linear-gradient(45deg, var(--ring) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(-45deg, var(--ring) 0 1px, transparent 1px 22px);
+  -webkit-mask: radial-gradient(ellipse 70% 55% at 50% 50%, transparent 30%, #000 85%);
+  mask: radial-gradient(ellipse 70% 55% at 50% 50%, transparent 30%, #000 85%);
+}
