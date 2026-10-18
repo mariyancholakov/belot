@@ -255,12 +255,11 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       }
     }
 
-    // Nudge the player when the turn comes round to them.
+    // Nudge the player when the turn comes round to them. Not straight after a card: the card landing already says
+    // so, and the nudge's slide right behind its sound made one card sound as if it was thrown twice.
     const mine = (view.phase === "bidding" || view.phase === "playing") && view.turn === me;
-    if (mine && prevTurn.current !== me && !animating) {
-      const afterCard = events.some((e) => e.type === "played");
-      timers.push(setTimeout(() => playSound("turn"), afterCard ? 220 : 0));
-    }
+    const afterCard = events.some((e) => e.type === "played");
+    if (mine && prevTurn.current !== me && !animating && !afterCard) playSound("turn");
     prevTurn.current = view.turn;
 
     return () => timers.forEach(clearTimeout);
