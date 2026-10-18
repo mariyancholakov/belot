@@ -81,7 +81,7 @@ export const bg = {
   shuffleHint: "Три поредни раздавания са минали с пас. Можеш да разбъркаш тестето.",
   shuffleDo: "Разбъркай",
   shuffleSkip: "Остави както е",
-  luckyAsk: "Искаш ли късметче?",
+  luckyAsk: "Хвърли късмет",
   yes: "Да",
   no: "Не",
   dealerIs: "Раздава",
