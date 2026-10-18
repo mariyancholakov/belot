@@ -93,7 +93,7 @@ export const bg = {
   score: "Резултат",
   scoreSheet: "Бележник",
   round: "Ръка",
-  nextRound: "Следваща ръка",
+  nextRound: "Продължи",
   newGame: "Нова игра",
   weWin: "Печелим!",
   theyWin: "Губим",
