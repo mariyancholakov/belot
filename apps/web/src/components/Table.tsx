@@ -309,7 +309,9 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   /** An animation is moving cards; "wait" is just the deck lying on the felt. */
   const animating = stage !== null && stage.kind !== "wait";
   const dealtSoFar = shown ?? (busy ? [0, 0, 0, 0] : null);
-  const myTurn = view.phase === "playing" && view.turn === me && !busy && !pending;
+  // the last card is played by the server on its own, so it is not offered to the finger
+  const lastCard = view.phase === "playing" && view.hand.length === 1;
+  const myTurn = view.phase === "playing" && view.turn === me && !busy && !pending && !lastCard;
   const hand = sortHand(dealtSoFar ? view.hand.slice(0, dealtSoFar[me]) : view.hand, view.contract?.contract ?? null).filter((c) => !isPending(c));
   // The hand is pointed at as a whole: whichever card's strip the pointer is over comes up. Done on the DOM
   // directly so moving the pointer never re-renders the table.

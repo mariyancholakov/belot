@@ -44,6 +44,10 @@ export interface ServerOptions {
   turnMs?: number;
   /** Extra time on top of the clock for the first move after a deal and after a trick, while clients animate. */
   turnGraceMs?: number;
+  /** How long clients show a finished trick before it is swept away; nobody moves before then. */
+  trickPauseMs?: number;
+  /** Pause before a person's last card is played for them (after the trick pause when it opens the last trick). */
+  lastCardMs?: number;
   /** Where to keep the tables so a restart does not end the games (omit to keep them in memory only). */
   dataFile?: string;
   /** Where finished games are kept (omit to keep them in memory only). */
@@ -58,6 +62,8 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
   const botDelayMs = options.botDelayMs ?? 900;
   const turnMs = options.turnMs ?? 25_000;
   const turnGraceMs = options.turnGraceMs ?? 5000;
+  const trickPauseMs = options.trickPauseMs ?? 1600;
+  const lastCardMs = options.lastCardMs ?? 700;
   const botCutDelayMs = options.botCutDelayMs ?? 3200;
   const botDealDelayMs = options.botDealDelayMs ?? 4000;
   const maxPerSecond = options.maxMessagesPerSecond ?? DEFAULT_MAX_MESSAGES_PER_SECOND;
@@ -243,18 +249,28 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
   const botTimers = new Set<ReturnType<typeof setTimeout>>();
   const clocks = new Map<string, ReturnType<typeof setTimeout>>();
 
-  /** Starts (or stops) the clock for whoever is to move; when it runs out the server plays for them. */
+  /**
+   * Starts (or stops) the clock for whoever is to move; when it runs out the server plays for them.
+   * A person's last card has nowhere else to go, so it is played for them after a short pause, with no clock shown.
+   */
   function armTurnClock(room: Room): void {
     const old = clocks.get(room.code);
     if (old) clearTimeout(old);
     clocks.delete(room.code);
     room.turnEndsAt = null;
-    if (turnMs <= 0 || !room.clockApplies()) return;
+    if (!room.clockApplies()) return;
     const game = room.game!;
-    // Leave room for the deal and for a finished trick to be swept away before the clock starts.
-    const grace = (game.phase === "bidding" && game.bidLog.length === 0) || (game.phase === "playing" && game.tricksPlayed === 0 && game.trick.length === 0) ? turnGraceMs : game.phase === "playing" && game.trick.length === 0 ? Math.round(turnGraceMs * 0.4) : 0;
-    const wait = turnMs + grace;
-    room.turnEndsAt = Date.now() + wait;
+    const lastCard = game.phase === "playing" && game.hands[game.turn]!.length === 1;
+    if (!lastCard && turnMs <= 0) return;
+    let wait: number;
+    if (lastCard) {
+      wait = game.trick.length === 0 ? trickPauseMs + lastCardMs : lastCardMs;
+    } else {
+      // Leave room for the deal and for a finished trick to be swept away before the clock starts.
+      const grace = (game.phase === "bidding" && game.bidLog.length === 0) || (game.phase === "playing" && game.tricksPlayed === 0 && game.trick.length === 0) ? turnGraceMs : game.phase === "playing" && game.trick.length === 0 ? Math.round(turnGraceMs * 0.4) : 0;
+      wait = turnMs + grace;
+      room.turnEndsAt = Date.now() + wait;
+    }
     const timer = setTimeout(() => {
       clocks.delete(room.code);
       if (!rooms.has(room.code)) return;
@@ -285,7 +301,7 @@ export async function startServer(options: ServerOptions = {}): Promise<GameServ
       if (g.phase === "dealing") return botDelayMs + botCutDelayMs / 2; // clients play the cut
       if (g.phase === "bidding" && g.bidLog.length === 0) return botDelayMs + botDealDelayMs; // the deal
       if (g.phase === "playing" && g.tricksPlayed === 0 && g.trick.length === 0) return botDelayMs + botDealDelayMs / 2;
-      return botDelayMs + (trickDone ? 1600 : 0);
+      return botDelayMs + (trickDone ? trickPauseMs : 0);
     };
     const afterTrick = game.phase === "playing" && game.trick.length === 0 && game.tricksPlayed > 0;
     const timer = setTimeout(() => {

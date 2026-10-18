@@ -328,6 +328,34 @@ describe("turn clock", () => {
   });
 });
 
+describe("last card", () => {
+  it("is played for a person by itself, even with the clock off", async () => {
+    await server.close();
+    server = await startServer({ port: 0, maxMessagesPerSecond: 10_000, botDelayMs: 1, botCutDelayMs: 1, botDealDelayMs: 1, turnMs: 0, trickPauseMs: 1, lastCardMs: 1 });
+    const a = await client("Ани");
+    a.send({ type: "createRoom" });
+    await a.until(() => a.room !== null);
+    a.send({ type: "addBots" });
+    await a.until(() => a.room!.seats.every((s) => s !== null));
+    a.send({ type: "startGame" });
+    // Ани makes every move until she holds one card (a round a bot ends early by laying its cards down is followed by
+    // the next); the rest of the round must then finish without her.
+    const deadline = Date.now() + 10_000;
+    while (Date.now() < deadline) {
+      const v = a.view;
+      if (v?.phase === "playing" && v.hand.length === 1) break;
+      const moves = v && v.turn === v.seat ? v.legalActions.filter((m) => m.type !== "claim") : [];
+      const move = v?.phase === "roundEnd" ? ({ type: "nextRound" } as const) : moves.find((m) => m.type === "play") ?? moves[0];
+      const seen = a.messages.length;
+      if (move) a.send({ type: "action", action: move });
+      await a.until(() => a.messages.length > seen, 500).catch(() => {});
+    }
+    expect(a.view?.hand).toHaveLength(1);
+    await a.until(() => a.view?.phase === "roundEnd" || a.view?.phase === "gameOver");
+    expect(a.lastError()).toBeUndefined();
+  }, 15_000);
+});
+
 describe("card back", () => {
   it("is chosen by the host before the game and shown to everybody", async () => {
     const a = await client("Ани");
