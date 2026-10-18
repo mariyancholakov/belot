@@ -74,7 +74,16 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   }
   /** The sweep runs on its own clock, so an update arriving while the trick is held does not cancel it. */
   const holdTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const [callout, setCallout] = useState<{ seat: number; text: string } | null>(null);
+  /** What each seat just said (a belot, its announcements, laying the cards down), shown in a balloon for a while. */
+  const [callouts, setCallouts] = useState<(string | null)[]>([null, null, null, null]);
+  // The balloons and the laid-down hands run on their own clocks: the next update must neither keep them up nor bring them back.
+  const calloutTimers = useRef<(ReturnType<typeof setTimeout> | undefined)[]>([]);
+  const laidTimer = useRef<ReturnType<typeof setTimeout>>();
+  const showCallout = (seat: number, text: string, ms: number) => {
+    clearTimeout(calloutTimers.current[seat]);
+    setCallouts((c) => c.map((t, s) => (s === seat ? text : t)));
+    calloutTimers.current[seat] = setTimeout(() => setCallouts((c) => c.map((t, s) => (s === seat ? null : t))), ms);
+  };
   /** A card waiting for the player to say whether they call belot with it ("claim": while laying the cards down). */
   const [askBelot, setAskBelot] = useState<Card | "claim" | null>(null);
   /** The hand a player just laid down, shown face up for a moment. */
@@ -104,6 +113,8 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
     () => () => {
       animTimers.current.forEach(clearTimeout);
       holdTimers.current.forEach(clearTimeout);
+      calloutTimers.current.forEach(clearTimeout);
+      clearTimeout(laidTimer.current);
     },
     [],
   );
@@ -208,22 +219,26 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           break;
         }
         case "belot":
-          setCallout({ seat: e.seat, text: `${bg.belot} ${suitSymbol[e.suit]} +20` });
-          timers.push(setTimeout(() => setCallout(null), 2400));
+          showCallout(e.seat, `${bg.belot} ${suitSymbol[e.suit]} +20`, 2400);
           if (!say("belot", e.seat, 120)) timers.push(setTimeout(() => playSound("belot"), 120));
           break;
         case "announced":
-          setCallout({ seat: e.seat, text: e.kinds.map((k) => announcementName[k]).join(", ") });
-          timers.push(setTimeout(() => setCallout(null), 2600));
+          showCallout(e.seat, e.kinds.map((k) => announcementName[k]).join(", "), 2600);
           // several announcements are said one after another
           if (!e.kinds.map((k) => say(k, e.seat)).some(Boolean)) playSound("belot");
           break;
         case "claimed":
           laidAt.current = Date.now();
           setLaid({ seat: e.seat, hands: e.hands.map((h) => sortHand(h, view.contract?.contract ?? null)) });
-          setCallout({ seat: e.seat, text: bg.claimSay });
-          timers.push(setTimeout(() => setCallout(null), 2600));
-          timers.push(setTimeout(() => setLaid(null), 4200));
+          showCallout(e.seat, bg.claimSay, 2600);
+          clearTimeout(laidTimer.current);
+          laidTimer.current = setTimeout(() => setLaid(null), 4200);
+          break;
+        case "announcements":
+          // once the first trick is in, everyone sees what each player's announcements are worth, once
+          e.result.counted.forEach((list, seat) => {
+            if (list.length > 0) showCallout(seat, list.map((x) => `${announcementName[x.kind]}${x.suit ? ` ${suitSymbol[x.suit]}` : ""} · ${x.points}`).join(", "), 3400);
+          });
           break;
         case "trickWon":
           holdTimers.current.forEach(clearTimeout);
@@ -398,7 +413,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         )}
         {POSITIONS.slice(1).map((pos, i) => {
           const seat = (me + i + 1) % 4;
-          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} callout={callout?.seat === seat ? callout.text : null} clock={turnLeftMs} clockKey={updateId} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
+          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} callout={callouts[seat] ?? null} clock={turnLeftMs} clockKey={updateId} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
         })}
 
         <div className={`center ${sweepTo ? `sweep-${sweepTo}` : ""}`} aria-live="polite">
@@ -457,7 +472,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         )}
       </div>
 
-      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} callout={callout?.seat === me ? callout.text : null} clock={turnLeftMs} clockKey={updateId} name={names[me]!} connected ours />
+      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} callout={callouts[me] ?? null} clock={turnLeftMs} clockKey={updateId} name={names[me]!} connected ours />
       <div
         className={`hand ${myTurn ? "active" : ""}`}
         ref={handEl}
@@ -644,11 +659,7 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
   /** A person to move has a clock: it runs down as a ring round their avatar. */
   const timed = turn && clock !== null && (view.phase === "bidding" || view.phase === "playing");
   const lastBid = [...view.bidLog].reverse().find((b) => b.seat === seat);
-  const declared = view.announcements
-    ?.filter((a) => a.seat === seat)
-    .flatMap((a) => a.announcements.map((x) => `${announcementName[x.kind]}${x.suit ? ` ${suitSymbol[x.suit]}` : ""} · ${x.points}`))
-    .join(", ");
-  const say = callout ?? (view.phase === "bidding" && !busy && lastBid ? bidText(lastBid.bid) : null) ?? (declared || null);
+  const say = callout ?? (view.phase === "bidding" && !busy && lastBid ? bidText(lastBid.bid) : null);
   return (
     <div className={`seat ${pos} ${turn ? "turn" : ""} ${ours ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
       <div className="name">
