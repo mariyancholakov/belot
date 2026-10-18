@@ -150,13 +150,12 @@ const recipes = {
   dealOne(a: A) {
     flick(a, 0, 1.6);
   },
-  /** A packet of cards slid across to a player. */
+  /** A packet of cards slid across to a player: a light slide while it flies, then a soft settle as it lands (DEAL_FLY). */
   dealPacket(a: A) {
-    slide(a, 0, 0.16, 0.3, 6000, 2600);
-    click(a, 0.13, 0.24, 2200);
-    click(a, 0.155, 0.18, 1900);
-    click(a, 0.18, 0.14, 2400);
-    thump(a, 0.14, 0.16);
+    slide(a, 0, 0.3, 0.13, 5200, 2400);
+    thump(a, 0.41, 0.2);
+    click(a, 0.41, 0.15, 2100);
+    click(a, 0.435, 0.09, 1800);
   },
   /** Riffle shuffle, bridge, then squaring up the deck. */
   shuffle(a: A) {
