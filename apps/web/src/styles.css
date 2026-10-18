@@ -1008,14 +1008,7 @@ button:disabled { cursor: default; }
 @media (max-width: 759px) and (orientation: portrait) {
   .table > .topbar { padding-top: 14px; }
 }
-/* ---------- home: a fanned hand over the form, the way back to a running game, the last few games ---------- */
-.home-fan { display: flex; justify-content: center; height: calc(var(--cw) * 1.25); margin-bottom: 4px; --cw: 54px; }
-.home-fan .card.small {
-  --cw: 54px; margin-left: -22px; transform-origin: 50% 160%; rotate: calc(var(--off, 0) * 9deg); translate: 0 calc(var(--off, 0) * var(--off, 0) * 3px);
-  animation: fan-in 0.6s var(--ease) both; animation-delay: calc((var(--off, 0) + 2) * 60ms);
-}
-.home-fan .card.small:first-child { margin-left: 0; }
-@keyframes fan-in { from { rotate: 0deg; translate: 0 10px; opacity: 0; } }
+/* ---------- home: the way back to a running game, the last few games ---------- */
 /* the code and its button share a row; the button turns black once four letters are in */
 .join, .field { grid-template-columns: minmax(0, 1fr); }
 .join-row { display: flex; gap: 10px; min-width: 0; }

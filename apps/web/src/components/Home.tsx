@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { HistoryGame } from "@belot/protocol";
 import { bg } from "../i18n/bg";
-import { CardFace } from "./Card";
 import { Controls } from "./Controls";
 import { Icon } from "./Icon";
 import { LogoMark } from "./Logo";
@@ -20,14 +19,6 @@ interface Props {
   onJoin: (nickname: string, code: string) => void;
   onHistory: () => void;
 }
-
-/** The four highest trumps, fanned above the form like a hand just picked up. */
-const FAN = [
-  { suit: "hearts", rank: "J" },
-  { suit: "hearts", rank: "9" },
-  { suit: "hearts", rank: "A" },
-  { suit: "hearts", rank: "10" },
-] as const;
 
 const RECENT = 3;
 
@@ -102,12 +93,6 @@ export function Home({ nickname: saved, initialCode, ready, codeError, resumeCod
       </a>
       <div className="page-controls">
         <Controls />
-      </div>
-
-      <div className="home-fan" aria-hidden="true">
-        {FAN.map((card, i) => (
-          <CardFace key={card.rank} card={card} small fan={i - (FAN.length - 1) / 2} />
-        ))}
       </div>
 
       <div className="home-panel">
