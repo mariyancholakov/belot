@@ -42,7 +42,7 @@ export interface GameView {
   hanging: number;
   history: RoundSummary[];
   winner: Team | null;
-  /** The face-up first card of a "късметче" deal, known to everyone. */
+  /** The card a "късметче" deal throws face up to the dealer's partner, known to everyone. */
   lucky: LuckyCard | null;
   /** The deck was freshly shuffled for this deal. */
   fresh: boolean;

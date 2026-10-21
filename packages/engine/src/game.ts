@@ -41,7 +41,7 @@ export type GameAction =
   /** Dealer shuffles the deck (only offered after three all-pass deals in a row). */
   | { type: "shuffle" }
   | { type: "skipShuffle" }
-  /** Dealer deals; `lucky` turns the first card dealt face up for everybody ("късметче"). */
+  /** Dealer deals; `lucky` throws the dealer's partner their first card face up, for everybody to see ("късметче"). */
   | { type: "deal"; lucky: boolean };
 
 export type GameEvent =
@@ -61,7 +61,7 @@ export type GameEvent =
   | { type: "roundScored"; result: RoundResult; summary: RoundSummary }
   | { type: "gameOver"; winner: Team };
 
-/** The face-up first card of a "късметче" deal. */
+/** The card a "късметче" deal throws face up to the dealer's partner. */
 export interface LuckyCard {
   seat: number;
   card: Card;
@@ -340,8 +340,9 @@ function applyDeal(state: GameState, seat: number, lucky: boolean, events: GameE
   const { hands, rest } = dealFirst(state.deck, state.dealer);
   state.hands = hands;
   state.talon = rest;
-  const first = nextSeat(state.dealer);
-  state.lucky = lucky ? { seat: first, card: hands[first]![0]! } : null;
+  // The lucky card goes to the dealer's partner, never to an opponent.
+  const partner = (state.dealer + 2) % 4;
+  state.lucky = lucky ? { seat: partner, card: hands[partner]![0]! } : null;
   state.phase = "bidding";
   state.turn = state.bidding.turn;
   events.push({ type: "dealt", round: state.round, dealer: state.dealer, lucky: state.lucky });

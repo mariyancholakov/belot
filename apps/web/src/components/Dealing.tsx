@@ -178,7 +178,7 @@ export function ShufflePrompt({ onChoose }: ChoiceProps) {
   );
 }
 
-/** The dealer deals normally or with a "късметче" (first card turned face up). */
+/** The dealer deals normally or with a "късметче" (their partner's first card thrown face up). */
 export function DealPrompt({ onDeal }: { onDeal: (lucky: boolean) => void }) {
   return (
     <section className="felt-pop prompt" aria-label={bg.luckyAsk}>

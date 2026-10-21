@@ -214,11 +214,12 @@ describe("game", () => {
     expect(next.state.fresh).toBe(false);
   });
 
-  it("turns the first dealt card face up when the dealer asks for a lucky card", () => {
+  it("throws the dealer's partner their first card face up when the dealer asks for a lucky card", () => {
     const plain = startedGame(4, 0, 16, false);
     expect(plain.lucky).toBeNull();
     const lucky = startedGame(4, 0, 16, true);
-    expect(lucky.lucky).toEqual({ seat: 1, card: lucky.hands[1]![0] });
+    expect(lucky.lucky).toEqual({ seat: 2, card: lucky.hands[2]![0] });
+    expect(startedGame(4, 3, 16, true).lucky?.seat).toBe(1);
     expect(lucky.hands).toEqual(plain.hands); // same deal, just revealed
     const cut = applyAction(newGame(4), 3, { type: "cut", position: 16 });
     if (!cut.ok) throw new Error(cut.error);

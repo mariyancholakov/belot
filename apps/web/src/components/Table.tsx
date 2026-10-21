@@ -143,7 +143,8 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       later(gen, p * DEAL_GAP + DEAL_FLY, () => {
         counts[seats[p % 4]!]! += size;
         setShown([...counts]);
-        if (p === 0 && hasLucky) {
+        // the lucky card lands face up with the first packet to the dealer's partner
+        if (p === 1 && hasLucky) {
           setLuckyHidden(false);
           playSound("belot");
         }
