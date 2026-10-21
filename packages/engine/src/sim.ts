@@ -195,9 +195,13 @@ export function legalMask(hand: number, trick: readonly number[], leader: number
 
 export const legalNow = (r: SimRound): number => legalMask(r.hands[r.turn]!, r.trick, r.leader, r.turn, r.contract);
 
-/** Whether a K or Q played from `hand` calls a belot (the bot always calls it). */
-export function callsBelot(hand: number, card: number, c: number): boolean {
+/**
+ * Whether a K or Q played from `hand` into `trick` calls a belot (the bot always calls it). It has
+ * to lead the trick or follow the led suit.
+ */
+export function callsBelot(hand: number, card: number, c: number, trick: readonly number[]): boolean {
   if (c === NO_TRUMPS || TRUMP[c]![card] !== 1) return false;
+  if (trick.length > 0 && trick[0]! >> 3 !== card >> 3) return false;
   const rank = card & 7;
   if (rank !== 5 && rank !== 6) return false;
   const partner = (card & ~7) | (rank === 5 ? 6 : 5);
@@ -208,7 +212,7 @@ export function callsBelot(hand: number, card: number, c: number): boolean {
 export function playCard(r: SimRound, card: number): void {
   const seat = r.turn;
   const hand = r.hands[seat]!;
-  if (callsBelot(hand, card, r.contract)) r.bonus[(seat & 1) as Team] += BELOT_POINTS;
+  if (callsBelot(hand, card, r.contract, r.trick)) r.bonus[(seat & 1) as Team] += BELOT_POINTS;
   r.hands[seat] = hand & ~(1 << card);
   r.played |= 1 << card;
   r.trick.push(card);

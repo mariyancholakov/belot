@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Card, Rank, Suit } from "./cards";
 import { applyAction, canClaim, cutterOf, legalActions, newGame, type GameAction, type GameState } from "./game";
+import { viewFor } from "./view";
 
 /** Tiny seeded RNG for the test players. */
 function rng(seed: number) {
@@ -230,9 +231,9 @@ describe("game", () => {
 });
 
 describe("belot call", () => {
-  it("is called once, when the first of K+Q of trump is played and the player says so", () => {
-    // Find a seed where someone holds K+Q of the bid suit, then play it out.
-    for (let seed = 1; seed < 200; seed++) {
+  it("is called once, when the first of K+Q of trump is played on a trump lead (or leads) and the player says so", () => {
+    // Find a seed where someone holds K+Q of the bid suit and plays the first of them on a trump lead or as the lead.
+    for (let seed = 1; seed < 400; seed++) {
       let s = startedGame(seed);
       const bid = (seat: number, b: GameAction) => {
         const r = applyAction(s, seat, b);
@@ -248,16 +249,20 @@ describe("belot call", () => {
 
       const rand = rng(seed);
       const belots: number[] = [];
+      let first: "called" | "off-suit" | null = null;
       while (s.phase === "playing") {
         const options = legalActions(s, s.turn);
         const pick = options[Math.floor(rand() * options.length)]!;
+        if (first === null && s.turn === holder && pick.type === "play" && pick.card.suit === "hearts" && (pick.card.rank === "K" || pick.card.rank === "Q")) {
+          first = s.trick.length === 0 || s.trick[0]!.card.suit === "hearts" ? "called" : "off-suit";
+        }
         const r = applyAction(s, s.turn, pick.type === "play" && s.hands[s.turn]!.length > 0 ? { ...pick, belot: true } : pick);
         if (!r.ok) throw new Error(r.error);
         belots.push(...r.events.flatMap((e) => (e.type === "belot" ? [e.seat] : [])));
         s = r.state;
       }
-      expect(belots).toEqual([holder]);
-      return;
+      expect(belots).toEqual(first === "called" ? [holder] : []);
+      if (first === "called") return;
     }
     throw new Error("no seed with a belot found");
   });
@@ -333,6 +338,49 @@ describe("belot is only counted when called", () => {
     const called = applyAction(s, 0, { type: "play", card: k("K", "hearts"), belot: true });
     expect(called.ok && called.events.some((e) => e.type === "belot")).toBe(true);
     expect(called.ok && called.state.belots[0]).toEqual(["hearts"]);
+  });
+
+  it("counts a belot that follows the led suit", () => {
+    const s = playing([[k("K", "hearts"), k("Q", "hearts"), k("7", "clubs")], [k("7", "spades")], [k("8", "spades")], [k("7", "hearts")]], "hearts");
+    s.trick = [{ seat: 3, card: k("7", "hearts") }];
+    expect(viewFor(s, 0).belotCards).toEqual([k("K", "hearts"), k("Q", "hearts")]);
+    const r = applyAction(s, 0, { type: "play", card: k("Q", "hearts"), belot: true });
+    expect(r.ok && r.state.belots[0]).toEqual(["hearts"]);
+  });
+
+  it("cannot be called on another suit's trick, even when trumping in", () => {
+    const s = playing([[k("K", "hearts"), k("Q", "hearts"), k("7", "clubs")], [k("7", "spades")], [k("8", "spades")], [k("9", "spades")]], "hearts");
+    s.trick = [{ seat: 3, card: k("9", "spades") }];
+    expect(viewFor(s, 0).belotCards).toEqual([]);
+    const r = applyAction(s, 0, { type: "play", card: k("K", "hearts"), belot: true });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.events.some((e) => e.type === "belot")).toBe(false);
+    expect(r.state.belots[0]).toEqual([]);
+  });
+
+  it("in a suit contract, is only of trumps", () => {
+    const s = playing([[k("K", "clubs"), k("Q", "clubs"), k("7", "hearts")], [k("7", "spades")], [k("8", "spades")], [k("9", "spades")]], "hearts");
+    expect(viewFor(s, 0).belotCards).toEqual([]);
+    const r = applyAction(s, 0, { type: "play", card: k("K", "clubs"), belot: true });
+    expect(r.ok && r.events.some((e) => e.type === "belot")).toBe(false);
+  });
+
+  it("in all-trumps, is of any suit, as long as it leads or follows the led suit", () => {
+    const hand = () => [k("K", "clubs"), k("Q", "clubs"), k("7", "hearts")];
+    const lead = playing([hand(), [k("7", "spades")], [k("8", "spades")], [k("9", "spades")]], "all-trumps");
+    const led = applyAction(lead, 0, { type: "play", card: k("K", "clubs"), belot: true });
+    expect(led.ok && led.state.belots[0]).toEqual(["clubs"]);
+
+    const follow = playing([hand(), [k("7", "spades")], [k("8", "spades")], [k("7", "clubs")]], "all-trumps");
+    follow.trick = [{ seat: 3, card: k("7", "clubs") }];
+    const followed = applyAction(follow, 0, { type: "play", card: k("Q", "clubs"), belot: true });
+    expect(followed.ok && followed.state.belots[0]).toEqual(["clubs"]);
+
+    const discard = playing([hand(), [k("7", "spades")], [k("8", "spades")], [k("9", "spades")]], "all-trumps");
+    discard.trick = [{ seat: 3, card: k("9", "spades") }];
+    expect(viewFor(discard, 0).belotCards).toEqual([]);
+    const thrown = applyAction(discard, 0, { type: "play", card: k("K", "clubs"), belot: true });
+    expect(thrown.ok && thrown.state.belots[0]).toEqual([]);
   });
 });
 

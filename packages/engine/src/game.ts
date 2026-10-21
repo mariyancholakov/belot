@@ -29,7 +29,7 @@ export type Phase = "shuffling" | "cutting" | "dealing" | "bidding" | "playing" 
 
 export type GameAction =
   | { type: "bid"; bid: BidAction }
-  /** `belot`: call the belot when this is the first card of a held K+Q of trump. */
+  /** `belot`: call the belot when this is the first card of a held K+Q of trump, led or following the led suit. */
   | { type: "play"; card: Card; belot?: boolean }
   /** Before a seat's first card: declare the announcements it holds, or keep them to itself. */
   | { type: "announce"; declare: boolean }
@@ -372,12 +372,15 @@ function applyPlay(state: GameState, seat: number, card: Card, belot: boolean, e
     return { ok: false, error: "illegal card" };
   }
 
+  // Belot counts only when the player calls it as the first card of a held K+Q pair is played,
+  // leading the trick or following the led suit.
+  const belotCalled = belot && belotCallable(hand, card, contract, state.trick) && !state.belots[seat]!.includes(card.suit);
+
   state.hands[seat] = hand.filter((c) => !cardEquals(c, card));
   state.trick.push({ seat, card });
   state.collected.push(card);
 
-  // Belot counts only when the player calls it as the first card of a held K+Q pair is played.
-  if (belot && belotCallable(hand, card, contract) && !state.belots[seat]!.includes(card.suit)) {
+  if (belotCalled) {
     state.belots[seat]!.push(card.suit);
     events.push({ type: "belot", seat, suit: card.suit });
   }

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { findAnnouncements, resolveDeclared } from "./announcements";
-import { fullDeck } from "./cards";
+import { fullDeck, type Card } from "./cards";
 import { mulberry32, shuffledDeck } from "./deal";
 import { applyAction, mustDecideAnnouncements, newGame, type GameAction, type GameState } from "./game";
 import {
   announcementPoints,
+  callsBelot,
   cardIndex,
   cardOf,
   cardsOf,
@@ -100,5 +101,21 @@ describe("announcement points", () => {
         expect(announcementPoints(hands.map(maskOf), c)).toEqual(expected);
       }
     }
+  });
+});
+
+describe("belot in the simulation", () => {
+  const i = (rank: Card["rank"], suit: Card["suit"]) => cardIndex({ rank, suit });
+  const hand = (suit: Card["suit"]) => maskOf([{ rank: "K", suit }, { rank: "Q", suit }, { rank: "7", suit: "diamonds" }]);
+
+  it("is called leading or following the led suit, never on another suit's trick", () => {
+    const hearts = contractId("hearts");
+    expect(callsBelot(hand("hearts"), i("K", "hearts"), hearts, [])).toBe(true);
+    expect(callsBelot(hand("hearts"), i("Q", "hearts"), hearts, [i("7", "hearts")])).toBe(true);
+    expect(callsBelot(hand("hearts"), i("K", "hearts"), hearts, [i("7", "spades")])).toBe(false);
+    expect(callsBelot(hand("clubs"), i("K", "clubs"), hearts, [])).toBe(false);
+    const all = contractId("all-trumps");
+    expect(callsBelot(hand("clubs"), i("K", "clubs"), all, [])).toBe(true);
+    expect(callsBelot(hand("clubs"), i("K", "clubs"), all, [i("9", "spades")])).toBe(false);
   });
 });

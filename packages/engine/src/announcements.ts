@@ -1,5 +1,6 @@
 import { cardEquals, fullDeck, isTrump, RANKS, strength, SUITS, type Card, type Contract, type Rank, type Suit } from "./cards";
 import type { Team } from "./scoring";
+import type { Play } from "./tricks";
 
 export type AnnouncementKind = "terca" | "fifty" | "hundred" | "carre";
 
@@ -131,10 +132,20 @@ export function resolveAnnouncements(hands: readonly (readonly Card[])[], contra
   );
 }
 
-/** Whether `card` is a K or Q that completes the call of a belot the hand holds in `contract`. */
-export function belotCallable(hand: readonly Card[], card: Card, contract: Contract): boolean {
+/**
+ * Whether `card` is a K or Q that completes the call of a belot the hand holds in `contract`, played
+ * into `trick`. The card has to lead the trick or be of the led suit: a belot thrown on another
+ * suit's trick (discarded, or trumped in) cannot be called.
+ */
+export function belotCallable(hand: readonly Card[], card: Card, contract: Contract, trick: readonly Play[]): boolean {
   const partner = card.rank === "K" ? "Q" : card.rank === "Q" ? "K" : null;
-  return partner !== null && findBelots(hand, contract).includes(card.suit) && hand.some((c) => c.suit === card.suit && c.rank === partner);
+  const led = trick[0]?.card.suit;
+  return (
+    partner !== null &&
+    (led === undefined || led === card.suit) &&
+    findBelots(hand, contract).includes(card.suit) &&
+    hand.some((c) => c.suit === card.suit && c.rank === partner)
+  );
 }
 
 /**
