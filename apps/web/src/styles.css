@@ -374,6 +374,12 @@ button:disabled { cursor: default; }
 .backs .card.small:first-child { margin-left: 0; }
 /* a card leaving an opponent's hand closes the fan smoothly */
 .backs .card.small { transition: rotate 0.24s var(--ease), translate 0.24s var(--ease); }
+/* the lucky card lies face up on the table side of its owner, upright, where nothing covers it */
+.lucky-show { position: absolute; z-index: 4; pointer-events: none; }
+.lucky-show .card.small { --cw: var(--top-cw); }
+.seat.top .lucky-show { top: calc(100% + 8px); left: 50%; translate: -50% 0; }
+.seat.left .lucky-show { left: calc(100% + 8px); top: 50%; translate: 0 -50%; }
+.seat.right .lucky-show { right: calc(100% + 8px); top: 50%; translate: 0 -50%; }
 
 /* trick */
 .center { --ph: calc(var(--play-cw) * 1.42); position: absolute; inset: 7% 0 0; display: grid; place-items: center; pointer-events: none; }

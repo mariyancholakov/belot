@@ -120,9 +120,8 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   );
   useEffect(preloadVoice, []);
 
-  // The lucky card ("късметче") stays face up beside its owner until it is played.
+  // The lucky card ("късметче") is face up for everybody while the cards are dealt, from the moment it lands; then its owner takes it into their hand.
   const [luckyHidden, setLuckyHidden] = useState(false);
-  const [luckyGone, setLuckyGone] = useState(false);
   /** Cards that arrived by the deal animation settle in; cards on a reloaded page deal in themselves. */
   const [dealtByAnimation, setDealtByAnimation] = useState(false);
 
@@ -134,10 +133,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
     setShown([...counts]);
     setStage({ kind: "deal", rest, order: seats.map((seat) => POSITIONS[rel(seat)]!) });
     setDealtByAnimation(true);
-    if (!rest) {
-      setLuckyGone(false);
-      setLuckyHidden(hasLucky);
-    }
+    if (!rest) setLuckyHidden(hasLucky);
     sizes.forEach((size, p) => {
       playSound("dealPacket", p * DEAL_GAP);
       later(gen, p * DEAL_GAP + DEAL_FLY, () => {
@@ -205,9 +201,6 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
       switch (e.type) {
         case "played":
           playSound("play");
-          if (viewRef.current.lucky && e.card.suit === viewRef.current.lucky.card.suit && e.card.rank === viewRef.current.lucky.card.rank) {
-            setLuckyGone(true);
-          }
           break;
         case "contract":
           startDeal(true, view.dealer, false);
@@ -379,7 +372,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   /** The shuffle and deal choices are popups; the status line would repeat them. */
   const deciding = stage?.kind === "wait" && view.turn === me && (view.phase === "shuffling" || view.phase === "dealing");
   const dealerName = names[view.dealer] ?? "";
-  const lucky = view.lucky && !luckyGone && !luckyHidden && (view.phase === "bidding" || view.phase === "playing") ? view.lucky : null;
+  const lucky = view.lucky && !luckyHidden && stage?.kind === "deal" && !stage.rest ? view.lucky : null;
   const counts = (seat: number) => (dealtSoFar ? dealtSoFar[seat]! : view.handCounts[seat] ?? 0);
   const last = view.history[view.history.length - 1];
   return (
@@ -501,7 +494,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           chooseRef.current[i] = choose;
           return (
             <div key={card.suit + card.rank} className={`hand-slot ${ok ? "" : "off"}`} data-card={card.suit + card.rank}>
-              <CardFace card={card} fan={i - mid} lucky={view.lucky?.seat === me && view.lucky.card.suit === card.suit && view.lucky.card.rank === card.rank && !luckyGone} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={choose} button />
+              <CardFace card={card} fan={i - mid} lucky={lucky?.seat === me && lucky.card.suit === card.suit && lucky.card.rank === card.rank} land={dealtByAnimation} deal={!dealtByAnimation} delay={dealtByAnimation ? 0 : i * 45} disabled={!ok} onClick={choose} button />
             </div>
           );
         })}
@@ -659,6 +652,8 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
   const timed = turn && clock !== null && (view.phase === "bidding" || view.phase === "playing");
   const lastBid = [...view.bidLog].reverse().find((b) => b.seat === seat);
   const say = callout ?? (view.phase === "bidding" && !busy && lastBid ? bidText(lastBid.bid) : null);
+  /** Face-down cards in the fan: the lucky card, while it is shown, lies apart from them. */
+  const backs = Math.max(0, Math.min(count, 8) - (lucky ? 1 : 0));
   return (
     <div className={`seat ${pos} ${turn ? "turn" : ""} ${ours ? "ours" : "theirs"} ${connected ? "" : "offline"}`}>
       <div className="name">
@@ -678,10 +673,15 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
       </div>
       {pos !== "bottom" && (
         <div className="backs" aria-label={`${count}`}>
-          {Array.from({ length: Math.min(count, 8) }, (_, i) => {
-            const off = i - (Math.min(count, 8) - 1) / 2;
-            return i === 0 && lucky ? <CardFace key="lucky" card={lucky} small lucky fan={off} /> : <CardBack key={i} small fan={off} />;
-          })}
+          {Array.from({ length: backs }, (_, i) => (
+            <CardBack key={i} small fan={i - (backs - 1) / 2} />
+          ))}
+        </div>
+      )}
+      {/* the lucky card lies face up beside its owner, on the table side, clear of their avatar and cards */}
+      {pos !== "bottom" && lucky && (
+        <div className="lucky-show" aria-label={bg.luckyLabel}>
+          <CardFace card={lucky} small lucky />
         </div>
       )}
     </div>
