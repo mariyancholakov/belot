@@ -237,9 +237,10 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
           laidTimer.current = setTimeout(() => setLaid(null), 4200);
           break;
         case "announcements":
-          // once the first trick is in, everyone sees what each player's announcements are worth, once
+          // once the first trick is in, everyone sees what each player's announcements are worth, once;
+          // never their suit, which would tell the opponents where the cards are
           e.result.counted.forEach((list, seat) => {
-            if (list.length > 0) showCallout(seat, list.map((x) => `${announcementName[x.kind]}${x.suit ? ` ${suitSymbol[x.suit]}` : ""} · ${x.points}`).join(", "), 3400);
+            if (list.length > 0) showCallout(seat, list.map((x) => `${announcementName[x.kind]} · ${x.points}`).join(", "), 3400);
           });
           break;
         case "trickWon":
