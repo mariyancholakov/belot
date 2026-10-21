@@ -303,10 +303,13 @@ button:disabled { cursor: default; }
   transition: box-shadow 0.2s, background-color 0.2s, color 0.2s;
 }
 .seat .name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.seat .avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex: none; display: block; font-style: normal; box-shadow: 0 0 0 2.5px var(--theirs); }
-.seat.ours .avatar { box-shadow: 0 0 0 2.5px var(--ours); }
+.seat .avatar { width: 36px; height: 36px; border-radius: 50%; overflow: hidden; flex: none; display: block; font-style: normal; }
 .seat .avatar svg, .slot-avatar svg { display: block; width: 100%; height: 100%; }
-.seat .name em { font-style: normal; font-size: 0.68rem; font-weight: 700; background: var(--chip-ink); color: var(--felt-a); border-radius: 99px; padding: 0 6px; }
+/* the player under hand (after the dealer: bids and leads first) carries a small ink tag */
+.seat .name em.under-hand {
+  flex: none; font-style: normal; font-size: 0.7rem; font-weight: 700; line-height: 1.5; white-space: nowrap;
+  background: var(--accent); color: var(--accent-ink); border-radius: 99px; padding: 0 8px;
+}
 .seat .name small { opacity: 0.7; font-size: 0.78rem; }
 .seat .name small.off { color: var(--theirs); opacity: 1; }
 .seat.turn .name { box-shadow: 0 0 0 3px var(--ring); animation: ring 1.8s ease-in-out infinite; }
@@ -314,16 +317,14 @@ button:disabled { cursor: default; }
 .seat.offline { opacity: 0.55; }
 /* what a player says (a bid, the belot, an announcement) comes out of their name like a speech balloon */
 .seat .name { position: relative; z-index: 3; }
-/* the time left to move runs down as a navy ring round the avatar, going red at the end like a fuse */
+/* the time left to move runs down as a thin navy bar under the name, going red at the end like a fuse */
 @property --left { syntax: "<number>"; inherits: false; initial-value: 1; }
 @property --clock-c { syntax: "<color>"; inherits: false; initial-value: #22305e; }
 .avatar-slot { position: relative; display: block; flex: none; font-style: normal; }
+/* in a name pill it runs along the pill's bottom edge, from the avatar to the round end */
 .clock {
-  /* inside a name pill the ring hugs the avatar; a lone avatar (portrait phones) gets a wider one */
-  --clock-w: 2.5px; position: absolute; inset: -4px; border-radius: 50%; pointer-events: none; --clock-c: var(--ring);
-  background: conic-gradient(var(--clock-c) calc(var(--left) * 1turn), color-mix(in srgb, var(--ring) 16%, transparent) 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--clock-w) - 0.5px), #000 calc(100% - var(--clock-w)));
-  mask: radial-gradient(farthest-side, transparent calc(100% - var(--clock-w) - 0.5px), #000 calc(100% - var(--clock-w)));
+  position: absolute; left: 50px; right: 16px; bottom: 2px; height: 3px; border-radius: 2px; pointer-events: none; --clock-c: var(--ring);
+  background: linear-gradient(90deg, var(--clock-c) calc(var(--left) * 100%), color-mix(in srgb, var(--ring) 16%, transparent) 0);
   animation: clock-run var(--dur) linear forwards;
 }
 @keyframes clock-run { 0% { --left: 1; --clock-c: var(--ring); } 72% { --clock-c: var(--ring); } 100% { --left: 0; --clock-c: var(--danger); } }
@@ -519,7 +520,6 @@ button:disabled { cursor: default; }
 @keyframes pop { from { transform: scale(0.82); opacity: 0; } 60% { transform: scale(1.06); opacity: 1; } to { transform: scale(1); } }
 @keyframes rise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes avatar-turn { 0%, 100% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 3px color-mix(in srgb, var(--ring) 40%, transparent); } 50% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 10px color-mix(in srgb, var(--ring) 0%, transparent); } }
 @keyframes ring { 0%, 100% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 3px color-mix(in srgb, var(--ring) 35%, transparent); } 50% { box-shadow: 0 0 0 3px var(--ring), 0 0 0 9px color-mix(in srgb, var(--ring) 0%, transparent); } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -740,7 +740,7 @@ button:disabled { cursor: default; }
   .leave-btn span { display: none; }
 }
 
-@media (min-width: 760px) { .seat .avatar { width: 44px; height: 44px; } .seat .name { font-size: 1.05rem; } }
+@media (min-width: 760px) { .seat .avatar { width: 44px; height: 44px; } .seat .name { font-size: 1.05rem; } .seat .clock { left: 58px; } }
 
 /* the designs on the back of the cards, picked by the host and applied to every deck through data-back */
 /* the backs of the cards, after real decks drawn quietly: a casino diamond lattice, interlaced circles,
@@ -803,11 +803,11 @@ button:disabled { cursor: default; }
 @media (max-width: 759px), (max-height: 560px) and (orientation: landscape) {
   :root { --top-cw: clamp(30px, 8.6vw, 40px); --side-cw: clamp(26px, 7.4vw, 36px); }
   .felt .seat .name { gap: 6px; padding: 3px 12px 3px 3px; font-size: 0.84rem; max-width: 124px; }
-  .felt .seat .avatar { width: 28px; height: 28px; box-shadow: 0 0 0 2px var(--theirs); }
-  .felt .seat.ours .avatar { box-shadow: 0 0 0 2px var(--ours); }
+  .felt .seat .avatar { width: 28px; height: 28px; }
+  .felt .seat .clock { left: 38px; right: 12px; bottom: 1px; }
   .felt .seat.turn .name { box-shadow: 0 0 0 2px var(--ring); }
   .felt .seat { gap: 4px; }
-  .felt .seat .name em { font-size: 0.6rem; }
+  .felt .seat .name em.under-hand { font-size: 0.62rem; padding: 0 6px; }
   /* the bid panel is three short rows, so it leaves the other players' names visible */
   .felt-pop { padding: 10px 12px 12px; border-radius: 18px; }
   .felt-pop .bidding-head { margin-bottom: 8px; gap: 2px; }
@@ -859,14 +859,12 @@ button:disabled { cursor: default; }
   .bid.suit .lbl { font-size: 0.62rem; }
   .bid.wide { font-size: 0.84rem; }
 
-  .felt .seat .name { flex-direction: column; gap: 0; padding: 0; background: none; backdrop-filter: none; box-shadow: none; animation: none; max-width: none; overflow: visible; }
+  .felt .seat .name { flex-direction: column; gap: 0; padding: 0; border: 0; background: none; backdrop-filter: none; box-shadow: none; animation: none; max-width: none; overflow: visible; }
   .felt .seat.turn .name { box-shadow: none; animation: none; }
-  .felt .seat .avatar { width: 46px; height: 46px; box-shadow: 0 0 0 2px var(--theirs), var(--shadow-2); }
-  .felt .seat.ours .avatar { box-shadow: 0 0 0 2px var(--ours), var(--shadow-2); }
-  .felt .seat.turn .avatar { box-shadow: 0 0 0 3px var(--ring), var(--shadow-2); }
-  .felt .seat .clock { inset: -8px; --clock-w: 3.5px; }
-  /* a bot to move has no clock: its avatar breathes instead */
-  .felt .seat.turn .avatar-slot:not(.timed) .avatar { animation: avatar-turn 1.6s ease-in-out infinite; }
+  .felt .seat .avatar { width: 46px; height: 46px; box-shadow: var(--shadow-2); }
+  .felt .seat .clock { left: 50%; right: auto; width: 56px; translate: -50% 0; bottom: -7px; }
+  /* under the name label, on top of the cards fanned behind it */
+  .felt .seat .name em.under-hand { position: relative; z-index: 2; margin-top: 3px; }
   .felt .seat .name > span:not(.balloon) {
     position: relative; z-index: 2; display: block; max-width: 84px; margin-top: -9px; padding: 1px 9px 2px; border-radius: 7px;
     background: var(--surface); color: var(--text); border: 1px solid var(--line); box-shadow: var(--shadow-1); font-size: 0.74rem; font-weight: 650; line-height: 1.25;
@@ -990,6 +988,8 @@ button:disabled { cursor: default; }
 .seat .name { min-width: 0; }
 .seat .name > span:not(.balloon) { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .felt .seat .name { max-width: min(190px, 30vw); }
+/* the under-hand tag needs room beside the name, which should still read in full */
+.felt .seat .name:has(.under-hand) { max-width: min(290px, 36vw); }
 @media (max-width: 759px) and (orientation: portrait) { .felt .seat .name { max-width: none; } }
 /* where a name sits in running text, a long one breaks instead of overflowing */
 .bid-log, .waiting, .hint, .cut-hint { overflow-wrap: anywhere; }

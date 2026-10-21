@@ -373,6 +373,8 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
   const deciding = stage?.kind === "wait" && view.turn === me && (view.phase === "shuffling" || view.phase === "dealing");
   const dealerName = names[view.dealer] ?? "";
   const lucky = view.lucky && !luckyHidden && stage?.kind === "deal" && !stage.rest ? view.lucky : null;
+  /** The player after the dealer, who bids and leads first this deal. */
+  const underHand = view.phase === "bidding" || view.phase === "playing" ? (view.dealer + 1) % 4 : null;
   const counts = (seat: number) => (dealtSoFar ? dealtSoFar[seat]! : view.handCounts[seat] ?? 0);
   const last = view.history[view.history.length - 1];
   return (
@@ -409,7 +411,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         )}
         {POSITIONS.slice(1).map((pos, i) => {
           const seat = (me + i + 1) % 4;
-          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} callout={callouts[seat] ?? null} clock={turnLeftMs} clockKey={updateId} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
+          return <Seat key={pos} pos={pos} seat={seat} view={view} count={counts(seat)} busy={animating} lucky={lucky?.seat === seat ? lucky.card : null} underHand={underHand === seat} callout={callouts[seat] ?? null} clock={turnLeftMs} clockKey={updateId} name={names[seat]!} connected={room.seats[seat]?.connected ?? false} ours={seat % 2 === myTeam} />;
         })}
 
         <div className={`center ${sweepTo ? `sweep-${sweepTo}` : ""}`} aria-live="polite">
@@ -468,7 +470,7 @@ export function Table({ view, room, events, updateId, turnLeftMs, send, onNewGam
         )}
       </div>
 
-      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} callout={callouts[me] ?? null} clock={turnLeftMs} clockKey={updateId} name={names[me]!} connected ours />
+      <Seat pos="bottom" seat={me} view={view} count={counts(me)} busy={animating} lucky={null} underHand={underHand === me} callout={callouts[me] ?? null} clock={turnLeftMs} clockKey={updateId} name={names[me]!} connected ours />
       <div
         className={`hand ${myTurn ? "active" : ""}`}
         ref={handEl}
@@ -639,6 +641,8 @@ interface SeatProps {
   busy: boolean;
   /** The face-up lucky card this player holds, if any. */
   lucky: Card | null;
+  /** This player is under hand: after the dealer, bidding and leading first. */
+  underHand: boolean;
   /** A one-off line this player just said, such as the belot call. */
   callout: string | null;
   /** Time the player to move has left, and a key that restarts the bar on every update. */
@@ -646,9 +650,9 @@ interface SeatProps {
   clockKey: number;
 }
 
-function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, callout, clock, clockKey }: SeatProps) {
+function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, underHand, callout, clock, clockKey }: SeatProps) {
   const turn = !busy && view.turn === seat && view.phase !== "roundEnd" && view.phase !== "gameOver";
-  /** A person to move has a clock: it runs down as a ring round their avatar. */
+  /** A person to move has a clock: it runs down as a bar under their name. */
   const timed = turn && clock !== null && (view.phase === "bidding" || view.phase === "playing");
   const lastBid = [...view.bidLog].reverse().find((b) => b.seat === seat);
   const say = callout ?? (view.phase === "bidding" && !busy && lastBid ? bidText(lastBid.bid) : null);
@@ -661,10 +665,11 @@ function Seat({ pos, seat, view, name, connected, ours, count, busy, lucky, call
           <i className="avatar">
             <Avatar name={name} size={44} />
           </i>
-          {timed && <i className="clock" key={clockKey} style={{ ["--dur" as string]: `${clock}ms` }} />}
         </i>
         <span>{name}</span>
+        {underHand && <em className="under-hand">{bg.underHand}</em>}
         {!connected && <small className="off">{bg.offline}</small>}
+        {timed && <i className="clock" key={clockKey} style={{ ["--dur" as string]: `${clock}ms` }} aria-hidden="true" />}
         {say && (
           <span className="balloon" key={say}>
             <SuitText text={say} />
